@@ -5,6 +5,8 @@
 ## 0.2.0 — 2026-11-07
 
 구조
+- macOS(Apple Silicon) 세팅 경로: SETUP.md를 macOS·Windows 병기로 다시 씀, CI에 macOS 추가(점검 + Miniforge conda 설치)
+- `docs/TRAINING.md`: 학습 실험 가이드라인, `.gitignore`에 모델 파일 제외
 - 결과 페이지를 `web/`로 분리: `web/page_template.html`, `web/build_page.py`, `web/dist/index.html` (예전 `sim/out/index.html`)
 - `dev.py` 추가: `setup`(conda 또는 `--venv`) · `check` · `build` · `sim`
 - `docs/ARCHITECTURE.md`, `CLAUDE.md`, 이 파일 추가

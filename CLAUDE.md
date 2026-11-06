@@ -25,12 +25,14 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - 텍스트 파일은 UTF-8 + LF (`.gitattributes`). 파일을 열 때 `encoding="utf-8"`를 꼭 쓴다 (Windows 기본 cp949).
 - 경로는 스크립트 위치 기준(`pathlib.Path(__file__)`)으로 잡는다. 어느 폴더에서 실행해도 같아야 한다.
 - 코드 상자 원본은 `kit/`뿐이다. `web/page_template.html`의 `tpl-*` 상자는 비워 두고 `web/build_page.py`가 채운다.
-- 커밋 전: `python dev.py check` (마지막 줄 `결과: 모두 통과`). 브랜치 → 푸시 → CI(Windows·Ubuntu·Windows conda) 통과 → main. `CHANGELOG.md`에 한 줄.
+- 커밋 전: `python dev.py check` (마지막 줄 `결과: 모두 통과`). 브랜치 → 푸시 → CI(Windows·macOS·Ubuntu + Windows·macOS conda 설치) 통과 → main. `CHANGELOG.md`에 한 줄.
 - 의존 방향: `kit/`는 다른 폴더에 의존하지 않고, `web/`·`sim/`은 `kit/`를 import하지 않는다 (`web/build_page.py`는 글자 그대로 읽기만).
 - git에 올리지 않는 것: `~/.claude/concept-inbox.jsonl`, `*.sqlite` (개인 대화 데이터).
 - 훅은 아무것도 출력하지 않고 항상 0으로 끝나야 한다 (UserPromptSubmit의 stdout은 Claude 문맥에 들어간다).
 
 ## 현재 상태 (2026-11-07)
+
+개발 PC: 다음 작업은 macOS(Apple Silicon)에서 한다. 세팅은 `SETUP.md` (macOS 명령 포함).
 
 완료
 - 시뮬레이터 A·B·C, 결과 페이지, 입력 설정 시트(한 줄 설치), 클릭 카드·근거 수집·검증 에이전트
@@ -46,7 +48,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 나중에 / 사용자 결정 필요
 - Gemini CLI·Codex CLI 입구(어댑터) 추가 — 범위 확장 포인트로만 둔 상태
 - 배지 방식 비교표 재계산 — 평가 코드가 없어 기록값을 쓰는 중, 재계산하면 숫자가 바뀔 수 있음
-- 사용자가 실제 데이터셋으로 모델 학습 실험을 할 계획 (용어 정규화 B·근거 문장 C 쪽이 적용 후보)
+- 사용자가 실제 데이터셋으로 모델 학습 실험을 할 계획 (용어 정규화 B·근거 문장 C 쪽이 적용 후보). 규칙은 `docs/TRAINING.md`를 따른다 (기준선 먼저, 개념 단위 분할, 시험 세트 고정, 기록만 커밋, 채택은 사용자 결정).
 
 ## 알려진 제약
 

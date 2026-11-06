@@ -1,6 +1,7 @@
 # 푸시할 때마다 새 환경을 만들어 전체 점검을 돌린다.
-#  - check: Windows·Ubuntu에서 pip 설치 → python dev.py check (check_env + npm test)
-#  - setup-conda: Windows에서 사용자와 같은 경로 python dev.py setup (environment.yml로 conda 환경 생성 → 점검)
+#  - check: Windows·macOS·Ubuntu에서 pip 설치 → python dev.py check (check_env + npm test)
+#  - setup: 사용자와 같은 경로 python dev.py setup (environment.yml로 conda 환경 생성 → 점검)
+#           Windows는 러너에 있는 conda, macOS는 SETUP.md와 같은 Miniforge 설치 명령
 name: CI
 
 on:
@@ -14,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -37,19 +38,38 @@ jobs:
       - name: 전체 점검 (check_env + npm test)
         run: python dev.py check
 
-  setup-conda:
-    name: setup (windows, conda)
-    runs-on: windows-latest
+  setup:
+    name: setup (${{ matrix.os }}, conda)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
 
-      - name: conda 확인
+      - name: conda 확인 (Windows 러너 기본 설치)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           if (-not $env:CONDA) { Write-Error "이 러너에 conda가 없음 (CONDA 환경변수 없음)"; exit 1 }
           & "$env:CONDA\Scripts\conda.exe" --version
 
-      - name: python dev.py setup (환경 생성 → 점검)
+      - name: Miniforge 설치 (macOS, SETUP.md와 같은 명령)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          curl -fsSL -o Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+          bash Miniforge3.sh -b -p "$HOME/miniforge3"
+          echo "CONDA_EXE=$HOME/miniforge3/bin/conda" >> "$GITHUB_ENV"
+
+      - name: python dev.py setup (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: python dev.py setup
+
+      - name: python3 dev.py setup (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: python3 dev.py setup

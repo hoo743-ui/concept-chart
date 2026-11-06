@@ -5,12 +5,14 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 
 > 다른 PC에서 처음 받는다면 **[SETUP.md](SETUP.md)**, 구조와 설계 이유는 **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
-## 빠른 시작 (Windows · Anaconda Prompt)
+## 빠른 시작
 
-```powershell
-git clone https://github.com/hoo743-ui/concept-chart.git
+도구(conda·git·Claude Code) 설치는 [SETUP.md](SETUP.md) 1단계. 그다음:
+
+```bash
+gh repo clone hoo743-ui/concept-chart     # 또는 git clone https://github.com/hoo743-ui/concept-chart.git
 cd concept-chart
-python dev.py setup
+python3 dev.py setup                      # Windows(Anaconda Prompt): python dev.py setup
 conda activate concept-chart
 ```
 
@@ -44,7 +46,8 @@ concept-chart/
 │  ├─ test_hook.py              훅 어댑터 계약 테스트 (fixtures/claude_code/cases.json)
 │  └─ check_page.js · check_setup.js   페이지 렌더·설정 시트 점검 (jsdom)
 ├─ docs/ARCHITECTURE.md         구성·데이터 계약·품질 특성별 설계·생명주기
-├─ .github/workflows/ci.yml     푸시마다 Windows·Ubuntu 점검 + Windows conda 설치 경로 점검
+├─ docs/TRAINING.md             학습 실험 가이드라인 (기준선·분할·기록·채택 기준)
+├─ .github/workflows/ci.yml     푸시마다 Windows·macOS·Ubuntu 점검 + conda 설치 경로 점검
 ├─ CLAUDE.md                    Claude Code로 이어서 작업할 때 읽는 현황·규칙
 ├─ CHANGELOG.md                 변경 기록
 ├─ requirements.txt             파이썬 패키지 (버전 고정)

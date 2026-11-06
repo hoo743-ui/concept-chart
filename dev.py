@@ -2,6 +2,7 @@
 """개념 차트 개발 작업 진입점 (표준 라이브러리만 사용 — 환경을 만들기 전에도 실행된다)
 
     python dev.py setup          개발 환경 만들기/갱신 (conda 환경 concept-chart) + 전체 점검
+                                 (macOS에서 python이 없으면 python3 dev.py setup)
     python dev.py setup --venv   conda 없이 .venv로 만들기 (Python 3.13 권장)
     python dev.py check          전체 점검 (tests/check_env.py + Node가 있으면 npm test)
     python dev.py build          결과 → 페이지 데이터 → 결과 페이지 다시 만들기
@@ -62,8 +63,11 @@ def conda_env_exists(conda):
 def setup_conda():
     conda = find_conda()
     if not conda:
-        sys.exit("conda를 찾지 못했다. 시작 메뉴의 'Anaconda Prompt'에서 다시 실행하거나, "
-                 "conda 없이 하려면: python dev.py setup --venv")
+        if WIN:
+            sys.exit("conda를 찾지 못했다. 시작 메뉴의 'Anaconda Prompt'에서 다시 실행하거나, "
+                     "conda 없이 하려면: python dev.py setup --venv")
+        sys.exit("conda를 찾지 못했다. Miniforge 설치 후 'conda init zsh' → 새 터미널에서 다시 실행 (SETUP.md 1단계). "
+                 "conda 없이 하려면: python3.13 dev.py setup --venv")
     step(f"conda 환경 '{ENV_NAME}' 만들기/갱신 ({conda})")
     if conda_env_exists(conda):
         rc = run([conda, "env", "update", "-n", ENV_NAME, "-f", "environment.yml", "--prune"])

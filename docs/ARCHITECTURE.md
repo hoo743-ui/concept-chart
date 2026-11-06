@@ -12,7 +12,7 @@
 | `web/` | 결과 페이지 (화면) | `sim/results/page_data.json` + `kit/*.py` → `web/dist/index.html` | 개발 시 |
 | `tests/` | 점검·계약 테스트 | 위 전부를 호출 | 커밋 전·CI |
 | `dev.py` | 생명주기 작업 진입점 (setup·check·build·sim) | — | 어디서나 |
-| `.github/workflows/` | CI (Windows·Ubuntu, conda 설치 경로 포함) | 푸시 | GitHub |
+| `.github/workflows/` | CI (Windows·macOS·Ubuntu, conda 설치 경로 포함) | 푸시 | GitHub |
 
 의존 방향 (반대 방향 import 금지):
 
@@ -69,7 +69,7 @@
 | 요구사항 | `README.md`(목적), `CLAUDE.md`(합의된 범위·다음 할 일) |
 | 설계 | 이 문서, 데모 디자인 캔버스 |
 | 구현 | `kit/`, `sim/`, `web/` |
-| 테스트 | `tests/`, CI, 검증 문서(사용자 확인용) |
+| 테스트 | `tests/`, CI, 검증 문서(사용자 확인용), 학습 실험 기록(`docs/TRAINING.md`의 `experiments/`) |
 | 배포 | `git clone` + `python dev.py setup`, 결과 페이지의 한 줄 설치 명령 |
 | 유지보수 | `CHANGELOG.md`, 분기별 패키지 갱신(브랜치 → CI → main), fixture 추가 |
 

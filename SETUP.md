@@ -1,124 +1,160 @@
-# 개발환경 세팅 — 다른 PC에서 이어 하기
+# 개발환경 세팅 — 다른 PC에서 이어 하기 (macOS · Windows)
 
-Windows 11 + Anaconda 기준이다. mac/Linux는 괄호 안 명령을 쓰면 된다.
-아래대로 한 뒤 `python tests/check_env.py`의 마지막 줄이 **모두 정상**이면 원래 PC와 같은 상태다.
+목표: `git clone` → `python dev.py setup` 두 단계로 원래 PC와 같은 상태를 만든다.
+마지막에 `결과: 모두 통과`가 나오면 끝이다. 각 단계는 macOS(Apple Silicon)와 Windows를 나눠 적었다.
 
 ## 0. 준비물
 
-| 항목 | 용도 | 확인 명령 |
-|---|---|---|
-| Git for Windows | 클론·커밋 (GitHub 로그인 창을 띄우는 Git Credential Manager 포함) | `git --version` |
-| Anaconda (또는 Miniconda·Miniforge) | 파이썬 환경 | `conda --version` |
-| VS Code + Python 확장 | 편집·실행 | |
-| Claude Code 2.1.47 이상 | 대화 수집 훅 (AI 답변까지 기록하려면 필요) | `claude --version` |
-| (선택) Node.js 18 이상 | 페이지 자동 점검 | `node --version` |
+| 항목 | 용도 | macOS (터미널, zsh) | Windows (PowerShell) | 확인 |
+|---|---|---|---|---|
+| Xcode 명령줄 도구 | git, 컴파일러 | `xcode-select --install` | — | `git --version` |
+| Homebrew | gh·node 설치 | 아래 1단계 | — | `brew --version` |
+| Git | 클론·커밋 | Xcode 도구에 포함 | Git for Windows (Git Bash 포함) | `git --version` |
+| GitHub CLI | 비공개 레포 로그인 | `brew install gh` | `winget install GitHub.cli` (선택) | `gh --version` |
+| conda | 파이썬 환경 | Miniforge (아래 1단계) | Anaconda (있는 것) 또는 Miniforge | `conda --version` |
+| Claude Code (2.1.47 이상) | 개발 + 대화 수집 훅 | `curl -fsSL https://claude.ai/install.sh \| bash` | `irm https://claude.ai/install.ps1 \| iex` | `claude --version` |
+| Node.js 18 이상 (선택) | 페이지 자동 점검 | `brew install node@22` | nodejs.org LTS | `node --version` |
+| VS Code + Python 확장 (선택) | 편집 | | | |
 
-명령은 시작 메뉴의 **Anaconda Prompt**에서 실행하는 게 가장 편하다. VS Code 터미널(PowerShell)에서 쓰려면 맨 아래 '문제 해결'을 볼 것.
+## 1. 기본 도구 설치 (PC마다 한 번)
 
-## 1. 받기
+### macOS
 
-```powershell
-git clone https://github.com/hoo743-ui/concept-chart.git
+```bash
+xcode-select --install                                   # 이미 있으면 '설치됨' 메시지
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install gh node@22                                  # node는 선택 (페이지 자동 점검용)
+
+# Miniforge (conda-forge 전용 conda) — CI가 macOS에서 쓰는 것과 같은 명령
+curl -fsSL -o Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3.sh -b -p "$HOME/miniforge3"
+"$HOME/miniforge3/bin/conda" init zsh                    # 터미널을 새로 열면 (base)가 보임
+
+curl -fsSL https://claude.ai/install.sh | bash           # Claude Code
+```
+
+새 터미널을 열고 `conda --version`, `claude --version`, `claude doctor`로 확인한다.
+
+### Windows
+
+- Git for Windows, Anaconda(이미 있으면 그대로), Claude Code(`irm https://claude.ai/install.ps1 | iex`).
+- 명령은 시작 메뉴의 **Anaconda Prompt**에서 실행하는 게 가장 편하다.
+
+## 2. 받기
+
+비공개 레포라 로그인이 필요하다.
+
+```bash
+gh auth login                                            # 브라우저로 GitHub 로그인 (한 번)
+gh repo clone hoo743-ui/concept-chart
 cd concept-chart
 ```
 
-비공개 저장소라 처음 한 번 GitHub 로그인 창이 뜬다. 브라우저로 로그인하면 다음부터는 자동이다.
+Windows에서 gh 없이: `git clone https://github.com/hoo743-ui/concept-chart.git` → 로그인 창(Git Credential Manager)에서 로그인.
 
-## 2. 환경 만들기 + 점검 (PC마다 한 번)
+## 3. 환경 만들기 + 점검
 
-```powershell
-python dev.py setup
+```bash
+python3 dev.py setup        # Windows: python dev.py setup
 conda activate concept-chart
 ```
 
-- Anaconda Prompt의 기본 파이썬으로 `dev.py`를 실행하면 된다 (표준 라이브러리만 써서 패키지가 없어도 돈다).
-- 하는 일: conda 환경 `concept-chart`가 없으면 만들고 있으면 갱신(`environment.yml`) → 새 환경에서 전체 점검(`python dev.py check`). 마지막 줄 `결과: 모두 통과`.
-- Python 3.13과 패키지 전부가 설치된다 (설치 후 약 0.8GB, 인터넷 속도에 따라 수 분).
-- **base 환경에 바로 설치하지 않는다.** 다른 프로젝트 패키지와 버전이 꼬이지 않게 전용 환경 `concept-chart`만 쓴다.
-- `environment.yml`은 conda-forge 채널만 쓰고(`nodefaults`), 환경을 켤 때 `PYTHONUTF8=1`(UTF-8 입출력)을 자동으로 켠다.
-- spaCy 한국어 모델(`ko_core_news_md`)도 `requirements.txt`에 들어 있어서 따로 받을 필요 없다.
+- `dev.py`는 표준 라이브러리만 써서, 환경을 만들기 전 파이썬(macOS 기본 python3 3.9 이상, conda base)으로 실행된다.
+- 하는 일: conda 환경 `concept-chart`가 없으면 만들고 있으면 갱신(`environment.yml`) → 새 환경에서 `python dev.py check`.
+- 설치되는 것: Python 3.13 + `requirements.txt`의 패키지 전부 (numpy, scipy, scikit-learn, networkx, kiwipiepy + 모델, spaCy + 한국어 모델 `ko_core_news_md`, yake, krwordrank, korean_romanizer, RapidFuzz, rank-bm25, trafilatura). 설치 후 약 0.8GB, 인터넷 속도에 따라 수 분.
+- **base 환경에 직접 설치하지 않는다.** 전용 환경 `concept-chart`만 쓴다.
+- `environment.yml`은 conda-forge 채널만 쓰고(`nodefaults`), 환경을 켤 때 `PYTHONUTF8=1`을 자동으로 켠다.
 
-conda 없이 하려면 (Python 3.13이 설치돼 있을 때):
+conda 없이 하려면 (Python 3.13이 있을 때): `python3.13 dev.py setup --venv` → `source .venv/bin/activate` (Windows: `py -3.13 dev.py setup --venv` → `.venv\Scripts\activate` → `setx PYTHONUTF8 1`).
 
-```powershell
-py -3.13 dev.py setup --venv          # (mac/Linux: python3.13 dev.py setup --venv)
-.venv\Scripts\activate                 # (mac/Linux: source .venv/bin/activate)
-setx PYTHONUTF8 1                     # Windows만. 새 터미널부터 적용
-```
+## 4. 점검 (언제든)
 
-직접 하나씩 하려면: `conda env create -f environment.yml` → `conda activate concept-chart` → `python dev.py check`.
-
-## 3. 점검 (언제든)
-
-```powershell
+```bash
 python dev.py check
 ```
 
-`tests/check_env.py`(패키지, 한국어 모델 Kiwi·spaCy, 검증 에이전트, 클릭 카드, 근거 문장 선택, 파이프라인 첫 셀, 훅 설치기, 훅 어댑터 테스트, 페이지 데이터·페이지 빌드 재현)를 돌리고, Node.js가 있으면 `npm ci` → `npm test`(페이지 렌더 점검)까지 한다.
-훅 설치기는 임시 폴더에서 설치 → 점검 → 제거만 하므로 진짜 `~/.claude` 설정은 건드리지 않는다.
+`tests/check_env.py`(패키지, Kiwi·spaCy 한국어 모델, 검증 에이전트, 클릭 카드, 근거 문장 선택, 파이프라인 첫 셀, 훅 설치기, 훅 어댑터 테스트, 페이지 데이터·페이지 빌드 재현)를 돌리고, Node.js가 있으면 `npm ci` → `npm test`까지 한다.
+훅 설치기 점검은 임시 폴더에서만 하므로 진짜 `~/.claude` 설정은 건드리지 않는다.
 
-## 4. VS Code 연결
+## 5. Claude Code로 이어서 개발하기
 
-1. VS Code에서 저장소 폴더를 연다.
-2. `Ctrl+Shift+P` → **Python: Select Interpreter** → `concept-chart` 환경을 고른다.
-3. 새 터미널을 열면 보통 환경이 자동으로 켜진다. `python dev.py check`로 확인한다 (안 켜지면 '문제 해결' 참고).
-
-## 5. Claude Code 대화 수집 훅 (이 PC에서도 기록하려면)
-
-```powershell
+```bash
+cd concept-chart
 conda activate concept-chart
-python kit/install_concept_hook.py           # 전역 설치 (모든 프로젝트)
-python kit/install_concept_hook.py --test    # '결과: 정상'이 나오면 끝
+claude
 ```
 
-- 기록 위치: `~/.claude/concept-inbox.jsonl` (Windows는 `C:\Users\<사용자>\.claude\`)
-- 기존 `settings.json`은 백업하고 다른 설정은 그대로 둔다. Claude Code 안에서 `/hooks`로 등록 상태를 볼 수 있다.
-- 훅은 설치할 때 쓴 파이썬의 절대경로로 등록된다. 다른 파이썬이나 환경으로 바꿨으면 다시 설치한다.
-- 제거: `python kit/install_concept_hook.py --uninstall`
-- 주요 옵션: `--scope project --project <폴더>`(그 프로젝트만), `--events user,assistant,subagent`, `--inbox <경로>`, `--no-mask`(키 가리기 끔)
+- 레포의 `CLAUDE.md`(작업 원칙·구조·현재 상태·다음 할 일)를 Claude Code가 자동으로 읽는다. 설계와 변경 절차는 `docs/ARCHITECTURE.md`.
+- VS Code: 폴더 열기 → `Cmd/Ctrl+Shift+P` → **Python: Select Interpreter** → `concept-chart`.
 
-결과 페이지(`web/dist/index.html`)의 **04 입력 설정 시트**에서 옵션을 고르면 같은 내용의 한 줄 설치 명령을 만들어 준다.
+## 6. 대화 수집 훅 (이 PC의 Claude Code 대화도 기록하려면)
 
-## 6. 작업 흐름
+```bash
+conda activate concept-chart
+python kit/install_concept_hook.py           # 전역 설치 (모든 프로젝트)
+python kit/install_concept_hook.py --test    # '결과: 정상'
+```
+
+- 기록 위치: `~/.claude/concept-inbox.jsonl`. 기존 `~/.claude/settings.json`은 백업하고 다른 설정은 그대로 둔다. Claude Code 안에서 `/hooks`로 확인.
+- 훅은 설치할 때 쓴 파이썬의 절대경로로 등록된다. 다른 파이썬·환경으로 바꿨으면 다시 설치한다.
+- 제거: `python kit/install_concept_hook.py --uninstall`. 옵션: `--scope project --project <폴더>`, `--events user,assistant,subagent`, `--inbox <경로>`, `--no-mask`.
+- 결과 페이지(`web/dist/index.html`)의 **04 입력 설정 시트**에서 같은 설치를 한 줄 명령으로 만들 수 있다 (macOS는 'mac/Linux' 선택).
+
+## 7. 작업 흐름
 
 | 바꾼 것 | 다음에 할 일 |
 |---|---|
 | `kit/*.py` | `python dev.py build` (페이지 코드 상자·한 줄 설치 명령 갱신) |
 | `web/page_template.html` | `python dev.py build` |
 | 시뮬레이터 (`sim/*.py`) | `python dev.py sim` (A·B·C 재실행 → 페이지 데이터 → 페이지) |
-| 훅 변환 규칙 (`kit/install_concept_hook.py`) | `python tests/test_hook.py` → `python dev.py build` (페이지의 설치 파일 갱신) |
-| 패키지 추가 | `requirements.txt`에 버전까지 적기 → 다른 PC에서 `python dev.py setup` (있는 환경은 갱신) |
+| 훅 변환 규칙 (`kit/install_concept_hook.py`) | `python tests/test_hook.py` → `python dev.py build` |
+| 패키지 추가 | `requirements.txt`에 버전까지 적기 → 다른 PC에서 `python dev.py setup` |
 
-커밋 전에 `python dev.py check`를 한 번 돌리면 페이지가 최신인지까지 확인된다. 구조·데이터 계약·변경 절차는 `docs/ARCHITECTURE.md`. 푸시하면 GitHub Actions가 Windows·Ubuntu에서 같은 점검을 다시 돌린다 (레포의 Actions 탭).
+커밋 전에 `python dev.py check`. 브랜치 → 푸시 → GitHub Actions(Windows·macOS·Ubuntu)가 같은 점검을 다시 돌린다 → 통과하면 main.
 
-## 7. PC를 옮길 때
+## 8. 학습 실험용 패키지 (선택, 실험을 시작할 때)
 
-- 코드: `git pull` 하나면 된다.
-- 패키지가 바뀌었으면: `python dev.py setup` (있는 환경을 갱신하고 점검까지)
-- **git에 올라가지 않는 것** (개인 데이터라 일부러 뺐다): `~/.claude/concept-inbox.jsonl`(대화 기록), `concept_store.sqlite`, `concept_cache.sqlite`. 필요하면 직접 복사한다.
-- 줄바꿈은 `.gitattributes`로 LF에 고정돼 있다. Windows에서 받아도 파일 내용이 바이트 단위로 같아서, 설치 파일 SHA-256과 한 줄 설치 명령이 PC마다 바뀌지 않는다.
+기본 세팅에는 딥러닝 패키지를 넣지 않았다 (설치가 무겁고, 실험을 시작할 때 버전을 정하는 게 맞다). 환경을 켠 상태에서:
 
-## 8. 문제 해결
+```bash
+python -m pip install torch                                # macOS(Apple Silicon)는 GPU(MPS) 포함 빌드
+python -m pip install transformers sentence-transformers   # 사전학습 인코더 미세조정용 (필요할 때)
+```
+
+- 2026-11-07 PyPI 기준 torch 2.15.0의 macOS용 설치 파일은 Apple Silicon + macOS 14 이상이다.
+- 실험이 자리 잡으면 실제로 쓴 버전을 `requirements-ml.txt`로 고정해 레포에 넣는다 (`pip freeze | grep -i -E "torch|transformers|sentence"`).
+- 학습 진행·성능 확인 규칙은 검증 문서의 '학습 실험 가이드라인'을 따른다.
+
+## 9. PC를 옮길 때
+
+- 코드: `git pull`. 패키지가 바뀌었으면 `python dev.py setup` (있는 환경을 갱신하고 점검).
+- **git에 올라가지 않는 것** (개인 데이터라 일부러 뺐다): `~/.claude/concept-inbox.jsonl`(대화 기록), `concept_store.sqlite`, `concept_cache.sqlite`, 학습한 모델 파일. 필요하면 직접 복사한다.
+- 줄바꿈은 `.gitattributes`로 LF에 고정돼 있어서 OS가 달라도 파일 내용이 바이트 단위로 같다.
+
+## 10. 문제 해결
 
 | 증상 | 해결 |
 |---|---|
-| `CondaToSNonInteractiveError` (이용약관 미동의) | `environment.yml`은 conda-forge만 써서 보통 생기지 않는다. `conda create`를 직접 쓸 때는 `--override-channels -c conda-forge`를 붙인다 |
-| PowerShell에서 `conda activate`가 안 됨 | Anaconda Prompt를 쓰거나, `conda init powershell`을 한 번 실행하고 터미널을 새로 연다 |
-| `.venv\Scripts\activate`가 실행 정책 때문에 막힘 | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
-| `python`을 치면 Microsoft Store가 열림 | 환경이 안 켜진 상태다. `conda activate concept-chart`를 확인한다 (또는 설정 → 앱 실행 별칭에서 python 끄기) |
-| `UnicodeEncodeError: 'cp949' ...` | UTF-8 모드가 꺼진 상태다. conda 환경이면 `conda deactivate` 후 다시 activate, venv면 `setx PYTHONUTF8 1` 후 새 터미널 |
-| `ko_core_news_md` 설치 실패 | GitHub 접속이 막힌 망이다. 다른 망에서 휠 파일을 받아 `pip install ko_core_news_md-3.8.0-py3-none-any.whl` |
-| `kiwipiepy_model` 설치가 오래 걸림 | 형태소 분석 모델 데이터(약 100MB)라 정상이다 |
-| `conda를 찾지 못했다` (dev.py setup) | 일반 PowerShell이 아니라 Anaconda Prompt에서 실행한다. conda 없이 하려면 `--venv` |
-| check_env에 Python 버전 경고 | 3.13이 아닌 파이썬으로 실행 중이다. `python --version`과 켜진 환경을 확인한다 |
-| 훅 오류에 `PowerShell started no program` | Git Bash가 없어서 훅이 PowerShell에서 실행된 경우다. Git for Windows를 설치하고 Claude Code 세션을 새로 연다 |
-| 훅이 기록을 남기지 않음 | `claude --version`이 2.1.47 이상인지, `--test` 결과, Claude Code의 `/hooks`를 확인한다. 파이썬 경로가 바뀌었으면 훅을 다시 설치한다 |
-| 페이지 글꼴이 다르게 보임 | 오프라인이면 Google Fonts 대신 기본 글꼴로 보인다. 기능은 같다 |
+| (mac) `xcrun: error: invalid active developer path` | `xcode-select --install` |
+| (mac) `conda: command not found` | `"$HOME/miniforge3/bin/conda" init zsh` 후 터미널을 새로 연다 |
+| (mac) `zsh: command not found: claude` | 터미널을 새로 열거나 `source ~/.zshrc` |
+| (mac) `python: command not found` | conda 환경을 켜기 전에는 `python3`를 쓴다. 환경을 켠 뒤에는 `python` |
+| (mac) MPS에서 지원 안 되는 연산 오류 | `export PYTORCH_ENABLE_MPS_FALLBACK=1` 후 다시 실행 (그 연산만 CPU로) |
+| `conda를 찾지 못했다` (dev.py setup) | macOS: 위 conda init. Windows: Anaconda Prompt에서 실행. conda 없이: `--venv` |
+| `CondaToSNonInteractiveError` (이용약관) | `environment.yml`은 conda-forge만 써서 보통 안 생긴다. `conda create`를 직접 쓸 때는 `--override-channels -c conda-forge` |
+| (Windows) PowerShell에서 `conda activate`가 안 됨 | Anaconda Prompt를 쓰거나 `conda init powershell` 후 새 창 |
+| (Windows) `.venv\Scripts\activate`가 실행 정책에 막힘 | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
+| (Windows) `python`을 치면 Microsoft Store가 열림 | 환경을 켠다 (`conda activate concept-chart`). 또는 설정 → 앱 실행 별칭에서 python 끄기 |
+| (Windows) `UnicodeEncodeError: 'cp949' ...` | conda 환경이면 다시 activate, venv면 `setx PYTHONUTF8 1` 후 새 터미널 |
+| (Windows) 훅 오류에 `PowerShell started no program` | Git Bash가 없어서 PowerShell에서 실행된 경우. Git for Windows 설치 후 Claude Code 세션을 새로 연다 |
+| `ko_core_news_md` 설치 실패 | GitHub 접속이 막힌 망. 다른 망에서 휠을 받아 `pip install ko_core_news_md-3.8.0-py3-none-any.whl` |
+| `kiwipiepy_model` 설치가 오래 걸림 | 형태소 분석 모델 데이터(약 100MB)라 정상 |
+| check_env에 Python 버전 경고 | 3.13이 아닌 파이썬으로 실행 중. `python --version`과 켜진 환경 확인 |
+| 훅이 기록을 남기지 않음 | `claude --version` 2.1.47 이상, `--test` 결과, Claude Code의 `/hooks` 확인. 파이썬 경로가 바뀌었으면 재설치 |
+| 페이지 글꼴이 다르게 보임 | 오프라인이면 Google Fonts 대신 기본 글꼴. 기능은 같다 |
 
 ## 검증한 범위
 
-- **실행 확인 (Linux, Python 3.13):** 새 가상환경에 `pip install -r requirements.txt` → `check_env.py` 통과 → 시뮬레이터 재실행 결과가 저장된 결과와 같음 → `npm test` 통과. `-X warn_default_encoding`으로 돌려서, 이 저장소 코드에는 인코딩을 지정하지 않은 파일 읽기·쓰기가 없는 것도 확인했다 (외부 패키지 trafilatura가 설정 파일 하나를 그렇게 읽지만 영문뿐이라 Windows에서도 문제없다).
-- **설치 파일 확인 (Windows x64 · Python 3.13/3.12, macOS Apple Silicon · Python 3.13):** 의존 패키지 76개 모두 해당 OS용 설치 파일(wheel)이 PyPI에 있다. `kiwipiepy_model`만 소스 패키지인데, 모델 데이터만 들어 있어서 컴파일러 없이 설치된다.
-- **CI (GitHub Actions, windows-latest · ubuntu-latest):** 새 환경에 Python 3.13 + `requirements.txt` 설치 → `check_env.py` → `npm test`가 두 OS 모두 통과했다 (2026-11-07). Windows에서도 UTF-8 모드를 켜지 않은 기본 설정으로 돌렸다.
-- **conda 설치 경로 (Linux, Miniforge conda 26.9):** 새 클론에서 `python dev.py setup` → 환경 생성 → 점검 `모두 통과` (55초). conda 설정에 defaults 채널을 넣어 둔 상태에서도 defaults를 건드리지 않았다.
-- **아직 안 해 본 것:** 개인 Windows PC(Anaconda)에서의 실행과, 실제 Claude Code 세션에서 훅이 기록하는 것. 처음 받으면 `check_env.py`부터 돌려 볼 것.
+- **CI (GitHub Actions):** Windows·macOS·Ubuntu에서 새 환경에 Python 3.13 + `requirements.txt` 설치 → `python dev.py check`. Windows·macOS에서 conda 설치 경로 `dev.py setup`. 결과는 레포 Actions 탭.
+- **로컬 (Linux):** 새 클론에서 `python dev.py setup`(Miniforge, conda 설정에 defaults가 있어도 건드리지 않음) → `모두 통과`. 훅 설치기·`dev.py`는 Python 3.9(macOS 기본 python3 버전)에서도 동작 확인.
+- **아직 안 해 본 것:** 사용자 Mac·Windows 실기, 실제 Claude Code 세션에서 훅이 기록하는 것, 학습용 패키지(torch 등) 실행.
