@@ -9,7 +9,7 @@ from krwordrank.word import KRWordRank
 from scipy.stats import spearmanr
 from sklearn.ensemble import HistGradientBoostingRegressor
 
-from concepts import PERSONAS, CONCEPT_IDS, DISPLAY
+from concepts import PERSONAS, CONCEPT_IDS, DISPLAY, GENERIC
 from textgen import simulate_user, ground_truth, random_spec, lam
 from pipeline import (tok_T0, tok_T1, tok_T2, Gazetteer, make_tok_T3, make_tok_T4, build_glossary,
                       concept_weight_fn, oracle_concept, norm_key)
@@ -104,6 +104,47 @@ def trend_term(run, t):
     recent = ys[-2:].mean(axis=0)
     ratio = np.clip((f + 0.25) / (recent + 0.25), 0.25, 4.0)
     return np.log2(ratio) / 2.0, f, ys
+
+# ---------------- 추세 배지 · 새 용어 (결과 페이지용) ----------------
+BADGE_Z = 1.64          # 단측 95%
+BADGE_MIN_SESS = 2      # 해당 창에서 2세션 이상 나와야 배지를 붙인다
+# 새 용어 후보의 최소 IDF. 원래 기준값은 기록이 남지 않아, 저장된 페이지 결과(30주 전부)와
+# 똑같이 나오는 구간(3.56~3.66) 안의 값으로 정했다.
+NEW_TERM_MIN_IDF = 3.6
+
+def session_z(run, t, j, recent=14, prior=28):
+    """최근 recent일 vs 그 전 prior일: 용어 j가 나온 세션 비율의 두 비율 z-검정 → (z, 최근 세션 수, 이전 세션 수)"""
+    rec = (run.days > t - recent) & (run.days <= t)
+    pri = (run.days > t - recent - prior) & (run.days <= t - recent)
+    n1, n0 = int(rec.sum()), int(pri.sum())
+    x1, x0 = int(run.P[rec, j].sum()), int(run.P[pri, j].sum())
+    z = 0.0
+    if n1 and n0:
+        p = (x1 + x0) / (n1 + n0)
+        if 0 < p < 1:
+            z = (x1 / n1 - x0 / n0) / math.sqrt(p * (1 - p) * (1 / n1 + 1 / n0))
+    return float(z), x1, x0
+
+def badge_of(z, x1, x0):
+    if z > BADGE_Z and x1 >= BADGE_MIN_SESS:
+        return 'up'
+    if z < -BADGE_Z and x0 >= BADGE_MIN_SESS:
+        return 'down'
+    return ''
+
+def new_terms(run, t, idf, s, n=5):
+    """개념 사전에 없는 용어 중 최근 2주 2세션 이상 + 희소한(IDF) 말을 중요도(s) 순으로 n개"""
+    rec = (run.days > t - 14) & (run.days <= t)
+    out = []
+    for j in np.argsort(-s, kind='stable'):
+        tok = run.tokens[j]
+        x1 = int(run.P[rec, j].sum())
+        if x1 < BADGE_MIN_SESS or run.isg[j] or idf[j] < NEW_TERM_MIN_IDF or tok in GENERIC:
+            continue
+        out.append(dict(term=tok, recent_sessions=x1, is_concept=bool(run.concept[j])))
+        if len(out) == n:
+            break
+    return out
 
 def score_ours(run, t, idf, h=14, beta=1.0, gamma=1.0, unit='mention', c_low=0.35,
                use_idf=True, use_c=True, cache=None):
@@ -483,12 +524,14 @@ def main():
                     if c:
                         seen.add(c)
                     kind = user['traj'][c][0] if (c and c in user['traj']) else ('concept' if c else 'noise')
+                    z, x1, x0 = session_z(run, t, j)
                     out.append(dict(term=run.tokens[j], cid=c, score=float(s[j]), trend=float(T[j]),
                                     spark=[float(v) for v in ys[:, j]], kind=kind, gt=float(gt.get(c, 0.0)) if c else 0.0,
-                                    in_glossary=bool(run.isg[j])))
+                                    in_glossary=bool(run.isg[j]), z=z, badge=badge_of(z, x1, x0), recent_sessions=x1))
                 return out
             weeks.append(dict(week=wk, day=t, ours=top_list(sC), tf=top_list(sTF),
-                              gt_top=[dict(cid=c, term=DISPLAY[c], gt=float(v)) for c, v in sorted(gt.items(), key=lambda x: -x[1])[:10]]))
+                              gt_top=[dict(cid=c, term=DISPLAY[c], gt=float(v)) for c, v in sorted(gt.items(), key=lambda x: -x[1])[:10]],
+                              new_terms=new_terms(run, t, idf, sC)))
         lines = {}
         for c, (k, prm) in user['traj'].items():
             if k != 'low':

@@ -105,3 +105,16 @@ def concept_weight_fn(gaz, low=0.35):
     def w(token):
         return 1.0 if norm_key(token) in gaz.v2c else low
     return w
+
+# ---------- 문장 유형 표지 (공부 노트: 정의문 외 문장을 경험담 / 방법·조언 / 평가·여론으로 분류) ----------
+EXP = re.compile(r'(했다|했더니|봤다|됐다|만들었|이번|우리|팀원|나는|처음|놀랐|퇴근|하루 종일|다들)')
+HOW = re.compile(r'(려면|좋다|해야|하는 것이|요령|권장|먼저|반드시|꼭)')
+OPI = re.compile(r'(가장|자주|요즘|유명|평가|시장|키워드|면접|단골|인기|빠지지|업무다|화제|관심)')
+
+def sentence_kind(s):
+    """경험 표지 → 방법 표지 순으로 보고, 둘 다 없으면 평가·여론"""
+    if EXP.search(s):
+        return '경험담'
+    if HOW.search(s):
+        return '방법·조언'
+    return '평가·여론'

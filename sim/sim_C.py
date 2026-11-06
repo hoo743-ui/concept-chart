@@ -9,7 +9,7 @@ from sklearn.model_selection import GroupKFold
 import spacy
 from kiwipiepy import Kiwi
 from concepts import DEFS, VARIANTS, DISPLAY
-from pipeline import norm_key
+from pipeline import norm_key, EXP, HOW, OPI   # 문장 유형 표지는 pipeline.py 한 곳에서 관리
 from textgen import josa
 warnings.filterwarnings('ignore')
 
@@ -44,9 +44,6 @@ DV = np.array([nlp(d).vector for d in docs])
 
 DEF_END = re.compile(r'(것|방법|기법|현상|과정|구조|모델|알고리즘|지표|단위|함수|값|메커니즘|플랫폼|데이터베이스|작업|방식|표현|자료형|비율|신경망)[을를]?\s*(말한다|뜻한다|가리킨다|의미한다|이다|다)[.]?\s*$')
 DEF_MID = re.compile(r'(이란|란|이라는 것은|의 약자|라고 부르|을 말한다|를 말한다|을 뜻한다|를 뜻한다|을 가리|를 가리)')
-EXP = re.compile(r'(했다|했더니|봤다|됐다|만들었|이번|우리|팀원|나는|처음|놀랐|퇴근|하루 종일|다들)')
-HOW = re.compile(r'(려면|좋다|해야|하는 것이|요령|권장|먼저|반드시|꼭)')
-OPI = re.compile(r'(가장|자주|요즘|유명|평가|시장|키워드|면접|단골|인기|빠지지|업무다|화제|관심)')
 
 def term_hits(s, c):
     keys = [norm_key(v) for v in VARIANTS[c]]
