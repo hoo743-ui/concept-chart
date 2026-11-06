@@ -23,7 +23,10 @@
 ```bash
 xcode-select --install                                   # 이미 있으면 '설치됨' 메시지
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile   # Apple Silicon: brew를 PATH에 (Intel Mac은 /usr/local)
+eval "$(/opt/homebrew/bin/brew shellenv)"
 brew install gh node@22                                  # node는 선택 (페이지 자동 점검용)
+echo 'export PATH="/opt/homebrew/opt/node@22/bin:$PATH"' >> ~/.zshrc   # node@22는 자동으로 PATH에 안 들어감
 
 # Miniforge (conda-forge 전용 conda) — CI가 macOS에서 쓰는 것과 같은 명령
 curl -fsSL -o Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
@@ -33,7 +36,7 @@ bash Miniforge3.sh -b -p "$HOME/miniforge3"
 curl -fsSL https://claude.ai/install.sh | bash           # Claude Code
 ```
 
-새 터미널을 열고 `conda --version`, `claude --version`, `claude doctor`로 확인한다.
+터미널을 완전히 껐다가(Cmd+Q) 다시 열고 `conda --version && gh --version && node --version && claude --version`, `claude doctor`로 확인한다. 이미 Anaconda가 있으면 Miniforge 세 줄은 건너뛴다.
 
 ### Windows
 
@@ -137,6 +140,8 @@ python -m pip install transformers sentence-transformers   # 사전학습 인코
 |---|---|
 | (mac) `xcrun: error: invalid active developer path` | `xcode-select --install` |
 | (mac) `conda: command not found` | `"$HOME/miniforge3/bin/conda" init zsh` 후 터미널을 새로 연다 |
+| (mac) `zsh: command not found: brew` | `eval "$(/opt/homebrew/bin/brew shellenv)"` 후, 위 `~/.zprofile` 줄이 들어갔는지 확인 |
+| (mac) `node: command not found` (brew로 설치했는데) | `node@22`는 PATH에 자동으로 안 들어간다. 위 `~/.zshrc` 줄 추가 후 새 터미널 |
 | (mac) `zsh: command not found: claude` | 터미널을 새로 열거나 `source ~/.zshrc` |
 | (mac) `python: command not found` | conda 환경을 켜기 전에는 `python3`를 쓴다. 환경을 켠 뒤에는 `python` |
 | (mac) MPS에서 지원 안 되는 연산 오류 | `export PYTORCH_ENABLE_MPS_FALLBACK=1` 후 다시 실행 (그 연산만 CPU로) |
