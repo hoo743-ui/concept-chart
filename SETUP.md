@@ -24,48 +24,44 @@ cd concept-chart
 
 비공개 저장소라 처음 한 번 GitHub 로그인 창이 뜬다. 브라우저로 로그인하면 다음부터는 자동이다.
 
-## 2. 파이썬 환경 만들기 (PC마다 한 번)
+## 2. 환경 만들기 + 점검 (PC마다 한 번)
 
 ```powershell
-conda env create -f environment.yml
+python dev.py setup
 conda activate concept-chart
 ```
 
+- Anaconda Prompt의 기본 파이썬으로 `dev.py`를 실행하면 된다 (표준 라이브러리만 써서 패키지가 없어도 돈다).
+- 하는 일: conda 환경 `concept-chart`가 없으면 만들고 있으면 갱신(`environment.yml`) → 새 환경에서 전체 점검(`python dev.py check`). 마지막 줄 `결과: 모두 통과`.
 - Python 3.13과 패키지 전부가 설치된다 (설치 후 약 0.8GB, 인터넷 속도에 따라 수 분).
-- **base 환경에 바로 설치하지 말 것.** 다른 프로젝트 패키지와 버전이 꼬인다. 이 프로젝트 전용 환경 `concept-chart`만 쓴다.
-- `environment.yml`은 conda-forge 채널만 쓰고, 환경을 켤 때 `PYTHONUTF8=1`(UTF-8 입출력)을 자동으로 켠다.
+- **base 환경에 바로 설치하지 않는다.** 다른 프로젝트 패키지와 버전이 꼬이지 않게 전용 환경 `concept-chart`만 쓴다.
+- `environment.yml`은 conda-forge 채널만 쓰고(`nodefaults`), 환경을 켤 때 `PYTHONUTF8=1`(UTF-8 입출력)을 자동으로 켠다.
 - spaCy 한국어 모델(`ko_core_news_md`)도 `requirements.txt`에 들어 있어서 따로 받을 필요 없다.
 
 conda 없이 하려면 (Python 3.13이 설치돼 있을 때):
 
 ```powershell
-py -3.13 -m venv .venv
-.venv\Scripts\activate                     # (mac/Linux: source .venv/bin/activate)
-python -m pip install -r requirements.txt
-setx PYTHONUTF8 1                          # Windows만. 새 터미널부터 적용
+py -3.13 dev.py setup --venv          # (mac/Linux: python3.13 dev.py setup --venv)
+.venv\Scripts\activate                 # (mac/Linux: source .venv/bin/activate)
+setx PYTHONUTF8 1                     # Windows만. 새 터미널부터 적용
 ```
 
-## 3. 점검
+직접 하나씩 하려면: `conda env create -f environment.yml` → `conda activate concept-chart` → `python dev.py check`.
+
+## 3. 점검 (언제든)
 
 ```powershell
-python tests/check_env.py
+python dev.py check
 ```
 
-패키지, 한국어 모델(Kiwi·spaCy), 검증 에이전트, 클릭 카드, 근거 문장 선택, 파이프라인 첫 셀, 훅 설치기, 훅 어댑터 테스트, 페이지 데이터·페이지 빌드 재현까지 한 번에 확인한다.
+`tests/check_env.py`(패키지, 한국어 모델 Kiwi·spaCy, 검증 에이전트, 클릭 카드, 근거 문장 선택, 파이프라인 첫 셀, 훅 설치기, 훅 어댑터 테스트, 페이지 데이터·페이지 빌드 재현)를 돌리고, Node.js가 있으면 `npm ci` → `npm test`(페이지 렌더 점검)까지 한다.
 훅 설치기는 임시 폴더에서 설치 → 점검 → 제거만 하므로 진짜 `~/.claude` 설정은 건드리지 않는다.
-
-(선택) 페이지 자동 점검:
-
-```powershell
-npm ci
-npm test          # 마지막에 'check_page: 정상', 'check_setup: 정상'
-```
 
 ## 4. VS Code 연결
 
 1. VS Code에서 저장소 폴더를 연다.
 2. `Ctrl+Shift+P` → **Python: Select Interpreter** → `concept-chart` 환경을 고른다.
-3. 새 터미널을 열면 보통 환경이 자동으로 켜진다. `python tests/check_env.py`로 확인한다 (안 켜지면 '문제 해결' 참고).
+3. 새 터미널을 열면 보통 환경이 자동으로 켜진다. `python dev.py check`로 확인한다 (안 켜지면 '문제 해결' 참고).
 
 ## 5. Claude Code 대화 수집 훅 (이 PC에서도 기록하려면)
 
@@ -81,24 +77,24 @@ python kit/install_concept_hook.py --test    # '결과: 정상'이 나오면 끝
 - 제거: `python kit/install_concept_hook.py --uninstall`
 - 주요 옵션: `--scope project --project <폴더>`(그 프로젝트만), `--events user,assistant,subagent`, `--inbox <경로>`, `--no-mask`(키 가리기 끔)
 
-결과 페이지(`sim/out/index.html`)의 **04 입력 설정 시트**에서 옵션을 고르면 같은 내용의 한 줄 설치 명령을 만들어 준다.
+결과 페이지(`web/dist/index.html`)의 **04 입력 설정 시트**에서 옵션을 고르면 같은 내용의 한 줄 설치 명령을 만들어 준다.
 
 ## 6. 작업 흐름
 
 | 바꾼 것 | 다음에 할 일 |
 |---|---|
-| `kit/*.py` | `python sim/build_page.py` (페이지 코드 상자·한 줄 설치 명령 갱신) |
-| `sim/page_template.html` | `python sim/build_page.py` |
-| 시뮬레이터 (`sim/*.py`) | `python sim/sim_B.py` 등 → `python sim/make_page_data.py` → `python sim/build_page.py` |
-| 훅 변환 규칙 (`kit/install_concept_hook.py`) | `python tests/test_hook.py` → `python sim/build_page.py` (페이지의 설치 파일 갱신) |
-| 패키지 추가 | `requirements.txt`에 버전까지 적기 → 다른 PC에서 `conda env update -f environment.yml --prune` |
+| `kit/*.py` | `python dev.py build` (페이지 코드 상자·한 줄 설치 명령 갱신) |
+| `web/page_template.html` | `python dev.py build` |
+| 시뮬레이터 (`sim/*.py`) | `python dev.py sim` (A·B·C 재실행 → 페이지 데이터 → 페이지) |
+| 훅 변환 규칙 (`kit/install_concept_hook.py`) | `python tests/test_hook.py` → `python dev.py build` (페이지의 설치 파일 갱신) |
+| 패키지 추가 | `requirements.txt`에 버전까지 적기 → 다른 PC에서 `python dev.py setup` (있는 환경은 갱신) |
 
-커밋 전에 `python tests/check_env.py`를 한 번 돌리면 페이지가 최신인지까지 확인된다. 푸시하면 GitHub Actions가 Windows·Ubuntu에서 같은 점검을 다시 돌린다 (레포의 Actions 탭).
+커밋 전에 `python dev.py check`를 한 번 돌리면 페이지가 최신인지까지 확인된다. 구조·데이터 계약·변경 절차는 `docs/ARCHITECTURE.md`. 푸시하면 GitHub Actions가 Windows·Ubuntu에서 같은 점검을 다시 돌린다 (레포의 Actions 탭).
 
 ## 7. PC를 옮길 때
 
 - 코드: `git pull` 하나면 된다.
-- 패키지가 바뀌었으면: `conda env update -f environment.yml --prune`
+- 패키지가 바뀌었으면: `python dev.py setup` (있는 환경을 갱신하고 점검까지)
 - **git에 올라가지 않는 것** (개인 데이터라 일부러 뺐다): `~/.claude/concept-inbox.jsonl`(대화 기록), `concept_store.sqlite`, `concept_cache.sqlite`. 필요하면 직접 복사한다.
 - 줄바꿈은 `.gitattributes`로 LF에 고정돼 있다. Windows에서 받아도 파일 내용이 바이트 단위로 같아서, 설치 파일 SHA-256과 한 줄 설치 명령이 PC마다 바뀌지 않는다.
 
@@ -113,6 +109,7 @@ python kit/install_concept_hook.py --test    # '결과: 정상'이 나오면 끝
 | `UnicodeEncodeError: 'cp949' ...` | UTF-8 모드가 꺼진 상태다. conda 환경이면 `conda deactivate` 후 다시 activate, venv면 `setx PYTHONUTF8 1` 후 새 터미널 |
 | `ko_core_news_md` 설치 실패 | GitHub 접속이 막힌 망이다. 다른 망에서 휠 파일을 받아 `pip install ko_core_news_md-3.8.0-py3-none-any.whl` |
 | `kiwipiepy_model` 설치가 오래 걸림 | 형태소 분석 모델 데이터(약 100MB)라 정상이다 |
+| `conda를 찾지 못했다` (dev.py setup) | 일반 PowerShell이 아니라 Anaconda Prompt에서 실행한다. conda 없이 하려면 `--venv` |
 | check_env에 Python 버전 경고 | 3.13이 아닌 파이썬으로 실행 중이다. `python --version`과 켜진 환경을 확인한다 |
 | 훅 오류에 `PowerShell started no program` | Git Bash가 없어서 훅이 PowerShell에서 실행된 경우다. Git for Windows를 설치하고 Claude Code 세션을 새로 연다 |
 | 훅이 기록을 남기지 않음 | `claude --version`이 2.1.47 이상인지, `--test` 결과, Claude Code의 `/hooks`를 확인한다. 파이썬 경로가 바뀌었으면 훅을 다시 설치한다 |
@@ -123,4 +120,5 @@ python kit/install_concept_hook.py --test    # '결과: 정상'이 나오면 끝
 - **실행 확인 (Linux, Python 3.13):** 새 가상환경에 `pip install -r requirements.txt` → `check_env.py` 통과 → 시뮬레이터 재실행 결과가 저장된 결과와 같음 → `npm test` 통과. `-X warn_default_encoding`으로 돌려서, 이 저장소 코드에는 인코딩을 지정하지 않은 파일 읽기·쓰기가 없는 것도 확인했다 (외부 패키지 trafilatura가 설정 파일 하나를 그렇게 읽지만 영문뿐이라 Windows에서도 문제없다).
 - **설치 파일 확인 (Windows x64 · Python 3.13/3.12, macOS Apple Silicon · Python 3.13):** 의존 패키지 76개 모두 해당 OS용 설치 파일(wheel)이 PyPI에 있다. `kiwipiepy_model`만 소스 패키지인데, 모델 데이터만 들어 있어서 컴파일러 없이 설치된다.
 - **CI (GitHub Actions, windows-latest · ubuntu-latest):** 새 환경에 Python 3.13 + `requirements.txt` 설치 → `check_env.py` → `npm test`가 두 OS 모두 통과했다 (2026-11-07). Windows에서도 UTF-8 모드를 켜지 않은 기본 설정으로 돌렸다.
+- **conda 설치 경로 (Linux, Miniforge conda 26.9):** 새 클론에서 `python dev.py setup` → 환경 생성 → 점검 `모두 통과` (55초). conda 설정에 defaults 채널을 넣어 둔 상태에서도 defaults를 건드리지 않았다.
 - **아직 안 해 본 것:** 개인 Windows PC(Anaconda)에서의 실행과, 실제 Claude Code 세션에서 훅이 기록하는 것. 처음 받으면 `check_env.py`부터 돌려 볼 것.

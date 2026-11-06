@@ -1,5 +1,6 @@
-# 푸시할 때마다 Windows와 Ubuntu에서 새 환경을 만들어 전체 점검을 돌린다.
-# (check_env: 패키지·한국어 모델·키트·훅 설치기·훅 어댑터·페이지 데이터/빌드 재현, npm test: 페이지 렌더)
+# 푸시할 때마다 새 환경을 만들어 전체 점검을 돌린다.
+#  - check: Windows·Ubuntu에서 pip 설치 → python dev.py check (check_env + npm test)
+#  - setup-conda: Windows에서 사용자와 같은 경로 python dev.py setup (environment.yml로 conda 환경 생성 → 점검)
 name: CI
 
 on:
@@ -25,18 +26,30 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
 
-      - name: 파이썬 패키지 설치
-        run: python -m pip install -r requirements.txt
-
-      - name: 환경 점검 + 스모크 테스트
-        run: python tests/check_env.py
-
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
 
-      - name: 페이지 자동 점검
+      - name: 파이썬 패키지 설치
+        run: python -m pip install -r requirements.txt
+
+      - name: 전체 점검 (check_env + npm test)
+        run: python dev.py check
+
+  setup-conda:
+    name: setup (windows, conda)
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: conda 확인
+        shell: pwsh
         run: |
-          npm ci
-          npm test
+          if (-not $env:CONDA) { Write-Error "이 러너에 conda가 없음 (CONDA 환경변수 없음)"; exit 1 }
+          & "$env:CONDA\Scripts\conda.exe" --version
+
+      - name: python dev.py setup (환경 생성 → 점검)
+        shell: pwsh
+        run: python dev.py setup

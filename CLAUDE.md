@@ -11,9 +11,12 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 
 ## 구조와 데이터 흐름
 
+자세한 구성·데이터 계약·품질 특성별 설계·변경 절차는 `docs/ARCHITECTURE.md`.
+
+- `dev.py`: 작업 진입점 (`setup` · `check` · `build` · `sim`), 표준 라이브러리만.
 - `sim/`: 시뮬레이터 A(중요도)·B(용어 정규화)·C(근거 문장) → `results/A·B·C.json`
   → `make_page_data.py`(+ `results/badge_eval.json` 기록값, `concepts.py`) → `results/page_data.json`
-  → `build_page.py`(+ `page_template.html`, `kit/*.py`) → `out/index.html`
+- `web/`: `build_page.py`(+ `page_template.html`, `kit/*.py`, `sim/results/page_data.json`) → `dist/index.html`
 - `kit/`: 실제 쓰는 코드. 훅 설치기(`install_concept_hook.py`, 훅 본문은 `HOOK_TEMPLATE` 안의 `normalize()`가 어댑터), 노트북 첫 셀, 클릭 카드, 근거 수집, 검증 에이전트.
 - `tests/`: `check_env.py`(전체 점검), `test_hook.py`(훅 fixture), `check_page.js`·`check_setup.js`(jsdom).
 
@@ -21,8 +24,9 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 
 - 텍스트 파일은 UTF-8 + LF (`.gitattributes`). 파일을 열 때 `encoding="utf-8"`를 꼭 쓴다 (Windows 기본 cp949).
 - 경로는 스크립트 위치 기준(`pathlib.Path(__file__)`)으로 잡는다. 어느 폴더에서 실행해도 같아야 한다.
-- 코드 상자 원본은 `kit/`뿐이다. 템플릿의 `tpl-*` 상자는 비워 두고 `build_page.py`가 채운다.
-- 커밋 전: `python tests/check_env.py` (마지막 줄 `모두 정상`). 푸시하면 CI가 Windows·Ubuntu에서 다시 돌린다.
+- 코드 상자 원본은 `kit/`뿐이다. `web/page_template.html`의 `tpl-*` 상자는 비워 두고 `web/build_page.py`가 채운다.
+- 커밋 전: `python dev.py check` (마지막 줄 `결과: 모두 통과`). 브랜치 → 푸시 → CI(Windows·Ubuntu·Windows conda) 통과 → main. `CHANGELOG.md`에 한 줄.
+- 의존 방향: `kit/`는 다른 폴더에 의존하지 않고, `web/`·`sim/`은 `kit/`를 import하지 않는다 (`web/build_page.py`는 글자 그대로 읽기만).
 - git에 올리지 않는 것: `~/.claude/concept-inbox.jsonl`, `*.sqlite` (개인 대화 데이터).
 - 훅은 아무것도 출력하지 않고 항상 0으로 끝나야 한다 (UserPromptSubmit의 stdout은 Claude 문맥에 들어간다).
 
@@ -32,6 +36,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - 시뮬레이터 A·B·C, 결과 페이지, 입력 설정 시트(한 줄 설치), 클릭 카드·근거 수집·검증 에이전트
 - 추세 배지(두 비율 z-검정)·새 용어 계산을 `sim_A.py`에 복원, `make_page_data.py`로 페이지 데이터 재현
 - 훅 어댑터 정리(형식이 다르면 원문을 `raw`에 보존) + fixture 테스트, CI(Windows + Ubuntu)
+- 구조 정리(0.2.0): 결과 페이지 `web/` 분리, `dev.py`, `docs/ARCHITECTURE.md`, `CHANGELOG.md`, 형태소 분석기 지연 로딩
 - 사용자 흐름 데모 디자인(캔버스, 비공개): https://claude.ai/artifact/MrXdwFhQjyFokNCraw1Uz4
 
 다음 할 일 (합의된 순서)
