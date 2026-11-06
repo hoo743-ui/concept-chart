@@ -13,6 +13,11 @@ import json
 import pathlib
 import sys
 
+try:  # 출력이 파이프·파일로 갈 때(Windows 기본 인코딩)도 한글 메시지가 깨지거나 멈추지 않게
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from concepts import CONCEPTS, DEFS, DISPLAY, HARD_NEG, PERSONAS, VARIANTS  # noqa: E402
