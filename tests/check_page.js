@@ -1,0 +1,52 @@
+// 페이지 전체 자동 점검: 스크립트 오류, 빈 값, 리더보드·차트·표 렌더, 조작(페르소나·주차·방법 전환)
+// 사용: node tests/check_page.js [sim/out/index.html]   (npm test 에 포함)
+const fs = require('fs');
+const path = require('path');
+const { JSDOM, VirtualConsole } = require('jsdom');
+const html = fs.readFileSync(process.argv[2] || path.join(__dirname, '..', 'sim', 'out', 'index.html'), 'utf8');
+const vc = new VirtualConsole();
+const errors = [];
+vc.on('jsdomError', e => errors.push(String(e && (e.stack || e.message || e))));
+vc.on('error', e => errors.push('console.error ' + e));
+const dom = new JSDOM(html, { runScripts: 'dangerously', virtualConsole: vc, pretendToBeVisual: true, url: 'https://example.org/' });
+const w = dom.window, d = w.document;
+setTimeout(() => {
+  const out = {};
+  out.errors = errors;
+  out.unfilled = [...d.querySelectorAll('[data-v]')].filter(n => !n.textContent.trim()).map(n => n.getAttribute('data-v'));
+  out.lbRows = d.querySelectorAll('#lb tbody tr').length;
+  out.lbTerms = [...d.querySelectorAll('#lb tbody .term-btn')].map(b => b.textContent);
+  out.marks = [...d.querySelectorAll('#chat mark')].map(m => m.className.replace('hl ', '') + ':' + m.textContent);
+  out.note = d.querySelector('#note h3') && d.querySelector('#note h3').textContent;
+  out.queue = [...d.querySelectorAll('#queue li b')].map(b => b.textContent);
+  out.refs = d.querySelectorAll('#ref-grid .card').length;
+  out.stages = d.querySelectorAll('#pipe .stage').length;
+  out.tblA = d.querySelectorAll('#tblA tbody tr').length;
+  out.compSub = d.querySelector('#comp-sub').textContent;
+  out.tuner = [...d.querySelectorAll('#tuner-out .tile')].map(t => t.textContent);
+  out.svgs = d.querySelectorAll('svg').length;
+  out.tblB = d.querySelectorAll('#tblB tbody tr').length;
+  out.tblC = d.querySelectorAll('#tblC tbody tr').length;
+  out.cex = d.querySelectorAll('#c-ex .card').length;
+  out.src = d.querySelectorAll('#src li').length;
+  out.trTitle = d.querySelector('#tr-title').textContent;
+  out.vals = Object.fromEntries([...d.querySelectorAll('[data-v]')].map(n => [n.getAttribute('data-v'), n.textContent]));
+  // interactions: switch persona, week, method, truth, tuner
+  const btns = d.querySelectorAll('#ctl-persona button'); btns[2].click();
+  out.p3terms = [...d.querySelectorAll('#lb tbody .term-btn')].map(b => b.textContent);
+  d.querySelector('#ctl-method button:nth-child(2)').click();
+  out.tfterms = [...d.querySelectorAll('#lb tbody .term-btn')].map(b => b.textContent);
+  const wk = d.querySelector('#ctl-week'); wk.value = '9'; wk.dispatchEvent(new w.Event('input'));
+  out.week = d.querySelector('#week-label').textContent;
+  const tr = d.querySelector('#ctl-truth'); tr.checked = true; tr.dispatchEvent(new w.Event('change'));
+  out.truthSum = d.querySelector('#lb-sum').textContent;
+  d.querySelectorAll('#tuner-ctl .seg')[0].querySelectorAll('button')[1].click();
+  out.tuner2 = [...d.querySelectorAll('#tuner-out .tile')].map(t => t.textContent).slice(0, 3);
+  const sl = d.querySelector('#w-label'); sl.value = '0'; sl.dispatchEvent(new w.Event('input'));
+  out.compSub2 = d.querySelector('#comp-sub').textContent;
+  out.errors2 = errors.slice(out.errors.length);
+  console.log(JSON.stringify(out, null, 1));
+  const ok = errors.length === 0 && out.unfilled.length === 0 && out.lbRows > 0 && out.svgs > 0;
+  console.log(ok ? 'check_page: 정상' : 'check_page: 실패');
+  process.exit(ok ? 0 : 1);
+}, 500);

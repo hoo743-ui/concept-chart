@@ -1,0 +1,25 @@
+# concept-chart — 파이썬 패키지 (Python 3.13에서 실행 검증, 버전 고정)
+# 설치:  python -m pip install -r requirements.txt
+
+# 수치·학습
+numpy==2.5.3
+scipy==1.18.1
+scikit-learn==1.9.1
+networkx==3.7
+
+# 한국어 처리
+kiwipiepy==0.24.1
+kiwipiepy_model==0.24.0
+spacy==3.8.18
+# spaCy 한국어 모델 (≈69MB, GitHub 릴리스에서 받음 — 'python -m spacy download'를 따로 안 해도 됨)
+ko_core_news_md @ https://github.com/explosion/spacy-models/releases/download/ko_core_news_md-3.8.0/ko_core_news_md-3.8.0-py3-none-any.whl
+
+# 키워드 추출·문자열 유사도·검색 (시뮬레이터 비교군)
+yake==0.7.3
+krwordrank==1.0.3
+korean_romanizer==0.28.0
+RapidFuzz==3.14.6
+rank-bm25==0.2.2
+
+# 웹 본문 추출 (kit/fetch_sources.py의 마지막 단계에서만 사용)
+trafilatura==2.3.1

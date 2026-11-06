@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Node (페이지 점검용 jsdom — npm ci로 다시 설치)
+node_modules/
+
+# 실행하면 생기는 로컬 데이터 (개인 대화 기록이 들어갈 수 있음)
+*.sqlite
+*.sqlite-journal
+concept-inbox.jsonl
+*.bak-*
+
+# 에디터·OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

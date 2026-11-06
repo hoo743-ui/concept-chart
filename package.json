@@ -1,0 +1,15 @@
+{
+  "name": "concept-chart",
+  "version": "0.1.0",
+  "private": true,
+  "description": "개념 차트 페이지 자동 점검(jsdom). 파이썬 코드만 쓸 거면 설치하지 않아도 된다.",
+  "scripts": {
+    "test": "node tests/check_page.js && node tests/check_setup.js"
+  },
+  "devDependencies": {
+    "jsdom": "24.1.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,15 @@
+# conda 환경 (Anaconda / Miniconda / Miniforge 공통)
+#   conda env create -f environment.yml
+#   conda activate concept-chart
+# conda-forge만 쓰고 defaults 채널은 끈다 → Anaconda 이용약관(ToS) 확인 오류가 나지 않는다.
+name: concept-chart
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.13
+  - pip
+  - pip:
+      - -r requirements.txt
+variables:
+  PYTHONUTF8: "1"   # Windows 기본 인코딩(cp949) 대신 UTF-8로 입출력

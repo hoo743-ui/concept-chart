@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>개념 차트 시뮬레이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* 레이아웃: 좌측 정렬 보고서 + 인터랙티브 패널. 은유: 노트 위 형광펜(중요도)과 잉크(개념) */
+  --paper:#f4f5f7; --surface:#ffffff; --ink:#141b2d; --ink-2:#4b5468; --muted:#737b8e; --line:#e2e5eb;
+  --accent:#2a5bd7; --accent-ink:#ffffff; --accent-soft:#e9eefb;
+  --hl1:#ffd43b; --hl2:#fff1ad; --hl3:#c99a00; --hl-ink:#141b2d;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --base:#c3c2b7; --grid:#e8e7e1;
+  --f-body:"IBM Plex Sans KR","Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0e121b; --surface:#161b27; --ink:#eef1f7; --ink-2:#b9c0ce; --muted:#8e96a8; --line:#2a3245;
+    --accent:#7c9cf5; --accent-ink:#0e121b; --accent-soft:#1c2540;
+    --hl1:#e0b400; --hl2:rgba(255,212,59,.24); --hl3:#e0b400; --hl-ink:#141b2d;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --base:#4d4d49; --grid:#2c2c2a;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0e121b; --surface:#161b27; --ink:#eef1f7; --ink-2:#b9c0ce; --muted:#8e96a8; --line:#2a3245;
+  --accent:#7c9cf5; --accent-ink:#0e121b; --accent-soft:#1c2540;
+  --hl1:#e0b400; --hl2:rgba(255,212,59,.24); --hl3:#e0b400; --hl-ink:#141b2d;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --base:#4d4d49; --grid:#2c2c2a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+header.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:18px;height:52px}
+.brand{font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.brand mark{background:var(--hl1);color:var(--hl-ink);padding:0 4px;border-radius:3px}
+nav.toc{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.toc a{color:var(--ink-2);text-decoration:none;font-size:13.5px;padding:6px 10px;border-radius:6px;white-space:nowrap}
+nav.toc a:hover{background:var(--accent-soft);color:var(--ink)}
+section{padding:44px 0;border-top:1px solid var(--line)}
+section:first-of-type{border-top:0}
+h1{font-size:clamp(30px,4.4vw,44px);line-height:1.15;margin:0 0 10px;letter-spacing:-.025em;text-wrap:balance}
+h2{font-size:25px;line-height:1.3;margin:0 0 6px;letter-spacing:-.015em;text-wrap:balance}
+h3{font-size:17px;margin:0 0 8px;text-wrap:balance}
+.kicker{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);letter-spacing:.02em;margin-bottom:6px}
+.lede{font-size:17px;color:var(--ink-2);max-width:68ch}
+p{max-width:72ch}
+.sub{color:var(--ink-2);margin:0 0 18px;max-width:72ch}
+.small{font-size:13px;color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.decision{border-left:4px solid var(--accent)}
+.decision .big{font-size:22px;font-weight:700;margin:2px 0 4px;letter-spacing:-.01em}
+.decision .fig{font-family:var(--f-mono);font-size:13.5px;color:var(--ink-2)}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11.5px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);vertical-align:middle}
+.tag.meas{border-color:var(--s3);color:var(--ink)}
+.tag.meas::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--s3);margin-right:5px;vertical-align:1px}
+.tag.nome::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;border:1.5px solid var(--muted);margin-right:5px;vertical-align:0}
+.loop{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 0}
+.loop span{background:var(--accent-soft);border-radius:6px;padding:4px 10px;font-size:14px}
+.loop i{color:var(--muted);font-style:normal}
+.ref h3{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.ref h3 .small{white-space:nowrap;flex:none}
+.ref dl{margin:0;display:grid;grid-template-columns:52px 1fr;gap:4px 10px;font-size:14px}
+.ref dt{color:var(--muted);font-size:12.5px;padding-top:2px}
+.ref dd{margin:0}
+.ref .take{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:14px}
+.ref .take b{color:var(--accent)}
+.pipe{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;counter-reset:st}
+.stage{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 14px 12px;counter-increment:st}
+.stage::before{content:counter(st);position:absolute;top:12px;right:14px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.stage h3{font-size:15.5px;margin:0 0 6px;padding-right:20px}
+.stage .use{font-size:14px;margin:0 0 8px}
+.stage .ev{font-family:var(--f-mono);font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:8px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-weight:600;font-size:12.5px;color:var(--ink-2);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.tbl tr.rec td{background:var(--accent-soft)}
+.tbl .desc{color:var(--ink-2);font-size:13px}
+.databar{position:relative;display:block;min-width:64px}
+.databar i{position:absolute;left:0;top:3px;bottom:3px;background:var(--s1);opacity:.16;border-radius:0 4px 4px 0}
+.databar span{position:relative}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 14px 8px}
+.chart svg{display:block;max-width:100%;height:auto;overflow:visible}
+.chart-title{font-weight:600;font-size:14.5px;margin:0 0 2px}
+.chart-sub{font-size:12.5px;color:var(--muted);margin:0 0 8px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--ink-2);margin:2px 0 8px}
+.legend .k{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:6px;vertical-align:0}
+.legend .kl{display:inline-block;width:16px;height:0;border-top:2px solid;margin-right:6px;vertical-align:3px}
+svg .grid{stroke:var(--grid);stroke-width:1}
+svg .baseline{stroke:var(--base);stroke-width:1}
+svg .axis{fill:var(--muted);font-size:11px;font-family:var(--f-mono)}
+svg .lab{fill:var(--ink-2);font-size:12.5px;font-family:var(--f-body)}
+svg .lab.strong{fill:var(--ink);font-weight:600}
+svg .val{fill:var(--ink);font-size:12px;font-family:var(--f-mono)}
+svg .b-base{fill:var(--base)} svg .b-ours{fill:var(--s1)} svg .b-gbm{fill:var(--s3)} svg .b-alt{fill:var(--s2)}
+svg .hit{fill:transparent}
+svg .hit:focus{outline:none}
+svg .hit:focus-visible{stroke:var(--accent);stroke-width:2}
+svg .refline{stroke:var(--ink-2);stroke-width:1}
+svg .reftext{fill:var(--ink-2);font-size:11px;font-family:var(--f-mono)}
+svg .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+svg .ln-1{stroke:var(--s1)} svg .ln-2{stroke:var(--s2)} svg .ln-t{stroke:var(--muted)}
+svg .ar-t{fill:var(--muted);opacity:.14}
+svg .vmark{stroke:var(--s2);stroke-width:1}
+svg .cross{stroke:var(--ink-2);stroke-width:1}
+svg .dot-1{fill:var(--s1);stroke:var(--surface);stroke-width:2} svg .dot-2{fill:var(--s2);stroke:var(--surface);stroke-width:2} svg .dot-t{fill:var(--muted);stroke:var(--surface);stroke-width:2}
+svg .spk{fill:none;stroke:var(--s1);stroke-width:1.5;stroke-linejoin:round}
+svg .spk-a{fill:var(--s1);opacity:.1}
+svg .spk-d{fill:var(--s1)}
+.tip{position:fixed;display:none;z-index:60;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;box-shadow:0 6px 20px rgba(0,0,0,.14);font-size:12.5px;pointer-events:none;max-width:300px}
+.tip .tv{font-family:var(--f-mono);font-weight:600;color:var(--ink)}
+.tip .tl{color:var(--ink-2)}
+.tip .tr{display:flex;align-items:center;gap:6px}
+.tip .tr .kl{display:inline-block;width:12px;border-top:2px solid}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin:0 0 14px}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.ctl > label,.ctl > .lbl{font-size:12px;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{background:transparent;border:0;border-right:1px solid var(--line);padding:6px 11px;font:inherit;font-size:13px;color:var(--ink-2);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--accent-soft)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+select,input[type=range]{font:inherit;font-size:13.5px}
+select{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+input[type=range]{accent-color:var(--accent);width:180px}
+.check{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--ink-2)}
+.demo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px}
+@media (max-width:900px){.demo{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);font-weight:600;font-size:14px}
+.panel-b{padding:14px}
+.bubble{border-radius:12px;padding:10px 12px;margin:0 0 10px;font-size:14.5px;line-height:1.75}
+.bubble.q{background:var(--accent-soft);margin-left:18%}
+.bubble.a{border:1px solid var(--line)}
+.bubble .who{display:block;font-size:11.5px;color:var(--muted);margin-bottom:2px}
+.utts{margin:0;padding:0;list-style:none;font-size:13.5px;color:var(--ink-2)}
+.utts li{padding:5px 0;border-top:1px dashed var(--line)}
+mark.hl{background:none;color:inherit;cursor:pointer;border-radius:3px;padding:0 1px}
+mark.hl-1{background:var(--hl1);color:var(--hl-ink);font-weight:600}
+mark.hl-2{background:var(--hl2)}
+mark.hl-3{border-bottom:2px solid var(--hl3);border-radius:0}
+mark.hl-new{border-bottom:2px dotted var(--muted);border-radius:0}
+.hl-key{display:flex;flex-wrap:wrap;gap:10px;font-size:12.5px;color:var(--ink-2);margin-top:8px}
+.lb{width:100%;border-collapse:collapse;font-size:14px}
+.lb th{font-size:12px;color:var(--muted);font-weight:500;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.lb td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.lb tr:last-child td{border-bottom:0}
+.lb .rk{font-family:var(--f-mono);font-weight:600;font-size:15px;width:28px;text-align:right}
+.lb .chg{font-family:var(--f-mono);font-size:12px;color:var(--ink-2);width:44px;white-space:nowrap}
+.lb .chg.new{color:var(--accent);font-weight:600}
+.term-btn{background:none;border:0;padding:0;font:inherit;color:var(--ink);cursor:pointer;text-align:left;font-weight:500}
+.term-btn:hover{text-decoration:underline}
+.term-btn.noise{color:var(--muted);font-weight:400}
+.pill{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);white-space:nowrap}
+.pill.up{border-color:var(--s1);color:var(--ink)}
+.pill.up::before{content:"↗";color:var(--s1)}
+.pill.down::before{content:"↘";color:var(--muted)}
+.pill.out{border-style:dashed}
+.tier{display:inline-block;min-width:24px;text-align:center;font-size:12px;border-radius:4px;padding:0 5px}
+.tier.t1{background:var(--hl1);color:var(--hl-ink);font-weight:600}
+.tier.t2{background:var(--hl2)}
+.tier.t3{border-bottom:2px solid var(--hl3);border-radius:0}
+.kind{font-size:11.5px;color:var(--ink-2)}
+.kind.bad{color:var(--s2)}
+.lb-sum{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink-2);padding:10px 14px;border-top:1px solid var(--line)}
+.lb-sum b{color:var(--ink);font-family:var(--f-mono)}
+.queue li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.queue li:first-child{border-top:0}
+.queue{list-style:none;margin:0;padding:0}
+.mini{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink-2);cursor:pointer}
+.mini:hover{background:var(--accent-soft)}
+.mini[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.note h3{font-size:20px;margin:0}
+.note .alias{font-size:12.5px;color:var(--muted);margin:2px 0 10px}
+.note .def{font-size:15.5px;line-height:1.75;margin:0 0 12px;padding:10px 12px;background:var(--accent-soft);border-radius:8px}
+.note .cand{list-style:none;margin:0;padding:0;font-size:13.5px}
+.note .cand li{display:grid;grid-template-columns:82px 1fr;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
+.note .cand .lbl{font-size:11.5px;color:var(--muted)}
+.note .sec{font-size:12px;color:var(--muted);margin:12px 0 4px;font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.tile .lbl{font-size:12px;color:var(--muted)}
+.tile .v{font-size:22px;font-weight:600;letter-spacing:-.01em}
+.tile .d{font-family:var(--f-mono);font-size:12px;color:var(--ink-2)}
+.wrow{display:grid;grid-template-columns:150px 1fr 26px;gap:10px;align-items:center;font-size:13.5px}
+.callout{border:1px solid var(--line);border-left:4px solid var(--hl1);background:var(--surface);border-radius:8px;padding:12px 14px;font-size:14.5px}
+.callout.warn{border-left-color:var(--s2)}
+ol.plan{margin:0;padding-left:20px}
+ol.plan li{margin:0 0 8px}
+.sources li{margin:0 0 6px;font-size:14px}
+.ex{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13.5px}
+@media (max-width:700px){.ex{grid-template-columns:1fr}.bubble.q{margin-left:8%}.wrow{grid-template-columns:110px 1fr 22px}}
+.ex .bad{border-left:3px solid var(--base);padding-left:8px}
+.ex .good{border-left:3px solid var(--s1);padding-left:8px}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:6px 0 4px}
+.flow .node{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;display:flex;flex-direction:column;gap:2px;min-width:120px;flex:1 1 140px}
+.flow .node span{color:var(--ink-2);font-size:12px;line-height:1.45}
+.flow > i{align-self:center;color:var(--muted);font-style:normal}
+.setup{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:14px;margin-top:14px;align-items:start}
+@media (max-width:900px){.setup{grid-template-columns:1fr}}
+#su-form{display:flex;flex-direction:column;gap:12px}
+#su-form .seg{flex-wrap:wrap}
+input[type=text],input[type=number]{font:inherit;font-size:13.5px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%}
+fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:4px}
+legend{font-size:12px;color:var(--muted);padding:0;margin-bottom:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+details summary{cursor:pointer}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);padding:5px 10px;border-radius:6px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.codebox{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 12px;background:var(--surface)}
+.codebox .cb-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 10px;background:var(--accent-soft);font-size:12.5px}
+.codebox .cb-h b{margin-right:8px}
+.codebox .cb-w{color:var(--ink-2)}
+.codebox pre{margin:0;padding:10px 12px;max-height:380px;overflow:auto;font-family:var(--f-mono);font-size:12.5px;line-height:1.55;white-space:pre;tab-size:4;color:var(--ink)}
+.codebox.one pre{white-space:pre-wrap;word-break:break-all;max-height:110px}
+ol.steps{margin:4px 0 0;padding-left:20px;font-size:14px}
+ol.steps li{margin:0 0 4px}
+code{font-family:var(--f-mono);font-size:.92em;background:var(--accent-soft);padding:0 4px;border-radius:4px}
+#su-pane > p{margin:0 0 10px}
+.vt1 td:first-child,.vt2 td:nth-child(2){white-space:nowrap}
+footer{padding:30px 0 60px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><mark>개념</mark> 차트</div>
+    <nav class="toc" aria-label="목차">
+      <a href="#summary">결론</a><a href="#service">서비스 정의</a><a href="#refs">레퍼런스</a><a href="#pipeline">파이프라인</a><a href="#setup">설정 시트</a>
+      <a href="#ux">UI/UX 데모</a><a href="#click">클릭 응답</a><a href="#verify">검증</a><a href="#light">경량·무료</a><a href="#board">리더보드</a><a href="#simA">시뮬레이터 A</a><a href="#simB">B</a><a href="#simC">C</a>
+      <a href="#decision">모델 선정</a><a href="#plan">구현 계획</a><a href="#limits">한계</a><a href="#sources">출처</a>
+    </nav>
+  </div>
+</header>
+<main>
+<section id="summary">
+  <div class="wrap">
+    <div class="kicker">개인 프로젝트 · 설계와 시뮬레이션 결과</div>
+    <h1>대화에서 자주 나온 개념을 공부 노트로 바꾸는 개념 차트</h1>
+    <p class="lede">대화 속에서 자주, 꾸준히 등장하는 개념에 중요도를 매겨 형광펜처럼 표시하고, 주간 개념 차트로 보여 줍니다. 차트의 각 개념은 웹에서 찾은 정의문과 출처가 달린 공부 노트로 펼쳐집니다. 아래 수치는 이 세션에서 가상 사용자 로그와 직접 만든 벤치마크로 측정했습니다.</p>
+    <div class="row" style="margin:8px 0 18px"><span class="tag meas">실측: 이 세션에서 코드로 측정</span><span class="tag nome">미실측: 모델 다운로드가 막혀 측정하지 못함</span></div>
+    <div class="grid3">
+      <div class="card decision"><div class="small">중요도 산정 방식</div><div class="big">제안 C (세션 감쇠 빈도 × IDF × 개념성)</div><div class="fig">NDCG@10 <span data-v="c_ndcg"></span> · 잡음 <span data-v="c_intr"></span> · 주간 변동 <span data-v="c_churn"></span></div><p class="small" style="margin:6px 0 0">단순 빈도는 NDCG <span data-v="tf_ndcg"></span>, 잡음 <span data-v="tf_intr"></span>, 주간 변동 <span data-v="tf_churn"></span>.</p></div>
+      <div class="card decision"><div class="small">파인튜닝·학습 필요 여부</div><div class="big">지금은 수식, 피드백이 쌓이면 학습형 랭커</div><div class="fig">학습형 랭커 NDCG <span data-v="gbm_ndcg"></span> (제안 C 대비 +<span data-v="gbm_gain"></span>, 95% CI <span data-v="gbm_ci"></span>)</div><p class="small" style="margin:6px 0 0">가상 사용자로 학습한 결과라 실서비스 라벨이 생기기 전에는 쓰지 않습니다. 신경망 파인튜닝은 어느 단계에서도 아직 근거가 없습니다.</p></div>
+      <div class="card decision"><div class="small">가장 큰 개선 요인</div><div class="big">개념 사전 매칭과 개념성 가중치</div><div class="fig">제거 시 NDCG −<span data-v="abl_gloss"></span> / −<span data-v="abl_c"></span></div><p class="small" style="margin:6px 0 0">형태소 분석기만 쓰면 '데이터프레임', '검색 증강 생성' 같은 전문용어가 쪼개집니다. 사전에 없는 용어는 확인 큐로 보내 사전을 키웁니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="service">
+  <div class="wrap">
+    <div class="kicker">01 · 고도화한 주제</div>
+    <h2>무엇을 받아서 무엇을 내놓는가</h2>
+    <p class="sub">처음 재료(토큰화 → 웹 검색 → URL → 크롤링, 빈도 강조, 메모리와 시계열)를 하나의 학습 루프로 묶었습니다. 비전공자도 AI 답변의 핵심 개념을 놓치지 않게 하는 것이 목표입니다.</p>
+    <div class="grid2">
+      <div class="card"><h3>입력</h3><ul style="margin:0;padding-left:18px"><li>Claude Code 대화: 내 질문과 AI 최종 답변, 세션 ID, 작업 폴더, 시각 (설정 시트 참고)</li><li>직무·전공 (선택, 노트의 예시와 비유에 사용)</li><li>사용자 반응: 노트 열기, "개념이에요/아니에요" 확인, 복습 결과</li></ul></div>
+      <div class="card"><h3>출력</h3><ul style="margin:0;padding-left:18px"><li><b>중요도 표시</b>: 답변 속 개념에 형광펜 3단계 (상·중·하)</li><li><b>주간 개념 차트</b>: TOP 10, 순위 변동, 상승·식는 중 신호, 새 개념 후보</li><li><b>공부 노트</b>: 한 줄 정의, 근거 문장과 출처 URL, 헷갈리는 개념, 내가 쓴 대화</li></ul></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>핵심 루프</h3>
+      <div class="loop"><span>대화</span><i>→</i><span>개념 추출·정규화</span><i>→</i><span>중요도 산정</span><i>→</i><span>주간 차트</span><i>→</i><span>웹 근거 노트</span><i>→</i><span>확인·복습 피드백</span><i>→</i><span>다음 주 차트와 사전</span></div>
+      <p class="small" style="margin:10px 0 0">빈도를 그대로 쓰지 않고 꾸준함(세션 단위), 희소성(IDF), 개념성(사전)으로 보정합니다. 사전에 없는 새 용어는 사용자가 한 번 확인하면 사전에 들어가고, 이 확인 기록이 나중에 학습형 랭커의 라벨이 됩니다.</p>
+    </div>
+  </div>
+</section>
+
+<section id="refs">
+  <div class="wrap">
+    <div class="kicker">02 · 레퍼런스 분석</div>
+    <h2>비슷한 프로젝트는 입력과 출력을 어떻게 잡았나</h2>
+    <p class="sub">각 프로젝트의 입력, 처리, 출력을 정리하고 우리 파이프라인에서 어느 단계로 가져왔는지 적었습니다.</p>
+    <div class="grid2" id="ref-grid"></div>
+  </div>
+</section>
+
+<section id="pipeline">
+  <div class="wrap">
+    <div class="kicker">03 · 전체 파이프라인</div>
+    <h2>8단계 파이프라인과 단계별 선택</h2>
+    <p class="sub">각 단계에 지금 쓸 방법과 그 근거를 붙였습니다. 근거가 실측이면 녹색 점, 문서 기반이면 빈 점입니다.</p>
+    <div class="pipe" id="pipe"></div>
+  </div>
+</section>
+
+<section id="setup">
+  <div class="wrap">
+    <div class="kicker">04 · 입력 설정 시트</div>
+    <h2>한 줄로 설치하는 입력 설정</h2>
+    <p class="sub">Claude Code 훅 두 개가 내 질문과 AI의 최종 답변을 로컬 인박스 파일에 한 줄씩 쌓고, 파이프라인은 그 파일만 읽습니다. 옵션을 고르면 오른쪽 명령이 바로 바뀌고, 고른 값은 이 브라우저에 저장됩니다.</p>
+    <div class="flow" aria-label="입력 흐름">
+      <div class="node"><b>Claude Code 세션</b><span>평소처럼 사용</span></div><i aria-hidden="true">→</i>
+      <div class="node"><b>훅 2개</b><span>질문 (UserPromptSubmit)<br>최종 답변 (Stop)</span></div><i aria-hidden="true">→</i>
+      <div class="node"><b>concept_hook.py</b><span>키·토큰 가리기, 길이 제한</span></div><i aria-hidden="true">→</i>
+      <div class="node"><b>concept-inbox.jsonl</b><span>UTF-8, 한 줄 = 한 턴</span></div><i aria-hidden="true">→</i>
+      <div class="node"><b>load_inbox()</b><span>정제 후 개념 차트로</span></div>
+    </div>
+    <div class="setup">
+      <div class="card" id="su-form">
+        <div class="ctl"><span class="lbl">운영체제</span><div class="seg" id="su-os"></div></div>
+        <div class="ctl"><span class="lbl">적용 범위</span><div class="seg" id="su-scope"></div></div>
+        <div class="ctl" id="su-proj-wrap"><label for="su-proj">프로젝트 폴더</label><input type="text" id="su-proj" placeholder="C:/Users/LG/atlas" autocomplete="off" spellcheck="false"></div>
+        <fieldset class="ctl"><legend>수집할 내용</legend>
+          <label class="check"><input type="checkbox" id="su-ev-user"> 내 질문 (UserPromptSubmit)</label>
+          <label class="check"><input type="checkbox" id="su-ev-asst"> AI 최종 답변 (Stop)</label>
+          <label class="check"><input type="checkbox" id="su-ev-sub"> 하위 에이전트 답변 (SubagentStop)</label>
+        </fieldset>
+        <label class="check"><input type="checkbox" id="su-async"> 비동기 실행 (Claude가 기다리지 않음, 권장)</label>
+        <label class="check"><input type="checkbox" id="su-mask"> API 키·토큰 가리기 (권장)</label>
+        <div class="two">
+          <div class="ctl"><label for="su-timeout">타임아웃(초)</label><input type="number" id="su-timeout" min="1" max="60"></div>
+          <div class="ctl"><label for="su-max">답변 최대 길이(자)</label><input type="number" id="su-max" min="1000" step="1000"></div>
+        </div>
+        <div class="ctl"><label for="su-inbox">인박스 파일</label><input type="text" id="su-inbox" autocomplete="off" spellcheck="false"></div>
+        <div class="ctl"><span class="lbl">설치 파일 받는 방식</span><div class="seg" id="su-src"></div></div>
+        <div class="ctl" id="su-url-wrap"><label for="su-url">설치 파일 Raw 주소 (GitHub Gist 등)</label><input type="text" id="su-url" placeholder="https://gist.githubusercontent.com/.../raw/install_concept_hook.py" autocomplete="off" spellcheck="false"></div>
+        <details class="ctl"><summary class="small">수동 설정용 경로</summary>
+          <div class="ctl" style="margin-top:8px"><label for="su-py">Python 경로</label><input type="text" id="su-py" autocomplete="off" spellcheck="false"></div>
+          <div class="ctl" style="margin-top:8px"><label for="su-home">홈 폴더</label><input type="text" id="su-home" autocomplete="off" spellcheck="false"></div>
+        </details>
+        <div class="row"><button type="button" class="mini" id="su-reset">기본값으로</button><span class="small" id="su-saved" role="status"></span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><div class="tabs" role="tablist" id="su-tabs" aria-label="설정 결과"></div></div>
+        <div class="panel-b" id="su-pane" role="tabpanel"></div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="card"><h3>이 구성을 고른 이유</h3>
+        <ul style="margin:0;padding-left:18px;font-size:14.5px">
+          <li><b>공식 훅 필드만 사용</b>: 질문은 <code>prompt</code>, 답변은 Stop 훅의 <code>last_assistant_message</code>(2.1.47부터). 트랜스크립트 파일의 내부 형식에 기대지 않습니다.</li>
+          <li><b>파일 인박스</b>: 서버가 꺼져 있어도 기록이 빠지지 않고, 파이프라인은 원할 때 읽습니다.</li>
+          <li><b>Claude 작업에 영향 없음</b>: 비동기 실행, 출력 없음, 실패해도 항상 정상 종료.</li>
+          <li><b>Windows 대응</b>: 설치에 쓴 Python의 절대경로를 슬래시와 따옴표로 등록합니다. 훅이 Git Bash로 실행되면 역슬래시가 지워지고, <code>python3</code> 이름만 쓰면 스토어 별칭이 잡힐 수 있기 때문입니다.</li>
+          <li><b>안전한 설치</b>: 기존 settings.json 자동 백업, 다른 설정 보존, 다시 설치해도 중복 없음, <code>--uninstall</code>로 이 훅만 제거, <code>--test</code>로 자가 점검.</li>
+        </ul>
+      </div>
+      <div class="card"><h3>입력 형식 v1 (인박스 한 줄)</h3>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>필드</th><th>값</th><th>파이프라인에서</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">v</td><td>1</td><td>형식 버전. 바뀌면 로더가 나눠 읽음</td></tr>
+            <tr><td class="mono">source</td><td>"claude-code"</td><td>다른 출처를 붙일 때 구분</td></tr>
+            <tr><td class="mono">session_id</td><td>훅 입력</td><td>세션 단위 집계 (일회성 몰림 억제)</td></tr>
+            <tr><td class="mono">project</td><td>훅 입력 cwd</td><td>프로젝트별 차트</td></tr>
+            <tr><td class="mono">ts</td><td>ISO 8601 (+09:00)</td><td>주차, 최근성 감쇠</td></tr>
+            <tr><td class="mono">role</td><td>user · assistant · subagent</td><td>내 말과 AI 말 구분 (공부 후보, 졸업 신호)</td></tr>
+            <tr><td class="mono">text</td><td>원문 (키·토큰 가린 뒤)</td><td>정제 후 토큰화</td></tr>
+            <tr><td class="mono">truncated</td><td>true · false</td><td>잘린 답변은 노트 근거에서 주의</td></tr>
+          </tbody></table></div>
+        <p class="small" style="margin:8px 0 0">규칙: UTF-8(BOM 없음), 한 줄에 한 턴, 추가만 함. 원문은 그대로 두고 정제는 파이프라인에서 합니다. 파일은 내 컴퓨터에만 있고, 밖으로 나가는 것은 웹 검색어(개념 이름)뿐입니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ux">
+  <div class="wrap">
+    <div class="kicker">05 · UI/UX 데모 (가상 사용자 로그로 동작)</div>
+    <h2>대화 하이라이트 · 개념 차트 · 공부 노트</h2>
+    <p class="sub">세 명의 가상 사용자 중 하나를 고르고 주차를 옮겨 보세요. 차트의 개념이나 하이라이트를 누르면 노트가 열립니다. "실제 관심 보기"를 켜면 시뮬레이터가 심어 둔 정답 유형이 함께 보입니다.</p>
+    <div class="controls">
+      <div class="ctl"><span class="lbl">가상 사용자</span><div class="seg" id="ctl-persona"></div></div>
+      <div class="ctl"><label for="ctl-week">주차: <b id="week-label"></b></label><input type="range" id="ctl-week" min="0" max="9" step="1" value="6"></div>
+      <div class="ctl"><span class="lbl">중요도 산정</span><div class="seg" id="ctl-method"></div></div>
+      <label class="check"><input type="checkbox" id="ctl-truth"> 실제 관심(정답) 보기</label>
+    </div>
+    <div class="demo">
+      <div class="stack">
+        <div class="panel"><div class="panel-h"><span>대화 화면</span><span class="small" id="chat-meta"></span></div>
+          <div class="panel-b" id="chat"></div>
+        </div>
+        <div class="panel"><div class="panel-h"><span>공부 노트</span><span class="small">웹 근거 기반</span></div>
+          <div class="panel-b note" id="note"></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel"><div class="panel-h"><span id="lb-title">이번 주 개념 차트</span><span class="small" id="lb-meta"></span></div>
+          <div style="overflow-x:auto"><table class="lb" id="lb"><thead><tr><th>순위</th><th>변동</th><th>개념</th><th>신호</th><th>8주 추이</th><th>중요도</th><th class="truth-col">실제 관심</th></tr></thead><tbody></tbody></table></div>
+          <div class="lb-sum" id="lb-sum"></div>
+        </div>
+        <div class="panel"><div class="panel-h"><span>새 개념 후보</span><span class="small">사전에 없지만 최근 2주 2세션 이상</span></div>
+          <div class="panel-b"><ul class="queue" id="queue"></ul><p class="small" style="margin:8px 0 0">"개념이에요"를 누르면 다음 주부터 사전에 들어가 차트 경쟁에 참여합니다 (데모에서는 표시만 바뀝니다).</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>UX 원칙</h3>
+      <div class="grid2" style="gap:6px 24px">
+        <ul style="margin:0;padding-left:18px">
+          <li>형광펜은 차트 상위 3개만 진하게, 4~7위는 연하게, 8~10위는 밑줄. 답변이 노랗게 덮이지 않게 합니다.</li>
+          <li>모든 강조에 "왜 중요해?"를 붙입니다. 예: 최근 2주 5개 세션에서 언급, 상승 신호.</li>
+          <li>사전에 없는 용어는 강조 대신 점선. 한 번 탭해서 개념인지 확인받습니다.</li>
+          <li>차트는 주 1회 갱신합니다. 실시간 순위는 매일 흔들려 피로합니다 (아래 변동률 참고).</li>
+        </ul>
+        <ul style="margin:0;padding-left:18px">
+          <li>상승·식는 중 신호는 통계적으로 유의할 때만 붙입니다 (두 비율 z-검정, 최소 2세션).</li>
+          <li>노트는 한 줄 정의 → 근거 문장과 출처 → 헷갈리는 개념 → 내가 쓴 대화 순으로 펼칩니다.</li>
+          <li>기본은 나만의 차트. 다른 사람과 비교하는 리그는 스터디 그룹에서만 켭니다.</li>
+          <li>색만으로 뜻을 전하지 않습니다. 등급 글자, 화살표, 텍스트 라벨을 함께 씁니다.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="click">
+  <div class="wrap">
+    <div class="kicker">06 · 개념 클릭 응답</div>
+    <h2>개념을 눌렀을 때 가볍게 보여 주기</h2>
+    <p class="sub">관련 개념과 기록을 한꺼번에 LLM에 넣으면 클릭할 때마다 토큰이 크게 늘어납니다. 클릭 응답은 로컬 색인에서 바로 만들고, 웹 검색은 매주 차트 상위 개념에만 미리 해 둡니다.</p>
+    <div class="grid2">
+      <div class="card"><h3>웹 조회 방식 비교와 결정</h3>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>방식</th><th>무게</th><th>결정</th></tr></thead>
+          <tbody>
+            <tr><td>WebSocket (WSS)</td><td>연결 유지, 재연결·상태 관리 필요</td><td>쓰지 않음. 클릭은 요청 한 번이면 끝남</td></tr>
+            <tr><td>SSE 스트리밍</td><td>단방향, 일반 HTTP 그대로</td><td>노트를 새로 만들 때 진행 표시용으로만</td></tr>
+            <tr class="rec"><td>HTTP + 캐시</td><td>가장 가벼움</td><td>기본</td></tr>
+            <tr><td>사이트 전체 크롤링</td><td>페이지 수십 개, 차단·파싱 위험</td><td>쓰지 않음</td></tr>
+            <tr class="rec"><td>위키백과 요약 API</td><td>키 없음, 무료, 정의 위주 문장</td><td>1순위</td></tr>
+            <tr><td>메타 검색 스니펫 (SearXNG)</td><td>셀프호스팅, 요청 한 번</td><td>위키백과로 부족할 때</td></tr>
+            <tr><td>본문 추출 (trafilatura)</td><td>페이지 1개</td><td>근거 문장이 2개 미만일 때만</td></tr>
+          </tbody></table></div>
+      </div>
+      <div class="card"><h3>응답 단계와 예산</h3>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>단계</th><th>내용</th><th>비용</th></tr></thead>
+          <tbody>
+            <tr class="rec"><td>클릭 즉시</td><td>정의 1줄과 출처, 관련 개념 3개, 내 기록 3개</td><td>LLM 0토큰, JSON 약 0.8KB <span class="tag meas">실측</span></td></tr>
+            <tr><td>더 보기</td><td>기록·관련 개념 다음 3개 (커서)</td><td>LLM 0토큰</td></tr>
+            <tr><td>노트 새로 만들기</td><td>캐시가 없을 때만: 근거 3문장·600자 이내 → 검증 에이전트</td><td>LLM 입력 약 1천 토큰 이하 <span class="tag nome">추정</span></td></tr>
+            <tr><td>주간 배치</td><td>차트 TOP 10만 미리 노트 생성</td><td>개념 10개 × 위 비용</td></tr>
+          </tbody></table></div>
+        <p class="small" style="margin:8px 0 0">관련 기록 20개와 웹 페이지 3개를 통째로 넣는 단순한 방식은 클릭 한 번에 1만 토큰을 쉽게 넘깁니다 <span class="tag nome">추정</span>. 이 구조에서는 클릭할 때 LLM을 부르지 않습니다.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:14px">동작 확인 (네트워크 대신 모의 응답 사용): 위키백과 단계에서 HTTP 요청 2번으로 근거 문장 2개를 확보했고, 같은 개념을 다시 요청하면 캐시에서 HTTP 0번으로 돌려줍니다. 클릭 카드 JSON은 781바이트였고, 기록 14개를 3개씩 5쪽으로 중복 없이 넘겼습니다.</div>
+    <div class="grid2" style="margin-top:14px">
+      <div id="cb-store"></div>
+      <div id="cb-fetch"></div>
+    </div>
+  </div>
+</section>
+
+<section id="verify">
+  <div class="wrap">
+    <div class="kicker">07 · 검증 에이전트</div>
+    <h2>할루시네이션을 코드로 걸러내는 검증 에이전트</h2>
+    <p class="sub">노트를 문장 단위로 나눠 각 문장이 출처 문장으로 뒷받침되는지 확인합니다. 기본 검사는 모두 코드로 동작해 비용이 들지 않고, LLM이나 NLI 판정은 애매한 문장에만 선택해서 씁니다.</p>
+    <div class="flow" aria-label="검증 흐름">
+      <div class="node"><b>노트</b><span>추출형 또는 LLM 작성</span></div><i aria-hidden="true">→</i>
+      <div class="node"><b>문장 나누기</b><span>Kiwi 문장 분리</span></div><i aria-hidden="true">→</i>
+      <div class="node"><b>근거 찾기</b><span>내용어 포함률이 가장 높은 출처 문장</span></div><i aria-hidden="true">→</i>
+      <div class="node"><b>규칙 검사</b><span>숫자, 영문 용어, 부정 표현</span></div><i aria-hidden="true">→</i>
+      <div class="node"><b>재생성 (최대 2회)</b><span>걸린 문장과 이유를 피드백</span></div><i aria-hidden="true">→</i>
+      <div class="node"><b>마무리</b><span>근거 있는 문장만, 부족하면 출처 문장 그대로</span></div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="card"><h3>판정 규칙</h3>
+        <div class="tbl-wrap"><table class="tbl vt1">
+          <thead><tr><th>판정</th><th>조건</th><th>처리</th></tr></thead>
+          <tbody>
+            <tr><td>근거 있음</td><td>내용어 포함률 0.6 이상, 숫자·영문 용어가 출처에 있음, 부정 표현 일치</td><td>출처 번호를 붙여 사용</td></tr>
+            <tr><td>근거 없음</td><td>출처에 없는 숫자나 영문 용어, 또는 포함률 0.35 미만</td><td>재생성 피드백, 안 되면 삭제</td></tr>
+            <tr><td>애매함</td><td>그 사이, 또는 부정 표현이 출처와 반대</td><td>판정기가 있으면 맡기고, 없으면 삭제</td></tr>
+          </tbody></table></div>
+        <p class="small" style="margin:8px 0 0">충실도(근거 있는 문장 비율)가 1.0이면 그대로, 0.5 이상이면 근거 있는 문장만 남기고, 그 아래면 출처 문장을 그대로 노트로 씁니다. 판정기는 <code>judge(claim, evidence)</code> 함수 하나로 끼웁니다.</p>
+      </div>
+      <div class="card"><h3>동작 확인 <span class="tag meas">실행</span></h3>
+        <p class="small" style="margin:0 0 8px">출처: 트랜스포머 정의문 1개, 어텐션 정의문 1개. 일부러 틀린 문장 2개를 섞은 노트.</p>
+        <div class="tbl-wrap"><table class="tbl vt2">
+          <thead><tr><th>노트 문장</th><th>판정</th><th>이유</th></tr></thead>
+          <tbody>
+            <tr><td>트랜스포머는 어텐션 메커니즘만으로 문장 속 단어들의 관계를 계산하는 신경망 구조다.</td><td>근거 있음</td><td>포함률 1.0</td></tr>
+            <tr><td>2017년 논문에서 처음 제안되었다.</td><td>근거 있음</td><td>숫자 2017이 출처에 있음</td></tr>
+            <tr><td>2019년 Google이 처음 공개했다.</td><td>근거 없음</td><td>출처에 없는 숫자 2019, 용어 Google</td></tr>
+            <tr><td>트랜스포머는 순환 구조를 핵심으로 사용한다.</td><td>애매함 → 삭제</td><td>출처는 '순환 구조 없이'</td></tr>
+          </tbody></table></div>
+        <p class="small" style="margin:8px 0 0">결과: 충실도 0.5 → 근거 있는 두 문장만 출처 번호와 함께 남김. 재생성 예시에서는 '2012년 AlexNet 논문에서 처음 정의' 문장이 걸렸고, 피드백 한 번 뒤 충실도 1.0이 됐습니다.</p>
+      </div>
+    </div>
+    <div class="callout warn" style="margin-top:14px">한계: 단어 겹침 기반이라 같은 뜻을 완전히 다른 말로 쓴 문장은 '애매함'으로 빠질 수 있습니다. 그런 문장이 많으면 그때만 판정기(로컬 소형 NLI나 같은 LLM)를 켜면 됩니다. 이 검사는 근거 문장과의 일치만 보므로, 근거 문장 자체가 틀린 경우는 출처 신뢰도로 따로 다뤄야 합니다.</div>
+    <div id="cb-verify" style="margin-top:14px"></div>
+  </div>
+</section>
+
+<section id="light">
+  <div class="wrap">
+    <div class="kicker">08 · 경량화·양자화·무료 구성</div>
+    <h2>혼자 돌리는 무료 구성</h2>
+    <p class="sub">시뮬레이션에서 핵심 경로(토큰화 → 중요도 → 정규화 → 근거 선택 → 검증)는 신경망 없이 동작했습니다. 신경망은 선택 구성이고, 쓸 때는 양자화한 소형 모델만 씁니다.</p>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>구성 요소</th><th>기본 (무료, 모델 없음)</th><th>선택 (필요할 때만)</th><th>크기·메모리</th><th>실행 위치</th></tr></thead>
+      <tbody>
+        <tr><td>입력 수집</td><td>훅 + 인박스 파일</td><td>–</td><td>수 KB</td><td>Claude Code 옆에서 자동</td></tr>
+        <tr><td>토큰화</td><td>Kiwi + 개념 사전</td><td>–</td><td>모델 109MB, 메모리 약 0.5GB <span class="tag meas">실측</span></td><td>CPU</td></tr>
+        <tr><td>중요도</td><td>제안 C 수식</td><td>학습형 랭커 (GBM)</td><td>KB 단위</td><td>CPU</td></tr>
+        <tr><td>동의어 병합</td><td>별칭 사전 + 로지스틱 회귀</td><td>다국어 소형 임베딩, int8 ONNX</td><td>약 0.1~0.3GB</td><td>CPU</td></tr>
+        <tr><td>웹 근거</td><td>위키백과 요약 API + SQLite 캐시</td><td>셀프호스팅 SearXNG</td><td>도커 컨테이너 1개</td><td>로컬</td></tr>
+        <tr><td>노트 문장</td><td>추출형 (출처 문장 그대로)</td><td>4B급 지시형 LLM 4비트 (GGUF Q4_K_M, Ollama) 또는 무료 티어 API</td><td>약 3GB 안팎</td><td>데스크톱 RTX 2060 6GB 또는 CPU 배치</td></tr>
+        <tr><td>검증</td><td>규칙 기반 검증 에이전트</td><td>소형 NLI int8 또는 같은 LLM 판정</td><td>약 0.3GB</td><td>CPU</td></tr>
+      </tbody></table></div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="card"><h3>양자화 방법</h3>
+        <ul style="margin:0;padding-left:18px;font-size:14.5px">
+          <li><b>LLM</b>: Ollama나 llama.cpp의 GGUF 4비트(Q4_K_M). 4B급(예: Qwen3 4B, Gemma 3 4B)이면 6GB GPU에 다 올라갑니다. 노트북에서는 CPU로 주간 배치만 돌립니다.</li>
+          <li><b>임베딩·NLI</b>: ONNX Runtime 동적 int8 양자화(<code>quantize_dynamic</code>)로 크기를 약 1/4로 줄이고 CPU에서 추론합니다.</li>
+          <li><b>랭커·로지스틱 회귀</b>: 이미 KB 단위라 양자화가 필요 없습니다.</li>
+          <li><b>메모리 상한</b>: 기본 구성은 Kiwi가 대부분인 약 0.5GB. LLM을 켜도 약 4GB 안쪽입니다.</li>
+        </ul>
+      </div>
+      <div class="card"><h3>비용 0원 설정</h3>
+        <ul style="margin:0;padding-left:18px;font-size:14.5px">
+          <li><b>검색</b>: 위키백과 요약 API (키 없음, 같은 사이트는 1초에 1번) → 필요하면 셀프호스팅 SearXNG. 유료 검색 API 없이 시작합니다.</li>
+          <li><b>LLM</b>: 기본은 추출형이라 LLM이 없어도 됩니다. 쓰면 로컬 Ollama. 무료 티어 API로 바꿔도 구조는 같고, 한도는 바뀔 수 있어 쓰기 전에 확인합니다.</li>
+          <li><b>저장</b>: 인박스 JSONL 1개 + SQLite 파일 2개 (색인, 웹 캐시).</li>
+          <li><b>서버</b>: 로컬 FastAPI나 Streamlit 하나.</li>
+          <li><b>밖으로 나가는 데이터</b>: 개념 이름(검색어)뿐입니다.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:14px">가장 크게 아끼는 곳은 양자화가 아니라 <b>클릭할 때마다 LLM을 부르지 않는 구조</b>입니다. 양자화는 LLM을 켰을 때 내 컴퓨터에서 돌리기 위한 장치입니다.</div>
+  </div>
+</section>
+
+<section id="board">
+  <div class="wrap">
+    <div class="kicker">09 · 리더보드 설계</div>
+    <h2>왜 '주간 개인 개념 차트'인가</h2>
+    <p class="sub">세 가지 형태를 비교했습니다. 경쟁형 리그는 꾸준함을 보상하는 데 강하지만, 공부할 개념의 순위는 개인의 맥락이 핵심이라 개인 차트를 기본으로 정했습니다.</p>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>형태</th><th>장점</th><th>단점</th><th>결정</th></tr></thead>
+      <tbody>
+        <tr class="rec"><td><b>주간 개인 개념 차트</b><br><span class="desc">순위·변동·NEW·상승/식는 중·8주 추이</span></td><td>매주 '이번 주 내가 붙잡아야 할 개념'이 정리됨. 변동이 적어 읽기 쉬움</td><td>갑자기 뜬 개념이 최대 1주 늦게 반영</td><td>기본 화면</td></tr>
+        <tr><td><b>실시간 순위</b></td><td>즉각 반응</td><td>순위가 계속 흔들림. 단순 빈도 기준 주간 TOP 10 교체율 <span data-v="tf_churn"></span></td><td>대화 화면의 형광펜에만 반영</td></tr>
+        <tr><td><b>경쟁 리그</b> (주간 XP 순위, 승급·강등)</td><td>꾸준한 학습 동기</td><td>공부할 개념은 사람마다 달라 비교가 무의미하고, 대화 내용이 드러날 위험</td><td>스터디 그룹 옵트인, 기준은 '복습한 노트 수'</td></tr>
+      </tbody></table></div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="card"><h3>차트 한 줄의 구성</h3>
+        <ul style="margin:0;padding-left:18px;font-size:14.5px">
+          <li><b>순위와 변동</b>: 지난주 대비 ▲▼, 처음 진입하면 NEW</li>
+          <li><b>신호</b>: 최근 14일과 그 전 28일의 '언급 세션 비율'을 두 비율 z-검정으로 비교. z &gt; 1.64이고 최근 2세션 이상이면 상승</li>
+          <li><b>8주 추이</b>: 주별 언급 세션 수 스파크라인</li>
+          <li><b>중요도 등급</b>: 1~3위 상, 4~7위 중, 8~10위 하. 대화 화면 형광펜과 같은 규칙</li>
+        </ul>
+      </div>
+      <div class="card"><h3>신호 정확도 <span class="tag meas">실측</span></h3>
+        <p class="small" style="margin:0 0 8px">정답: 가상 사용자의 관심 강도(λ) 최근 2주 평균이 그 전 4주 평균의 1.3배+0.05 이상이면 상승, 0.7배−0.05 이하면 하락. 표본 <span data-v="badge_n"></span>건, 실제 상승 비율 <span data-v="badge_base_up"></span>.</p>
+        <div class="tbl-wrap"><table class="tbl" id="badge-tbl"></table></div>
+        <p class="small" style="margin:8px 0 0">Holt 비율만 쓰면 한 번 언급된 단어도 '상승'으로 찍혀 정밀도가 낮습니다. 유의성 검정과 최소 세션 조건이 필요합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="simA">
+  <div class="wrap">
+    <div class="kicker">10 · 시뮬레이터 A <span class="tag meas">실측</span></div>
+    <h2>중요도 산정 방식 선정</h2>
+    <p class="sub">관심 궤적(핵심, 상승, 하락, 일회성 몰림, 가끔)을 심은 가상 사용자의 12주 대화를 생성하고, 각 방식이 <b>앞으로 2주 동안의 실제 관심</b>을 얼마나 잘 맞히는지 비교했습니다. 평가용 3명 × 시드 5개 × 8개 시점 = <span data-v="n_points"></span>개 시점, 가중치 선택은 별도의 무작위 사용자 <span data-v="n_train"></span>명으로 했습니다.</p>
+    <div class="callout" style="margin-bottom:14px">정답을 '미래 관심'으로 둔 이유: 일회성으로 몰려 물어본 개념은 빈도가 높아도 다음 주에는 다시 안 나옵니다. 차트는 '다음 주에도 붙잡아야 할 개념'을 보여 줘야 하므로 미래 관심을 정답으로 삼았습니다.</div>
+
+    <h3 style="margin-top:22px">모델 리더보드: 가중치를 바꿔 직접 고르기</h3>
+    <p class="small" style="margin:0 0 10px">기준별 점수를 방법들 사이에서 0~1로 정규화해 가중합합니다. "라벨 없이 바로 가능"은 학습형 랭커처럼 실사용 라벨이 필요한 방법에 감점합니다.</p>
+    <div class="grid2">
+      <div class="card" id="weights"></div>
+      <div class="chart"><div class="chart-title">종합 점수 순위</div><div class="chart-sub" id="comp-sub"></div><div id="comp-chart"></div></div>
+    </div>
+    <div class="tbl-wrap" style="margin-top:14px"><table class="tbl" id="tblA"></table></div>
+    <p class="small">모든 방법은 같은 전처리(사전 매칭 + Kiwi + 정규화)를 거친 토큰에 개념성 가중치(사전 밖 단어 0.35, 제안 수식은 튜닝값)를 곱해 산정 함수만 비교했습니다. 전처리 없이 세는 순수 빈도는 아래 요소 제거 실험의 마지막 줄들처럼 더 낮습니다. NDCG@10: 미래 관심을 이득으로 쓴 순위 품질. 잡음: TOP 10 중 개념이 아닌 단어 비율. 버스트 오탐: 일회성 몰림 개념이 몰림 이후 TOP 10에 남은 비율. 상승 포착: 곧 뜰 개념을 미리 TOP 10에 올린 비율. 하락 잔존: 이미 식은 개념이 남은 비율. 주간 변동: 지난주 대비 TOP 10 교체율 (실제 관심의 교체율은 <span data-v="true_churn"></span>).</p>
+
+    <div class="grid2" style="margin-top:14px">
+      <div class="chart"><div class="chart-title">방법별 NDCG@10</div><div class="chart-sub">평균, 막대 끝 숫자. 회색은 기존 방법</div>
+        <div class="legend"><span><i class="k" style="background:var(--base)"></i>기존 방법</span><span><i class="k" style="background:var(--s1)"></i>제안 수식</span><span><i class="k" style="background:var(--s3)"></i>학습형 랭커</span></div>
+        <div id="ndcg-chart"></div></div>
+      <div class="chart"><div class="chart-title">파이프라인 요소를 하나씩 뺐을 때</div><div class="chart-sub">제안 C 설정 고정, NDCG@10</div><div id="abl-chart"></div></div>
+    </div>
+    <div class="tbl-wrap" style="margin-top:14px"><table class="tbl" id="abl-tbl"></table></div>
+    <p class="small">동의어 정규화는 NDCG에는 거의 영향이 없지만, 빼면 TOP 10의 <span data-v="abl_norm_dup"></span>가 같은 개념의 다른 표기(예: 과적합과 오버피팅)로 채워집니다. 세션 단위를 빼면 일회성 몰림 오탐이 <span data-v="c_burst"></span>에서 <span data-v="abl_sess_burst"></span>로 늘어납니다.</p>
+
+    <h3 style="margin-top:26px">가중치 튜너</h3>
+    <p class="small" style="margin:0 0 10px">576개 조합을 미리 계산해 두었습니다. 조합을 바꾸면 평가 사용자 기준 지표가 바뀝니다. 기본값이 추천 설정(제안 C)입니다.</p>
+    <div class="card"><div class="controls" id="tuner-ctl" style="margin:0"></div></div>
+    <div class="tiles" id="tuner-out" style="margin-top:10px"></div>
+
+    <h3 style="margin-top:26px">한 개념의 점수 궤적</h3>
+    <div class="controls"><div class="ctl"><span class="lbl">가상 사용자</span><div class="seg" id="tr-persona"></div></div><div class="ctl"><label for="tr-concept">개념</label><select id="tr-concept"></select></div></div>
+    <div class="chart"><div class="chart-title" id="tr-title"></div><div class="chart-sub">세 선 모두 각자의 최댓값을 1로 맞춘 값. 하나의 축</div>
+      <div class="legend"><span><i class="kl" style="border-color:var(--muted)"></i>실제 관심 강도 (정답)</span><span><i class="kl" style="border-color:var(--s2)"></i>단순 빈도</span><span><i class="kl" style="border-color:var(--s1)"></i>제안 C</span></div>
+      <div id="tr-chart"></div></div>
+
+    <div class="grid2" style="margin-top:14px">
+      <div class="chart"><div class="chart-title">학습형 랭커가 본 특징 중요도</div><div class="chart-sub">순열 중요도 (평가 사용자, NDCG가 아닌 회귀 점수 감소량)</div><div id="fi-chart"></div></div>
+      <div class="card"><h3>학습이 필요한가</h3>
+        <p style="font-size:14.5px;margin:0 0 8px">학습형 랭커(HistGradientBoosting, 특징 15개, 학습 <span data-v="gbm_rows"></span>행, CPU 1초 미만)는 제안 C보다 NDCG가 <span data-v="gbm_gain"></span> 높습니다 (95% CI <span data-v="gbm_ci"></span>). 다만 같은 생성기로 만든 가상 사용자에게서 배운 결과라 생성기의 가정까지 학습했을 수 있습니다.</p>
+        <p style="font-size:14.5px;margin:0">그래서 출시 때는 해석 가능한 제안 C로 시작하고, "개념이에요/아니에요" 확인과 노트 열기 기록이 쌓이면 같은 특징으로 랭커를 학습해 A/B 비교합니다. 가장 중요한 특징이 '개념 사전 포함 여부'라는 점도 사전 확장이 먼저라는 결론과 같습니다.</p>
+        <p class="small" style="margin:8px 0 0">제안 C와 감쇠 TF-IDF의 NDCG 차이는 <span data-v="c_vs_dt"></span>로 유의하지 않지만, 잡음(<span data-v="c_intr"></span> 대 <span data-v="dt_intr"></span>)과 주간 변동(<span data-v="c_churn"></span> 대 <span data-v="dt_churn"></span>)은 크게 낮습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="simB">
+  <div class="wrap">
+    <div class="kicker">11 · 시뮬레이터 B <span class="tag meas">실측</span></div>
+    <h2>동의어 병합: '오버피팅'과 '과적합'은 같은 개념인가</h2>
+    <p class="sub">같은 개념의 표기 쌍 <span data-v="b_pos"></span>개, 표기가 비슷하지만 다른 개념인 혼동쌍 <span data-v="b_hard"></span>개(정밀도/정확도, GPT/GPU, 트랜스포머/트랜스퍼 러닝 등), 무작위 쌍 <span data-v="b_rand"></span>개로 평가했습니다. 학습형은 개념 단위 5겹 교차검증이라 처음 보는 개념에서 측정됩니다.</p>
+    <div class="grid2">
+      <div class="chart"><div class="chart-title">방법별 ROC-AUC</div><div class="chart-sub">0.5는 무작위 추측</div>
+        <div class="legend"><span><i class="k" style="background:var(--base)"></i>학습 없음</span><span><i class="k" style="background:var(--s1)"></i>특징 결합 학습</span></div>
+        <div id="b-chart"></div></div>
+      <div class="card"><h3>결론</h3>
+        <p style="font-size:14.5px;margin:0 0 8px">문자열 유사도는 혼동쌍을 같은 개념으로 묶어 버립니다. 정적 단어 벡터(spaCy 한국어 floret)도 AUC <span data-v="b_floret"></span>로 거의 무작위입니다. 12개 특징을 묶은 로지스틱 회귀가 AUC <span data-v="b_lr"></span>로 가장 낫지만, 혼동쌍의 <span data-v="b_lr_hard"></span>를 여전히 잘못 병합합니다.</p>
+        <p style="font-size:14.5px;margin:0">그래서 병합의 1순위는 <b>별칭 사전</b>이고, 모델은 새 표기를 '같은 개념 후보'로 제안만 합니다. 신경 임베딩(다국어 문장 임베딩)과 혼동쌍 대조학습은 GPU 환경에서 같은 데이터로 비교해야 합니다 <span class="tag nome">미실측</span>.</p>
+      </div>
+    </div>
+    <div class="tbl-wrap" style="margin-top:14px"><table class="tbl" id="tblB"></table></div>
+    <p class="small">학습 없는 방법은 교차검증으로 고른 임계값이 대부분 '전부 같은 개념'으로 쏠려 F1·재현율이 부풀려집니다. 이 방법들은 ROC-AUC로 비교하세요.</p>
+    <h3 style="margin-top:20px">문자열이 속는 사례</h3>
+    <p class="small" style="margin:0 0 8px">위 7쌍은 표기가 비슷하지만 다른 개념, 아래 7쌍은 표기가 전혀 다르지만 같은 개념입니다.</p>
+    <div class="tbl-wrap"><table class="tbl" id="b-ex"></table></div>
+  </div>
+</section>
+
+<section id="simC">
+  <div class="wrap">
+    <div class="kicker">12 · 시뮬레이터 C <span class="tag meas">실측</span></div>
+    <h2>공부 노트의 근거: 크롤링한 문장 중 정의문 고르기</h2>
+    <p class="sub">개념 <span data-v="c_n"></span>개마다 정의문 1개와 같은 용어가 들어간 비정의문 3개(경험담, 방법·조언, 평가·여론)를 섞은 <span data-v="c_sents"></span>문장 코퍼스에서, "OO이란 무엇인가?" 질의로 정의문을 1위에 올리는지 봤습니다. Q2는 다른 표기(주로 영어)로 질의한 경우, '+확장'은 별칭 사전으로 질의를 넓힌 경우입니다.</p>
+    <div class="tbl-wrap"><table class="tbl" id="tblC"></table></div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="card"><h3>결론</h3>
+        <p style="font-size:14.5px;margin:0 0 8px">검색 점수(BM25, 문자 n-gram, 단어 벡터)는 '용어가 들어간 문장'을 찾을 뿐 정의문을 고르지 못합니다 (Q1 Hit@1 BM25 <span data-v="c_bm25"></span>). '…이란', '…의 약자', '…하는 방법이다' 같은 정의 패턴을 더하면 <span data-v="c_pat"></span>, 별칭 사전으로 질의를 확장하면 <span data-v="c_patx"></span>까지 오릅니다.</p>
+        <p style="font-size:14.5px;margin:0">영어 표기로 물으면 확장 없이는 모든 방법이 <span data-v="c_q2max"></span> 이하로 떨어집니다. 시뮬레이터 B의 별칭 사전이 여기서도 핵심입니다. 이 단계는 규칙만으로 충분해 파인튜닝이 필요 없습니다.</p>
+      </div>
+      <div class="callout warn"><b>편향 주의.</b> 이 코퍼스는 직접 작성해서 정답 정의문이 평균 <span data-v="c_len_gold"></span>자로 비정의문(<span data-v="c_len_other"></span>자)보다 깁니다. 로지스틱 회귀의 가장 큰 계수가 '문장 길이'였고, 길이 특징을 빼면 Hit@1이 <span data-v="c_lr_nolen"></span>로 내려갑니다. 실제 크롤링 문장 100개 이상에 라벨을 붙여 다시 확인해야 합니다.</div>
+    </div>
+    <h3 style="margin-top:20px">같은 질의, 다른 1순위</h3>
+    <div class="stack" id="c-ex"></div>
+  </div>
+</section>
+
+<section id="decision">
+  <div class="wrap">
+    <div class="kicker">13 · 모델 선정과 파인튜닝 판단</div>
+    <h2>단계별로 지금 쓸 것, 나중에 바꿀 것</h2>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>단계</th><th>지금 쓸 것</th><th>근거</th><th>파인튜닝·학습</th></tr></thead>
+      <tbody>
+        <tr><td>토큰화</td><td>개념 사전 최장일치 + Kiwi 형태소 분석</td><td><span class="tag meas">실측</span> 사전 매칭 제거 시 NDCG −<span data-v="abl_gloss"></span></td><td>불필요. 사전 확장으로 대응</td></tr>
+        <tr class="rec"><td>중요도</td><td>제안 C: 세션 단위 감쇠 빈도(반감기 7일) × IDF × 개념성(사전 밖 0.1)</td><td><span class="tag meas">실측</span> NDCG <span data-v="c_ndcg"></span>, 잡음 <span data-v="c_intr"></span>, 변동 <span data-v="c_churn"></span></td><td>라벨이 쌓이면 학습형 랭커 (가상 데이터 기준 +<span data-v="gbm_gain"></span>). 이후 LightGBM LambdaRank 같은 순위 학습으로 확장</td></tr>
+        <tr><td>상승·하락 신호</td><td>두 비율 z-검정 (z &gt; 1.64, 최소 2세션)</td><td><span class="tag meas">실측</span> 상승 정밀도 <span data-v="badge_up_p"></span>, 하락 정밀도 <span data-v="badge_dn_p"></span></td><td>불필요</td></tr>
+        <tr><td>동의어 병합</td><td>별칭 사전 + 특징 결합 로지스틱 회귀로 후보 제안</td><td><span class="tag meas">실측</span> AUC <span data-v="b_lr"></span> (문자열 최고 <span data-v="b_zero_best"></span>)</td><td>경량 학습은 필요. 신경 임베딩 대조학습은 GPU에서 비교 후 결정 <span class="tag nome">미실측</span></td></tr>
+        <tr><td>웹 근거 수집</td><td>위키백과 요약 API(무료) + 30일 캐시 → 부족하면 SearXNG 스니펫 → 그래도 부족하면 본문 1개</td><td><span class="tag meas">동작 확인</span> 모의 응답에서 HTTP 2번, 재요청 0번</td><td>해당 없음</td></tr>
+        <tr><td>근거 문장 선택</td><td>별칭 질의 확장 + 정의 패턴 규칙</td><td><span class="tag meas">실측</span> Hit@1 <span data-v="c_patx"></span> (작성 편향 있음)</td><td>불필요. 실데이터 라벨 후 재검증</td></tr>
+        <tr><td>노트 생성</td><td>추출형(출처 문장 그대로)이 기본. 선택: 로컬 4비트 소형 LLM으로 한 줄 요약</td><td><span class="tag nome">문서 기반</span> STORM: 약한 모델은 인용 생성에 약함</td><td>불필요. LLM을 쓰면 GGUF 4비트 양자화로</td></tr>
+        <tr><td>노트 검증</td><td>검증 에이전트: 문장별 근거 확인 → 재생성 최대 2회 → 근거 있는 문장만 또는 추출형</td><td><span class="tag meas">동작 확인</span> 섞어 넣은 틀린 문장 2개를 모두 걸러냄</td><td>불필요. 애매한 문장에만 선택적 판정기</td></tr>
+      </tbody></table></div>
+    <div class="callout" style="margin-top:14px">한 줄 요약: 이 규모에서는 <b>사전과 규칙, 가벼운 수식</b>이 성능 대부분을 만듭니다. 학습이 확실히 이득인 곳은 중요도 랭커와 동의어 후보 제안 두 곳이고, 둘 다 실사용 라벨이 생긴 뒤에 학습합니다.</div>
+  </div>
+</section>
+
+<section id="plan">
+  <div class="wrap">
+    <div class="kicker">14 · 개인 프로젝트 규모로 줄인 구현 계획</div>
+    <h2>노트북 한 대로 만드는 7일 MVP</h2>
+    <div class="grid2">
+      <div class="card"><ol class="plan">
+        <li><b>1일차</b> 개념 사전 200개 (대표 표기, 별칭, 혼동쌍). AI·데이터 용어집과 LLM 초안을 사람이 검수</li>
+        <li><b>2일차</b> 설정 시트의 한 줄 명령으로 훅 설치, 전처리(사전 최장일치 + Kiwi)와 로컬 색인(concept_store)</li>
+        <li><b>3일차</b> 중요도 제안 C, 주간 차트, z-검정 신호, 새 개념 후보 큐</li>
+        <li><b>4일차</b> 위키백과 요약 API + 캐시 → 정의 패턴으로 근거 문장 선택 (fetch_sources)</li>
+        <li><b>5일차</b> 추출형 노트 + 검증 에이전트 (LLM은 선택, 로컬 4비트)</li>
+        <li><b>6일차</b> 화면: 대화 하이라이트, 개념 차트, 노트 (Streamlit 또는 Next.js)</li>
+        <li><b>7일차</b> 이 시뮬레이터로 회귀 테스트, 데모 시나리오 녹화</li>
+      </ol></div>
+      <div class="card"><h3>스택</h3>
+        <ul style="margin:0;padding-left:18px;font-size:14.5px">
+          <li>Python: kiwipiepy, scikit-learn, rank_bm25, trafilatura</li>
+          <li>저장: SQLite (대화, 개념 로그, 노트, 확인 기록)</li>
+          <li>API: FastAPI 또는 Streamlit 단일 앱</li>
+          <li>LLM: 기본은 없음(추출형). 쓰면 로컬 Ollama 4비트 또는 무료 티어 API</li>
+          <li>검색: 위키백과 요약 API(키 없음) + SQLite 캐시, 필요하면 SearXNG</li>
+        </ul>
+        <h3 style="margin-top:14px">데모 시나리오</h3>
+        <p style="font-size:14.5px;margin:0">간호사 사용자가 "RAG랑 벡터 DB는 어떻게 연결돼?"라고 묻는 장면 → 형광펜 → 차트에서 RAG가 상승 신호와 함께 2위 → 노트에서 정의문과 출처 → 새 개념 후보 '임베딩' 확인 → 다음 주 차트 진입.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <div class="kicker">15 · 한계와 다음 실험</div>
+    <h2>이 수치를 어디까지 믿을 수 있나</h2>
+    <div class="grid2">
+      <div class="card"><ul style="margin:0;padding-left:18px;font-size:14.5px">
+        <li><b>가상 로그</b>: 관심 궤적과 템플릿 발화로 만든 데이터라 결과가 생성기 가정에 기대고 있습니다. 실제 대화 2~4주를 모아 같은 지표로 다시 재야 합니다.</li>
+        <li><b>사전 커버리지 85% 가정</b>: 사전에 빠진 개념(<span data-v="missing"></span>)은 차트에서 밀립니다. 데모의 간호사 사용자는 상승 중인 '임베딩'이 사전 밖이라 차트 대신 후보 큐에 나옵니다.</li>
+      </ul></div>
+      <div class="card"><ul style="margin:0;padding-left:18px;font-size:14.5px">
+        <li><b>미실측 모델</b>: 이 환경에서는 Hugging Face 모델 다운로드가 막혀 다국어 임베딩, 재랭커, LLM을 측정하지 못했습니다. 같은 벤치마크를 GPU 환경에서 돌려 리더보드에 추가하는 것이 다음 단계입니다.</li>
+        <li><b>작성 편향</b>: 시뮬레이터 C의 문장은 직접 작성해 정의문이 더 깁니다. 실제 크롤링 문장으로 재검증이 필요합니다.</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="sources">
+  <div class="wrap">
+    <div class="kicker">16 · 출처</div>
+    <h2>참고한 프로젝트와 자료</h2>
+    <ul class="sources" id="src"></ul>
+  </div>
+</section>
+</main>
+<footer><div class="wrap">시뮬레이션 코드: Python 3.13, kiwipiepy, scikit-learn, rank_bm25, YAKE, KR-WordRank, spaCy ko_core_news_md. 모든 수치는 고정 시드로 재현됩니다.</div></footer>
+
+<script type="text/plain" id="tpl-installer"></script>
+<script type="text/plain" id="tpl-loader"></script>
+<script type="text/plain" id="tpl-store"></script>
+<script type="text/plain" id="tpl-fetch"></script>
+<script type="text/plain" id="tpl-verify"></script>
+<script type="application/json" id="page-data">__DATA__</script>
+<script>
+(function(){
+'use strict';
+var D = JSON.parse(document.getElementById('page-data').textContent);
+var NS = 'http://www.w3.org/2000/svg';
+function $(s, r){ return (r || document).querySelector(s); }
+function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = String(text); return e; }
+function sv(tag, attrs, cls){ var e = document.createElementNS(NS, tag); if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]); if (cls) e.setAttribute('class', cls); return e; }
+function f3(x){ return (x === null || x === undefined || isNaN(x)) ? '–' : Number(x).toFixed(3); }
+function f2(x){ return Number(x).toFixed(2); }
+function pc(x, d){ return (Number(x) * 100).toFixed(d === undefined ? 0 : d) + '%'; }
+function row(name){ for (var i = 0; i < D.A.table.length; i++) if (D.A.table[i].method.indexOf(name) === 0) return D.A.table[i]; return null; }
+function abl(prefix){ for (var i = 0; i < D.A.ablation.length; i++) if (D.A.ablation[i].label.indexOf(prefix) === 0) return D.A.ablation[i]; return null; }
+function cres(method, query){ for (var i = 0; i < D.C.results.length; i++){ var r = D.C.results[i]; if (r.method.indexOf(method) === 0 && r.query === query) return r; } return null; }
+function bres(method){ for (var i = 0; i < D.B.results.length; i++) if (D.B.results[i].method.indexOf(method) === 0) return D.B.results[i]; return null; }
+
+/* ---------- 툴팁 ---------- */
+var tip = el('div', 'tip'); tip.setAttribute('role', 'status'); document.body.appendChild(tip);
+function showTip(x, y, rows){
+  tip.replaceChildren();
+  rows.forEach(function(r, i){
+    if (typeof r === 'string') { tip.appendChild(el('div', i === 0 ? 'tv' : 'tl', r)); }
+    else { var d = el('div', 'tr'); var k = el('span', 'kl'); k.style.borderColor = r.color; d.appendChild(k); d.appendChild(el('span', 'tv', r.v)); d.appendChild(el('span', 'tl', r.l)); tip.appendChild(d); }
+  });
+  tip.style.display = 'block';
+  var w = tip.offsetWidth, h = tip.offsetHeight, lx = x + 14, ly = y + 14;
+  if (lx + w > window.innerWidth - 8) lx = x - w - 14;
+  if (ly + h > window.innerHeight - 8) ly = y - h - 14;
+  tip.style.left = Math.max(4, lx) + 'px'; tip.style.top = Math.max(4, ly) + 'px';
+}
+function hideTip(){ tip.style.display = 'none'; }
+function bindTip(node, fn){
+  node.addEventListener('pointermove', function(e){ showTip(e.clientX, e.clientY, fn()); });
+  node.addEventListener('pointerleave', hideTip);
+  node.setAttribute('tabindex', '0');
+  node.addEventListener('focus', function(){ var r = node.getBoundingClientRect(); showTip(r.left + 20, r.top + r.height / 2, fn()); });
+  node.addEventListener('blur', hideTip);
+}
+
+/* ---------- 차트 ---------- */
+function widthOf(host, fb){ var w = host.getBoundingClientRect().width; return w > 0 ? Math.round(w) : fb; }
+var RERENDER = [];
+function onResize(fn){ RERENDER.push(fn); }
+var rzT = null;
+window.addEventListener('resize', function(){ clearTimeout(rzT); rzT = setTimeout(function(){ RERENDER.forEach(function(f){ f(); }); }, 160); });
+function hbars(host, rows, o){
+  host.replaceChildren();
+  var W = Math.max(330, widthOf(host, 660)), rh = 30, L = Math.min(o.labelW || 210, Math.round(W * 0.44)), R = 58, T = 6, B = 26;
+  var H = T + rows.length * rh + B;
+  var svg = sv('svg', {viewBox: '0 0 ' + W + ' ' + H, width: W, role: 'img', 'aria-label': o.aria || ''});
+  var min = o.min || 0, max = o.max;
+  function x(v){ return L + (v - min) / (max - min) * (W - L - R); }
+  (o.ticks || []).forEach(function(t){
+    svg.appendChild(sv('line', {x1: x(t), x2: x(t), y1: T, y2: H - B}, 'grid'));
+    var tx = sv('text', {x: x(t), y: H - B + 16, 'text-anchor': 'middle'}, 'axis'); tx.textContent = o.tickFmt ? o.tickFmt(t) : String(t); svg.appendChild(tx);
+  });
+  svg.appendChild(sv('line', {x1: x(min), x2: x(min), y1: T, y2: H - B}, 'baseline'));
+  if (o.ref !== undefined){
+    svg.appendChild(sv('line', {x1: x(o.ref), x2: x(o.ref), y1: T, y2: H - B}, 'refline'));
+  }
+  rows.forEach(function(r, i){
+    var y = T + i * rh, cy = y + rh / 2;
+    var lab = sv('text', {x: L - 10, y: cy + 4, 'text-anchor': 'end'}, 'lab' + (r.strong ? ' strong' : '')); lab.textContent = r.label; svg.appendChild(lab);
+    var x0 = x(min), x1 = x(Math.max(min, Math.min(max, r.value))), w = Math.max(0, x1 - x0), bh = 14, rad = Math.min(4, w / 2);
+    if (w > 0){
+      var d = 'M' + x0 + ',' + (cy - bh / 2) + ' h' + (w - rad) + ' a' + rad + ',' + rad + ' 0 0 1 ' + rad + ',' + rad + ' v' + (bh - 2 * rad) + ' a' + rad + ',' + rad + ' 0 0 1 ' + (-rad) + ',' + rad + ' h' + (-(w - rad)) + ' z';
+      svg.appendChild(sv('path', {d: d}, r.cls || 'b-base'));
+    }
+    var vt = sv('text', {x: x1 + 6, y: cy + 4}, 'val'); vt.textContent = o.fmt ? o.fmt(r.value) : String(r.value); svg.appendChild(vt);
+    var hit = sv('rect', {x: 0, y: y, width: W, height: rh}, 'hit');
+    bindTip(hit, function(){ return [o.fmt ? o.fmt(r.value) : String(r.value), r.label + (r.note ? ' · ' + r.note : '')]; });
+    svg.appendChild(hit);
+  });
+  if (o.ref !== undefined && o.refLabel){
+    var rt = sv('text', {x: x(o.ref) + 4, y: T + 10}, 'reftext'); rt.textContent = o.refLabel; svg.appendChild(rt);
+  }
+  host.appendChild(svg);
+}
+
+function lineChart(host, xs, series, o){
+  host.replaceChildren();
+  var W = Math.max(330, widthOf(host, 680)), H = 260, L = 40, R = 14, T = 12, B = 34;
+  var svg = sv('svg', {viewBox: '0 0 ' + W + ' ' + H, width: W, role: 'img', 'aria-label': o.aria || ''});
+  var x0 = xs[0], x1 = xs[xs.length - 1];
+  function X(v){ return L + (v - x0) / (x1 - x0) * (W - L - R); }
+  function Y(v){ return T + (1 - v) * (H - T - B); }
+  [0, 0.5, 1].forEach(function(t){
+    svg.appendChild(sv('line', {x1: L, x2: W - R, y1: Y(t), y2: Y(t)}, t === 0 ? 'baseline' : 'grid'));
+    var tx = sv('text', {x: L - 6, y: Y(t) + 4, 'text-anchor': 'end'}, 'axis'); tx.textContent = t.toFixed(1); svg.appendChild(tx);
+  });
+  for (var d = 14; d <= x1; d += 14){
+    if (d < x0) continue;
+    var tx = sv('text', {x: X(d), y: H - B + 18, 'text-anchor': 'middle'}, 'axis'); tx.textContent = (d / 7) + '주'; svg.appendChild(tx);
+  }
+  (o.vmarks || []).forEach(function(m){
+    if (m.x < x0 || m.x > x1) return;
+    svg.appendChild(sv('line', {x1: X(m.x), x2: X(m.x), y1: T, y2: H - B}, 'vmark'));
+    var t = sv('text', {x: X(m.x) + 4, y: T + 10}, 'reftext'); t.textContent = m.label; svg.appendChild(t);
+  });
+  series.forEach(function(s){
+    var pts = s.vals.map(function(v, i){ return [X(xs[i]), Y(v)]; });
+    if (s.area){
+      var a = 'M' + pts[0][0] + ',' + Y(0) + ' ' + pts.map(function(p){ return 'L' + p[0] + ',' + p[1]; }).join(' ') + ' L' + pts[pts.length - 1][0] + ',' + Y(0) + ' Z';
+      svg.appendChild(sv('path', {d: a}, s.areaCls));
+    }
+    svg.appendChild(sv('path', {d: 'M' + pts.map(function(p){ return p.join(','); }).join(' L')}, 'ln ' + s.cls));
+    var lp = pts[pts.length - 1];
+    svg.appendChild(sv('circle', {cx: lp[0], cy: lp[1], r: 4}, s.dot));
+  });
+  var cross = sv('line', {x1: 0, x2: 0, y1: T, y2: H - B}, 'cross'); cross.style.display = 'none'; svg.appendChild(cross);
+  var hit = sv('rect', {x: L, y: T, width: W - L - R, height: H - T - B}, 'hit');
+  hit.setAttribute('tabindex', '0');
+  function at(clientX){
+    var r = svg.getBoundingClientRect(); var px = (clientX - r.left) * W / r.width;
+    var v = x0 + (px - L) / (W - L - R) * (x1 - x0); var i = Math.round(v - x0); i = Math.max(0, Math.min(xs.length - 1, i)); return i;
+  }
+  function show(i, cx, cy){
+    cross.setAttribute('x1', X(xs[i])); cross.setAttribute('x2', X(xs[i])); cross.style.display = '';
+    var rows = [xs[i] + '일차 (' + Math.floor(xs[i] / 7) + '주 ' + (xs[i] % 7) + '일)'];
+    series.forEach(function(s){ rows.push({color: s.color, v: f2(s.vals[i]), l: s.name}); });
+    showTip(cx, cy, rows);
+  }
+  hit.addEventListener('pointermove', function(e){ show(at(e.clientX), e.clientX, e.clientY); });
+  hit.addEventListener('pointerleave', function(){ cross.style.display = 'none'; hideTip(); });
+  hit.addEventListener('focus', function(){ var r = svg.getBoundingClientRect(); show(xs.length - 1, r.right - 40, r.top + 40); });
+  hit.addEventListener('blur', function(){ cross.style.display = 'none'; hideTip(); });
+  svg.appendChild(hit);
+  host.appendChild(svg);
+}
+
+function spark(vals){
+  var W = 74, H = 22, max = Math.max(1, Math.max.apply(null, vals));
+  var svg = sv('svg', {viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, 'aria-hidden': 'true'});
+  var pts = vals.map(function(v, i){ return [3 + i * (W - 8) / (vals.length - 1), H - 3 - (v / max) * (H - 7)]; });
+  svg.appendChild(sv('path', {d: 'M' + pts[0][0] + ',' + (H - 3) + ' ' + pts.map(function(p){ return 'L' + p.join(','); }).join(' ') + ' L' + pts[pts.length - 1][0] + ',' + (H - 3) + ' Z'}, 'spk-a'));
+  svg.appendChild(sv('polyline', {points: pts.map(function(p){ return p.join(','); }).join(' ')}, 'spk'));
+  var lp = pts[pts.length - 1];
+  svg.appendChild(sv('circle', {cx: lp[0], cy: lp[1], r: 2.6}, 'spk-d'));
+  return svg;
+}
+
+/* ---------- 값 바인딩 ---------- */
+var C_ = row('제안 C'), TF = row('단순 빈도'), GBM = row('학습형'), DT = row('감쇠 TF-IDF');
+var full = abl('전체'), aG = abl('− 개념 사전'), aC = abl('− 개념성'), aN = abl('− 동의어'), aS = abl('− 세션');
+var bz = D.A.badge.results['두 비율 z-검정 (z>1.64)'], bh = D.A.badge.results['Holt 비율 (T>0.15)'];
+var bLR = bres('로지스틱'), bFl = bres('spaCy'), zeroBest = Math.max.apply(null, D.B.results.filter(function(r){ return r.kind === 'zero-shot'; }).map(function(r){ return r.auc; }));
+var q2max = Math.max.apply(null, D.C.results.filter(function(r){ return r.query === 'Q2'; }).map(function(r){ return r.hit1; }));
+var V = {
+  c_ndcg: f3(C_.ndcg), c_intr: pc(C_.intrusion, 1), c_churn: pc(C_.churn), c_burst: pc(C_.burst_fp), tf_ndcg: f3(TF.ndcg), tf_intr: pc(TF.intrusion), tf_churn: pc(TF.churn),
+  gbm_ndcg: f3(GBM.ndcg), gbm_gain: f3(D.A.ci.GBM_vs_C[0]), gbm_ci: f3(D.A.ci.GBM_vs_C[1]) + '~' + f3(D.A.ci.GBM_vs_C[2]),
+  abl_gloss: f3(full.ndcg - aG.ndcg), abl_c: f3(full.ndcg - aC.ndcg), abl_norm_dup: pc(aN.dup), abl_sess_burst: pc(aS.burst),
+  dt_intr: pc(DT.intrusion, 1), dt_churn: pc(DT.churn), c_vs_dt: (D.A.ci['C_vs_감쇠TFIDF'][0] >= 0 ? '+' : '') + f3(D.A.ci['C_vs_감쇠TFIDF'][0]) + ' (95% CI ' + f3(D.A.ci['C_vs_감쇠TFIDF'][1]) + '~' + f3(D.A.ci['C_vs_감쇠TFIDF'][2]) + ')',
+  true_churn: pc(D.A.churn_true), n_points: D.A.config.n_test_points, n_train: D.A.config.n_train, gbm_rows: D.A.config.gbm_train_rows.toLocaleString('ko-KR'),
+  badge_n: D.A.badge.n.toLocaleString('ko-KR'), badge_base_up: pc(D.A.badge.base.up), badge_up_p: f2(bz.up_precision), badge_dn_p: f2(bz.down_precision),
+  b_pos: D.B.n_pos, b_hard: D.B.n_hard, b_rand: D.B.n_rand, b_floret: f3(bFl.auc), b_lr: f3(bLR.auc), b_lr_hard: pc(bLR.hard_fp), b_zero_best: f3(zeroBest),
+  c_n: D.C.n_concepts, c_sents: D.C.n_sentences, c_bm25: f3(cres('BM25', 'Q1').hit1), c_pat: f3(cres('정의 패턴', 'Q1').hit1), c_patx: f3(cres('정의 패턴', 'Q1+확장').hit1),
+  c_q2max: f3(q2max), c_len_gold: Math.round(D.C.len_gold), c_len_other: Math.round(D.C.len_other), c_lr_nolen: f3(D.C.no_length['Q1+확장'].hit1),
+  missing: D.A.config.missing_glossary.join(', ')
+};
+document.querySelectorAll('[data-v]').forEach(function(n){ var k = n.getAttribute('data-v'); if (V[k] !== undefined) n.textContent = V[k]; });
+
+/* ---------- 레퍼런스 ---------- */
+var REFS = [
+  {n: 'STORM', by: 'Stanford OVAL', i: '주제 하나', p: '여러 관점의 질문 생성 → 인터넷 검색으로 참고자료 수집 → 계층형 개요 → 개요에 맞춰 본문 작성', o: '인용이 달린 위키 스타일 글', t: '노트를 개요 먼저(정의 → 쓰임 → 헷갈리는 개념) 만들고 채우는 2단계로. 인용 작성은 강한 모델에게', s: 'STORM'},
+  {n: 'GPT Researcher', by: 'assafelovic', i: '조사 질의', p: 'planner가 하위 질문 생성 → 실행 에이전트가 질문별 웹 수집·출처별 요약·출처 추적 → 취합', o: '출처가 달린 조사 보고서', t: '개념마다 하위 질문 3개(뜻, 쓰임, 비교)를 병렬 검색하고 출처를 끝까지 추적', s: 'GPT Researcher'},
+  {n: 'Perplexica', by: 'ItzCrazyKns', i: '질문', p: 'SearxNG 메타 검색 → 임베딩으로 결과 재랭킹 → LLM이 인용을 달아 답변', o: '인용 포함 답변', t: '검색 → 재랭킹 → 인용 생성의 뼈대 (파이프라인 5~7단계)', s: 'Perplexica'},
+  {n: 'AutoRAG', by: 'Marker-Inc-Korea', i: 'QA 데이터 + 코퍼스', p: '검색·재랭커·프롬프트·생성 노드별로 모듈 조합을 지표(F1, recall, NDCG, MRR 등)로 평가', o: '데이터에 맞는 최적 파이프라인 설정', t: '이 페이지의 모델 선정 시뮬레이터를 노드별 평가 구조로 설계', s: 'AutoRAG'},
+  {n: 'KeyBERT · YAKE · KR-WordRank', by: '키워드 추출', i: '문서 한 개(또는 묶음)', p: '후보 n-gram과 문서 임베딩의 유사도(KeyBERT, MMR로 다양화) / 통계 특징(YAKE) / 부분 문자열 그래프 HITS(KR-WordRank, 토크나이저 불필요)', o: '키워드 목록', t: '기준선으로 직접 비교. 시간과 사용자 맥락이 없어 대화 로그의 중요도로는 부족 (시뮬레이터 A)', s: 'KeyBERT'},
+  {n: 'LUTE v3 · LWT', by: '읽으며 배우는 도구', i: '읽을 텍스트', p: '모르는 단어를 색으로 표시 → 클릭하면 온라인 사전 → 내 정의를 저장, 부모 용어와 상태를 연결', o: '단어별 학습 상태가 쌓인 개인 사전', t: '클릭 → 웹 정의 → 개인 노트 UX. 부모 용어 연결 = 별칭 사전 정규화', s: 'LUTE'},
+  {n: 'FSRS · srs-benchmark', by: '간격 반복', i: '복습 기록', p: '기억 확률을 예측하는 모델을 로그 손실, RMSE(bins), AUC로 비교', o: '다음 복습 시점', t: '노트 복습 기능의 기억 모델과 평가 지표 (다음 단계)', s: 'srs'},
+  {n: 'BERTopic 동적 토픽', by: 'Grootendorst', i: '시간이 붙은 문서', p: '토픽을 만든 뒤 시간 구간별 토픽 표현과 빈도를 계산', o: '시간에 따른 토픽 변화', t: '개념이 많아지면 개념 대신 주제 단위 차트로 확장', s: 'BERTopic'},
+  {n: 'Duolingo 리그', by: '게임화 UX', i: '주간 학습량(XP)', p: '무작위 30명 주간 리더보드, 상위 승급·하위 강등', o: '꾸준함을 보상하는 경쟁', t: '경쟁 리그는 스터디 그룹 옵트인으로만. 기본은 개인 차트', s: 'Duolingo'},
+  {n: 'RAGAS faithfulness', by: 'RAG 평가', i: '답변 + 근거 문맥', p: '답변을 주장 단위로 나누고 각 주장이 문맥으로 지지되는지 판정', o: '지지된 주장 비율', t: '노트 문장마다 근거 문장이 있는지 검증하는 단계', s: 'RAGAS'}
+];
+var refGrid = $('#ref-grid');
+REFS.forEach(function(r){
+  var c = el('div', 'card ref');
+  var h = el('h3'); h.appendChild(el('span', null, r.n)); h.appendChild(el('span', 'small', r.by)); c.appendChild(h);
+  var dl = el('dl');
+  [['입력', r.i], ['처리', r.p], ['출력', r.o]].forEach(function(p){ dl.appendChild(el('dt', null, p[0])); dl.appendChild(el('dd', null, p[1])); });
+  c.appendChild(dl);
+  var t = el('div', 'take'); t.appendChild(el('b', null, '가져온 것 ')); t.appendChild(document.createTextNode(r.t)); c.appendChild(t);
+  refGrid.appendChild(c);
+});
+
+/* ---------- 파이프라인 ---------- */
+var STAGES = [
+  {h: '대화 수집', u: 'Claude Code 훅 2개 → 로컬 인박스(JSONL) → 세션 단위로 묶기', e: '세션 단위가 일회성 몰림 오탐을 ' + pc(aS.burst) + ' → ' + pc(C_.burst_fp) + '로 줄임', m: 1},
+  {h: '개념 추출·정규화', u: '개념 사전 최장일치 → Kiwi 명사 → 별칭 사전으로 대표 표기 통일', e: '사전 매칭 제거 시 NDCG −' + f3(full.ndcg - aG.ndcg) + ', 정규화 제거 시 중복 ' + pc(aN.dup), m: 1},
+  {h: '중요도 산정', u: '제안 C: 세션 감쇠 빈도(반감기 7일) × IDF × 개념성(사전 밖 0.1)', e: 'NDCG ' + f3(C_.ndcg) + ' · 잡음 ' + pc(C_.intrusion, 1) + ' · 변동 ' + pc(C_.churn), m: 1},
+  {h: '주간 차트·신호', u: 'TOP 10, 순위 변동, 두 비율 z-검정 상승/식는 중, 새 개념 후보 큐', e: '상승 정밀도 ' + f2(bz.up_precision) + ' · 하락 정밀도 ' + f2(bz.down_precision), m: 1},
+  {h: '웹 근거 수집', u: '위키백과 요약 API → 부족하면 SearXNG 스니펫 → 본문 1개만. 30일 캐시', e: '전체 크롤링·WebSocket 없이 HTTP 몇 번 (Perplexica 구조 참고)', m: 0},
+  {h: '근거 문장 선택', u: '별칭으로 질의 확장 + 정의 패턴 규칙으로 정의문 1순위', e: 'Hit@1 ' + f3(cres('정의 패턴', 'Q1+확장').hit1) + ' (BM25 단독 ' + f3(cres('BM25', 'Q1').hit1) + ')', m: 1},
+  {h: '노트 생성·검증', u: '추출형 기본(LLM 선택) → 검증 에이전트가 문장별 근거 확인·재생성·삭제', e: 'STORM, RAGAS faithfulness 참고', m: 0},
+  {h: '메모리·학습 루프', u: '개념 로그와 확인·복습 기록 저장 → 사전 확장, 이후 학습형 랭커', e: '학습형 랭커 +' + f3(D.A.ci.GBM_vs_C[0]) + ' NDCG (가상 데이터)', m: 1}
+];
+var pipe = $('#pipe');
+STAGES.forEach(function(s){
+  var c = el('div', 'stage'); c.appendChild(el('h3', null, s.h)); c.appendChild(el('p', 'use', s.u));
+  var ev = el('div', 'ev'); var tg = el('span', 'tag ' + (s.m ? 'meas' : 'nome'), s.m ? '실측' : '문서'); ev.appendChild(tg); ev.appendChild(document.createTextNode(' ' + s.e)); c.appendChild(ev);
+  pipe.appendChild(c);
+});
+
+/* ---------- 데모 ---------- */
+var CHAT = {
+  P1: {q: 'RAG랑 벡터 데이터베이스는 어떻게 연결돼?', a: 'RAG는 질문이 들어오면 관련 문서를 먼저 찾아서 LLM에게 함께 건네주는 방식이에요. 문서를 빨리 찾으려고 문장을 임베딩으로 바꿔 벡터 데이터베이스에 넣어 둡니다. 그래서 프롬프트에 근거 문서가 붙고, 할루시네이션이 줄어들어요.'},
+  P2: {q: '랜덤 포레스트 점수가 실행할 때마다 들쭉날쭉해. 왜 그래?', a: '데이터가 적으면 랜덤 포레스트도 과적합이 생길 수 있어요. 한 번만 나눠 보지 말고 교차 검증으로 여러 번 평가해 보세요. 판다스 데이터프레임에서 변수별 분포를 먼저 시각화해 두면 원인을 찾기 쉬워요.'},
+  P3: {q: 'LoRA로 학습한 모델을 도커로 배포하려면 뭐부터 해?', a: 'LoRA 가중치를 기본 모델에 합친 다음 양자화로 크기를 줄이면 도커 이미지가 가벼워져요. 모델은 API 서버로 감싸 두고, 랭체인 AI 에이전트가 그 API를 도구로 호출하게 연결하면 됩니다.'}
+};
+var KIND = {core: '핵심 관심', rising: '관심 상승', fading: '관심 하락', burst: '일회성 몰림', low: '가끔 언급', concept: '관심 밖 개념', noise: '개념 아님'};
+var S = {p: 'P1', wi: 6, m: 'ours', truth: false, note: null, confirmed: {}};
+
+function segment(host, items, cur, onPick){
+  host.replaceChildren();
+  items.forEach(function(it){
+    var b = el('button', null, it[1]); b.type = 'button'; b.setAttribute('aria-pressed', String(it[0] === cur));
+    b.addEventListener('click', function(){ onPick(it[0]); });
+    host.appendChild(b);
+  });
+}
+function week(){ return D.A.ui[S.p].weeks[S.wi]; }
+function tierOf(i){ return i < 3 ? 1 : (i < 7 ? 2 : 3); }
+function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&'); }
+
+function highlightInto(host, text, list){
+  var map = {}, keys = [];
+  list.forEach(function(it, i){
+    if (it.kind === 'noise' || !it.cid) return;
+    var vs = D.concepts[it.cid].variants.concat([it.term]);
+    vs.forEach(function(v){ var k = v.toLowerCase(); if (!map[k]){ map[k] = {it: it, tier: it.g ? tierOf(i) : 'new', rank: i + 1}; keys.push(v); } });
+  });
+  /* 사전 밖이라 차트에 못 오른 개념: 새 개념 후보 큐에 있으면 점선 */
+  week().new_terms.forEach(function(nt){ var k = nt.term.toLowerCase(); if (!map[k] && nt.term.length > 1){ map[k] = {it: {term: nt.term, cid: null, rs: nt.recent_sessions}, tier: 'new', rank: null}; keys.push(nt.term); } });
+  keys.sort(function(a, b){ return b.length - a.length; });
+  if (!keys.length){ host.appendChild(document.createTextNode(text)); return; }
+  var rx = new RegExp(keys.map(escRe).join('|'), 'gi'), last = 0, m;
+  while ((m = rx.exec(text)) !== null){
+    if (m.index > last) host.appendChild(document.createTextNode(text.slice(last, m.index)));
+    var info = map[m[0].toLowerCase()];
+    var mk = el('mark', 'hl hl-' + info.tier, m[0]);
+    (function(info){
+      bindTip(mk, function(){
+        if (info.tier === 'new') return ['사전에 없는 용어', '최근 2주 ' + (info.it.rs || 0) + '개 세션에서 언급 · 개념인지 확인 필요'];
+        var b = info.it.badge === 'up' ? ' · 상승 신호' : (info.it.badge === 'down' ? ' · 식는 중' : '');
+        return ['차트 ' + info.rank + '위 · 중요도 ' + ['상', '중', '하'][info.tier - 1], '최근 2주 ' + info.it.rs + '개 세션에서 언급' + b];
+      });
+      mk.addEventListener('click', function(){ if (info.it.cid){ S.note = info.it.cid; renderNote(); } });
+      mk.addEventListener('keydown', function(e){ if ((e.key === 'Enter' || e.key === ' ') && info.it.cid){ e.preventDefault(); S.note = info.it.cid; renderNote(); } });
+    })(info);
+    host.appendChild(mk);
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) host.appendChild(document.createTextNode(text.slice(last)));
+}
+
+function renderChat(){
+  var host = $('#chat'); host.replaceChildren();
+  var w = week(), list = w.ours, U = D.A.ui[S.p], ch = CHAT[S.p];
+  $('#chat-meta').textContent = U.name + ' · ' + w.week + '주차';
+  var q = el('div', 'bubble q'); q.appendChild(el('span', 'who', '사용자')); q.appendChild(document.createTextNode(ch.q)); host.appendChild(q);
+  var a = el('div', 'bubble a'); a.appendChild(el('span', 'who', 'AI 답변 · 이번 주 차트 기준 형광펜')); var body = el('span'); highlightInto(body, ch.a, list); a.appendChild(body); host.appendChild(a);
+  var key = el('div', 'hl-key');
+  [['hl-1', '상 (1~3위)'], ['hl-2', '중 (4~7위)'], ['hl-3', '하 (8~10위)'], ['hl-new', '사전 밖 용어']].forEach(function(k){ var s = el('span'); s.appendChild(el('mark', 'hl ' + k[0], '개념')); s.appendChild(document.createTextNode(' ' + k[1])); key.appendChild(s); });
+  host.appendChild(key);
+  var t = el('div', 'small', '이 사용자의 실제 가상 로그 (' + U.sample.day + '일차 세션 일부)'); t.style.margin = '14px 0 4px'; host.appendChild(t);
+  var ul = el('ul', 'utts');
+  U.sample.utts.slice(0, 6).forEach(function(u){ var li = el('li'); highlightInto(li, u, list); ul.appendChild(li); });
+  host.appendChild(ul);
+}
+
+function renderBoard(){
+  var W = D.A.ui[S.p].weeks, w = W[S.wi], list = w[S.m], prev = S.wi > 0 ? W[S.wi - 1][S.m] : null;
+  $('#week-label').textContent = w.week + '주차';
+  $('#lb-title').textContent = (S.m === 'ours' ? '이번 주 개념 차트' : '단순 빈도 순위 (비교용)');
+  $('#lb-meta').textContent = w.week + '주차 · ' + (S.m === 'ours' ? '제안 C' : '누적 언급 횟수');
+  var tb = $('#lb tbody'); tb.replaceChildren();
+  document.querySelectorAll('.truth-col').forEach(function(n){ n.style.display = S.truth ? '' : 'none'; });
+  list.forEach(function(it, i){
+    var tr = el('tr');
+    tr.appendChild(el('td', 'rk', i + 1));
+    var chg = el('td', 'chg');
+    if (prev){ var j = -1; for (var k = 0; k < prev.length; k++) if (prev[k].term === it.term) j = k;
+      if (j < 0){ chg.textContent = 'NEW'; chg.className = 'chg new'; } else if (j > i){ chg.textContent = '▲' + (j - i); } else if (j < i){ chg.textContent = '▼' + (i - j); } else chg.textContent = '–'; }
+    else chg.textContent = '–';
+    tr.appendChild(chg);
+    var td = el('td'); var b = el('button', 'term-btn' + (it.kind === 'noise' ? ' noise' : ''), it.term); b.type = 'button';
+    if (it.cid){ b.addEventListener('click', function(){ S.note = it.cid; renderNote(); }); } else { b.disabled = true; }
+    td.appendChild(b); tr.appendChild(td);
+    var sg = el('td');
+    if (it.badge === 'up') sg.appendChild(el('span', 'pill up', '상승'));
+    else if (it.badge === 'down') sg.appendChild(el('span', 'pill down', '식는 중'));
+    if (!it.g && it.kind !== 'noise') { var o = el('span', 'pill out', '사전 밖'); o.style.marginLeft = '4px'; sg.appendChild(o); }
+    tr.appendChild(sg);
+    var sp = el('td'); sp.appendChild(spark(it.spark)); bindTip(sp, function(){ return [it.spark.join(' · '), '최근 8주 주별 언급 세션 수 (마지막이 이번 주)']; }); tr.appendChild(sp);
+    var t = tierOf(i); tr.appendChild((function(){ var c = el('td'); c.appendChild(el('span', 'tier t' + t, ['상', '중', '하'][t - 1])); return c; })());
+    var kd = el('td', 'truth-col'); kd.style.display = S.truth ? '' : 'none';
+    kd.appendChild(el('span', 'kind' + ((it.kind === 'noise' || it.kind === 'burst' || it.kind === 'concept') ? ' bad' : ''), KIND[it.kind] || it.kind));
+    tr.appendChild(kd);
+    tb.appendChild(tr);
+  });
+  var gtc = {}; w.gt_top.forEach(function(g){ gtc[g.cid] = 1; });
+  var hit = 0, noise = 0; list.forEach(function(it){ if (it.cid && gtc[it.cid]) hit++; if (it.kind === 'noise') noise++; });
+  var sum = $('#lb-sum'); sum.replaceChildren();
+  function stat(lbl, val){ var s = el('span'); s.appendChild(document.createTextNode(lbl + ' ')); s.appendChild(el('b', null, val)); sum.appendChild(s); }
+  stat('실제 관심 TOP 10과 겹침', hit + '/10'); stat('개념이 아닌 단어', noise + '개');
+  if (S.truth){ stat('실제 TOP 3', w.gt_top.slice(0, 3).map(function(g){ return g.term; }).join(', ')); }
+  var qu = $('#queue'); qu.replaceChildren();
+  if (!w.new_terms.length){ qu.appendChild(el('li', 'small', '이번 주 후보 없음')); }
+  w.new_terms.forEach(function(nt){
+    var li = el('li'); var l = el('span'); l.appendChild(el('b', null, nt.term)); l.appendChild(el('span', 'small', '  최근 2주 ' + nt.recent_sessions + '세션'));
+    if (S.truth){ l.appendChild(el('span', 'kind' + (nt.is_concept ? '' : ' bad'), nt.is_concept ? '  · 정답: 개념' : '  · 정답: 개념 아님')); }
+    li.appendChild(l);
+    var bx = el('span', 'row'); bx.style.gap = '6px';
+    var key = S.p + ':' + nt.term;
+    [['yes', '개념이에요'], ['no', '아니에요']].forEach(function(o){
+      var btn = el('button', 'mini', o[1]); btn.type = 'button'; btn.setAttribute('aria-pressed', String(S.confirmed[key] === o[0]));
+      btn.addEventListener('click', function(){ S.confirmed[key] = o[0]; renderBoard(); });
+      bx.appendChild(btn);
+    });
+    li.appendChild(bx); qu.appendChild(li);
+  });
+}
+
+function renderNote(){
+  var host = $('#note'); host.replaceChildren();
+  var cid = S.note;
+  if (!cid){ host.appendChild(el('p', 'small', '차트나 형광펜을 누르면 노트가 열립니다.')); return; }
+  var c = D.concepts[cid], n = D.notes[cid];
+  host.appendChild(el('h3', null, c.name));
+  host.appendChild(el('div', 'alias', '다른 표기: ' + (c.variants.slice(1).join(', ') || '없음')));
+  if (n){
+    host.appendChild(el('div', 'sec', '한 줄 정의 · 근거 문장 1순위'));
+    host.appendChild(el('p', 'def', n.def_));
+    host.appendChild(el('div', 'sec', '함께 찾은 문장 (정의문이 아니라서 아래로)'));
+    var ul = el('ul', 'cand');
+    n.others.forEach(function(o){ var li = el('li'); li.appendChild(el('span', 'lbl', o.kind)); li.appendChild(el('span', null, o.s)); ul.appendChild(li); });
+    host.appendChild(ul);
+    host.appendChild(el('p', 'small', '출처: 시뮬레이터 C의 예시 코퍼스. 실서비스에서는 각 문장 옆에 검색 API가 준 URL이 붙습니다.'));
+  } else {
+    host.appendChild(el('p', 'small', '예시 코퍼스에 없는 개념입니다. 실서비스에서는 이 시점에 검색·크롤링을 실행해 노트를 만듭니다.'));
+  }
+  if (c.conf.length){ host.appendChild(el('div', 'sec', '헷갈리는 개념')); var r = el('div', 'row'); r.style.gap = '6px'; c.conf.forEach(function(x){ r.appendChild(el('span', 'pill', x)); }); host.appendChild(r); }
+  var it = null; week().ours.forEach(function(x){ if (x.cid === cid) it = x; });
+  host.appendChild(el('div', 'sec', '내 대화에서'));
+  host.appendChild(el('p', 'small', it ? ('이번 주 차트 ' + (week().ours.indexOf(it) + 1) + '위 · 최근 2주 ' + it.rs + '개 세션에서 언급' + (it.badge === 'up' ? ' · 상승 신호' : (it.badge === 'down' ? ' · 식는 중' : ''))) : '이번 주 차트 밖'));
+}
+
+function renderDemo(){
+  segment($('#ctl-persona'), Object.keys(D.personas).map(function(p){ return [p, D.personas[p].name]; }), S.p, function(p){ S.p = p; S.note = null; renderDemo(); });
+  segment($('#ctl-method'), [['ours', '제안 C (추천)'], ['tf', '단순 빈도']], S.m, function(m){ S.m = m; renderDemo(); });
+  if (!S.note){ var l = week().ours; for (var i = 0; i < l.length; i++) if (l[i].cid && D.notes[l[i].cid]){ S.note = l[i].cid; break; } if (!S.note && l[0]) S.note = l[0].cid; }
+  renderChat(); renderBoard(); renderNote();
+}
+$('#ctl-week').addEventListener('input', function(e){ S.wi = Number(e.target.value); renderDemo(); });
+$('#ctl-truth').addEventListener('change', function(e){ S.truth = e.target.checked; renderBoard(); });
+renderDemo();
+
+/* ---------- 배지 표 ---------- */
+(function(){
+  var t = $('#badge-tbl');
+  var th = el('thead'); var hr = el('tr'); ['방식', '상승 정밀도', '상승 재현율', '하락 정밀도', '몰림 오표시'].forEach(function(h){ hr.appendChild(el('th', null, h)); }); th.appendChild(hr); t.appendChild(th);
+  var tb = el('tbody');
+  Object.keys(D.A.badge.results).forEach(function(k){
+    var r = D.A.badge.results[k], tr = el('tr', k === '두 비율 z-검정 (z>1.64)' ? 'rec' : '');
+    tr.appendChild(el('td', null, k)); [r.up_precision, r.up_recall, r.down_precision, r.burst_flagged].forEach(function(v){ tr.appendChild(el('td', 'num', f2(v))); });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+})();
+
+/* ---------- 시뮬레이터 A: 종합 점수 ---------- */
+var CRIT = [
+  {k: 'ndcg', n: '정확도 (NDCG@10)', w: 3, hi: true},
+  {k: 'intrusion', n: '잡음 적음', w: 2, hi: false},
+  {k: 'churn', n: '차트 안정성', w: 2, hi: false},
+  {k: 'burst_fp', n: '일회성 몰림 무시', w: 1, hi: false},
+  {k: 'rise_hit', n: '상승 조기 포착', w: 1, hi: true},
+  {k: 'label', n: '라벨 없이 바로 가능', w: 1, hi: false},
+  {k: 'latency_ms', n: '속도', w: 0, hi: false}
+];
+function metric(r, k){ return k === 'label' ? (r.method.indexOf('학습형') === 0 ? 1 : 0) : r[k]; }
+var wHost = $('#weights');
+wHost.appendChild(el('div', 'chart-title', '선정 기준 가중치'));
+CRIT.forEach(function(c, i){
+  var r = el('div', 'wrow'); var id = 'w-' + c.k;
+  var lb = el('label', null, c.n); lb.setAttribute('for', id); r.appendChild(lb);
+  var inp = el('input'); inp.type = 'range'; inp.min = 0; inp.max = 5; inp.step = 1; inp.value = c.w; inp.id = id; inp.style.width = '100%';
+  var out = el('span', 'mono', c.w);
+  inp.addEventListener('input', function(){ c.w = Number(inp.value); out.textContent = inp.value; renderComp(); });
+  r.appendChild(inp); r.appendChild(out); wHost.appendChild(r);
+});
+function compScores(){
+  var T = D.A.table, res = T.map(function(r){ return {r: r, s: 0}; }), tw = 0;
+  CRIT.forEach(function(c){
+    if (!c.w) return; tw += c.w;
+    var vals = T.map(function(r){ return metric(r, c.k); });
+    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+    res.forEach(function(o, i){ var v = mx > mn ? (vals[i] - mn) / (mx - mn) : 1; o.s += c.w * (c.hi ? v : 1 - v); });
+  });
+  res.forEach(function(o){ o.s = tw ? o.s / tw : 0; });
+  return res.sort(function(a, b){ return b.s - a.s; });
+}
+function cls(m){ return m.indexOf('제안') === 0 ? 'b-ours' : (m.indexOf('학습형') === 0 ? 'b-gbm' : 'b-base'); }
+function renderComp(){
+  var res = compScores();
+  $('#comp-sub').textContent = '현재 가중치 1위: ' + res[0].r.method.replace(' ★', '');
+  hbars($('#comp-chart'), res.map(function(o){ return {label: o.r.method.replace(' ★', ''), value: o.s, cls: cls(o.r.method), strong: o === res[0]}; }), {max: 1, ticks: [0, 0.5, 1], fmt: f2, labelW: 200, aria: '종합 점수 순위'});
+  renderTableA(res.map(function(o){ return o.r; }));
+}
+function renderTableA(rows){
+  var t = $('#tblA'); t.replaceChildren();
+  var cols = [['방법', null], ['NDCG@10', 'ndcg'], ['P@10', 'p10'], ['잡음', 'intrusion'], ['버스트 오탐', 'burst_fp'], ['상승 포착', 'rise_hit'], ['하락 잔존', 'fade_stale'], ['주간 변동', 'churn'], ['지연', 'latency_ms']];
+  var th = el('thead'), hr = el('tr'); cols.forEach(function(c){ hr.appendChild(el('th', null, c[0])); }); th.appendChild(hr); t.appendChild(th);
+  var tb = el('tbody');
+  rows.forEach(function(r){
+    var tr = el('tr', r.method.indexOf('제안 C') === 0 ? 'rec' : '');
+    var td = el('td'); td.appendChild(el('div', null, r.method)); td.appendChild(el('div', 'desc', r.desc)); tr.appendChild(td);
+    cols.slice(1).forEach(function(c){
+      var v = r[c[1]], s;
+      if (c[1] === 'ndcg') s = f3(v) + ' ±' + f2(r.ndcg_sd); else if (c[1] === 'latency_ms') s = (v < 1 ? v.toFixed(2) : v.toFixed(1)) + 'ms'; else if (c[1] === 'p10') s = f3(v); else s = pc(v, 1);
+      tr.appendChild(el('td', 'num', s));
+    });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+}
+renderComp();
+onResize(renderComp);
+
+/* NDCG 막대 */
+(function ndcgChart(){ if (!ndcgChart.done){ onResize(ndcgChart); ndcgChart.done = true; }
+  var rows = D.A.table.slice().sort(function(a, b){ return b.ndcg - a.ndcg; }).map(function(r){ return {label: r.method.replace(' ★', ''), value: r.ndcg, cls: cls(r.method), note: '±' + f2(r.ndcg_sd) + ' (표준편차)'}; });
+  hbars($('#ndcg-chart'), rows, {max: 1, ticks: [0, 0.25, 0.5, 0.75, 1], fmt: f3, labelW: 190, aria: '방법별 NDCG'});
+})();
+/* ablation */
+(function ablChart(){
+  if (!ablChart.done){ onResize(ablChart); }
+  var rows = D.A.ablation.map(function(a, i){ return {label: a.label, value: a.ndcg, cls: i === 0 ? 'b-ours' : 'b-base', note: '잡음 ' + pc(a.intrusion, 1) + ' · 중복 ' + pc(a.dup, 1)}; });
+  hbars($('#abl-chart'), rows, {min: 0.5, max: 0.9, ticks: [0.5, 0.6, 0.7, 0.8, 0.9], fmt: f3, labelW: 230, aria: '요소 제거 실험'});
+  if (ablChart.done) return; ablChart.done = true;
+  var t = $('#abl-tbl'); var th = el('thead'), hr = el('tr');
+  ['설정', 'NDCG@10', 'NDCG 변화', '잡음', '같은 개념 중복', '주간 변동', '버스트 오탐', '상승 포착'].forEach(function(h){ hr.appendChild(el('th', null, h)); }); th.appendChild(hr); t.appendChild(th);
+  var tb = el('tbody'), base = D.A.ablation[0].ndcg;
+  D.A.ablation.forEach(function(a, i){
+    var tr = el('tr', i === 0 ? 'rec' : ''); tr.appendChild(el('td', null, a.label));
+    tr.appendChild(el('td', 'num', f3(a.ndcg))); tr.appendChild(el('td', 'num', i === 0 ? '–' : ((a.ndcg - base >= 0 ? '+' : '') + f3(a.ndcg - base))));
+    [a.intrusion, a.dup, a.churn, a.burst, a.rise].forEach(function(v){ tr.appendChild(el('td', 'num', pc(v, 1))); });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+})();
+/* 특징 중요도 */
+(function fiChart(){ if (!fiChart.done){ onResize(fiChart); fiChart.done = true; }
+  var rows = D.A.fi.slice(0, 8).map(function(f, i){ return {label: f.feature, value: Math.max(0, f.importance), cls: i === 0 ? 'b-gbm' : 'b-base'}; });
+  var mx = Math.max.apply(null, rows.map(function(r){ return r.value; }));
+  hbars($('#fi-chart'), rows, {max: Math.ceil(mx * 10) / 10, ticks: [0, Math.ceil(mx * 10) / 20, Math.ceil(mx * 10) / 10], fmt: f3, labelW: 190, aria: '특징 중요도'});
+})();
+
+/* ---------- 튜너 ---------- */
+var GK = D.A.grid_keys_str, GM = D.A.grid_metrics;
+var LBL = {H: ['2일', '3.5일', '7일', '14일', '28일', '감쇠 없음'], B: ['0', '0.5', '1'], G: ['0', '0.5', '1', '2'], U: ['언급', '세션'], C: ['0.1', '0.35', '0.6', '1.0']};
+var NAME = {H: '반감기', B: '세션 분산도 β', G: '추세 γ', U: '빈도 단위', C: '사전 밖 단어 가중치'};
+var bal = D.A.config.balanced;
+function idxOf(arr, v){ for (var i = 0; i < arr.length; i++) if (Number(arr[i]) === Number(v) || arr[i] === v) return i; return 0; }
+var TS = {H: idxOf(GK.H, bal[0]), B: idxOf(GK.B, bal[1]), G: idxOf(GK.G, bal[2]), U: idxOf(GK.U, bal[3]), C: idxOf(GK.C, bal[4])};
+var BASEKEY = ['H', 'B', 'G', 'U', 'C'].map(function(k){ return GK[k][TS[k]]; }).join('|');
+function renderTuner(){
+  var ctl = $('#tuner-ctl'); ctl.replaceChildren();
+  ['H', 'B', 'G', 'U', 'C'].forEach(function(k){
+    var c = el('div', 'ctl'); c.appendChild(el('span', 'lbl', NAME[k])); var sg = el('div', 'seg'); c.appendChild(sg);
+    segment(sg, LBL[k].map(function(l, i){ return [i, l]; }), TS[k], function(i){ TS[k] = i; renderTuner(); });
+    ctl.appendChild(c);
+  });
+  var key = ['H', 'B', 'G', 'U', 'C'].map(function(k){ return GK[k][TS[k]]; }).join('|');
+  var v = D.A.grid[key], b = D.A.grid[BASEKEY];
+  var out = $('#tuner-out'); out.replaceChildren();
+  var M = [['ndcg', 'NDCG@10', true, 'f'], ['p10', 'P@10', true, 'f'], ['intrusion', '잡음', false, 'p'], ['burst', '버스트 오탐', false, 'p'], ['rise', '상승 포착', true, 'p'], ['fade', '하락 잔존', false, 'p'], ['churn', '주간 변동', false, 'p']];
+  M.forEach(function(m){
+    var i = GM.indexOf(m[0]), val = v[i], base = b[i];
+    var t = el('div', 'tile'); t.appendChild(el('div', 'lbl', m[1]));
+    t.appendChild(el('div', 'v', m[3] === 'f' ? f3(val) : pc(val, 1)));
+    var d = val - base, better = m[2] ? d > 0.0005 : d < -0.0005, worse = m[2] ? d < -0.0005 : d > 0.0005;
+    t.appendChild(el('div', 'd', key === BASEKEY ? '추천 설정' : ('추천 대비 ' + (d >= 0 ? '+' : '') + (m[3] === 'f' ? f3(d) : (d * 100).toFixed(1) + '%p') + (better ? ' · 개선' : (worse ? ' · 악화' : '')))));
+    out.appendChild(t);
+  });
+}
+renderTuner();
+
+/* ---------- 궤적 ---------- */
+var TR = {p: 'P1', c: 'transformer'};
+function renderTraj(){
+  segment($('#tr-persona'), Object.keys(D.personas).map(function(p){ return [p, D.personas[p].name]; }), TR.p, function(p){ TR.p = p; var ks = Object.keys(D.A.ui[p].lines); TR.c = ks.filter(function(c){ return D.A.ui[p].lines[c].kind === 'burst'; })[0] || ks[0]; renderTraj(); });
+  var U = D.A.ui[TR.p], sel = $('#tr-concept'); sel.replaceChildren();
+  Object.keys(U.lines).forEach(function(c){ var o = el('option', null, U.lines[c].term + ' (' + KIND[U.lines[c].kind] + ')'); o.value = c; if (c === TR.c) o.selected = true; sel.appendChild(o); });
+  var L = U.lines[TR.c], T = U.traces[TR.c], xs = [];
+  for (var d = 7; d <= 77; d++) xs.push(d);
+  function norm(a){ var m = Math.max.apply(null, a); return a.map(function(v){ return m > 0 ? v / m : 0; }); }
+  var truth = norm(L.lam.slice(7, 78));
+  $('#tr-title').textContent = U.name + ' · ' + L.term + ' (' + KIND[L.kind] + ')';
+  var css = getComputedStyle(document.documentElement);
+  lineChart($('#tr-chart'), xs, [
+    {name: '실제 관심 강도', vals: truth, cls: 'ln-t', dot: 'dot-t', area: true, areaCls: 'ar-t', color: css.getPropertyValue('--muted').trim()},
+    {name: '단순 빈도', vals: norm(T.tf), cls: 'ln-2', dot: 'dot-2', color: css.getPropertyValue('--s2').trim()},
+    {name: '제안 C', vals: norm(T.ours), cls: 'ln-1', dot: 'dot-1', color: css.getPropertyValue('--s1').trim()}
+  ], {vmarks: L.burst_day !== null && L.burst_day !== undefined ? [{x: L.burst_day, label: '몰림 발생'}] : [], aria: '점수 궤적'});
+}
+$('#tr-concept').addEventListener('change', function(e){ TR.c = e.target.value; renderTraj(); });
+renderTraj();
+onResize(renderTraj);
+
+/* ---------- 시뮬레이터 B ---------- */
+function bChart(){
+  var rows = D.B.results.slice().sort(function(a, b){ return b.auc - a.auc; }).map(function(r){ return {label: r.method, value: r.auc, cls: r.kind === 'learned' ? 'b-ours' : 'b-base', note: 'AP ' + f3(r.ap)}; });
+  hbars($('#b-chart'), rows, {max: 1, ticks: [0, 0.25, 0.5, 0.75, 1], fmt: f3, labelW: 200, ref: 0.5, aria: '동의어 병합 AUC'});
+}
+bChart(); onResize(bChart);
+(function(){
+  var t = $('#tblB'), th = el('thead'), hr = el('tr');
+  ['방법', 'ROC-AUC', 'PR-AUC', 'F1', '정밀도', '재현율', '혼동쌍 오병합', '한영 표기 재현율'].forEach(function(h){ hr.appendChild(el('th', null, h)); }); th.appendChild(hr); t.appendChild(th);
+  var tb = el('tbody');
+  D.B.results.forEach(function(r){
+    var tr = el('tr', r.method.indexOf('로지스틱') === 0 ? 'rec' : ''); var td = el('td'); td.appendChild(el('div', null, r.method)); td.appendChild(el('div', 'desc', r.desc)); tr.appendChild(td);
+    [r.auc, r.ap, r.f1, r.precision, r.recall].forEach(function(v){ tr.appendChild(el('td', 'num', f3(v))); });
+    [r.hard_fp, r.cross_recall].forEach(function(v){ tr.appendChild(el('td', 'num', pc(v, 1))); });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  var e = $('#b-ex'), eh = el('thead'), er = el('tr');
+  ['쌍', '정답', '문자 유사도', '로마자 유사도', 'floret 코사인'].forEach(function(h){ er.appendChild(el('th', null, h)); }); eh.appendChild(er); e.appendChild(eh);
+  var eb = el('tbody');
+  D.B.examples.slice(0, 14).forEach(function(x){
+    var tr = el('tr'); tr.appendChild(el('td', null, x.a + '  ↔  ' + x.b)); tr.appendChild(el('td', null, x.label ? '같은 개념' : '다른 개념'));
+    [x.char, x.rom, x.vec].forEach(function(v){ tr.appendChild(el('td', 'num', f2(v))); }); eb.appendChild(tr);
+  });
+  e.appendChild(eb);
+})();
+
+/* ---------- 시뮬레이터 C ---------- */
+(function(){
+  var Q = ['Q1', 'Q1+확장', 'Q2', 'Q2+확장'], methods = [];
+  D.C.results.forEach(function(r){ if (methods.indexOf(r.method) < 0) methods.push(r.method); });
+  var t = $('#tblC'), th = el('thead'), hr = el('tr');
+  hr.appendChild(el('th', null, '방법 (Hit@1)')); Q.forEach(function(q){ hr.appendChild(el('th', null, q)); }); hr.appendChild(el('th', null, 'MRR (Q1+확장)'));
+  th.appendChild(hr); t.appendChild(th);
+  var tb = el('tbody');
+  methods.forEach(function(m){
+    var tr = el('tr', m.indexOf('정의 패턴 규칙') === 0 ? 'rec' : ''); tr.appendChild(el('td', null, m));
+    Q.forEach(function(q){ var r = cres(m, q); var td = el('td', 'num'); var db = el('span', 'databar'); var bar = el('i'); bar.style.width = (r.hit1 * 100) + '%'; db.appendChild(bar); db.appendChild(el('span', null, f3(r.hit1))); td.appendChild(db); tr.appendChild(td); });
+    tr.appendChild(el('td', 'num', f3(cres(m, 'Q1+확장').mrr)));
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  var host = $('#c-ex');
+  var picks = D.C.examples.filter(function(x){ return !x.bm25_ok && x.learned_ok; }).slice(0, 3);
+  picks.forEach(function(x){
+    var c = el('div', 'card'); c.appendChild(el('div', 'small', '질의: ' + x.query));
+    var g = el('div', 'ex');
+    var b = el('div', 'bad'); b.appendChild(el('div', 'small', 'BM25 1위 (오답)')); b.appendChild(el('div', null, x.bm25_top)); g.appendChild(b);
+    var l = el('div', 'good'); l.appendChild(el('div', 'small', '학습형 1위 (정답 정의문)')); l.appendChild(el('div', null, x.learned_top)); g.appendChild(l);
+    c.appendChild(g); host.appendChild(c);
+  });
+})();
+
+/* ---------- 출처 ---------- */
+var SRC = [
+  ['STORM (stanford-oval/storm)', 'https://github.com/stanford-oval/storm'],
+  ['GPT Researcher (assafelovic/gpt-researcher)', 'https://github.com/assafelovic/gpt-researcher'],
+  ['Perplexica (ItzCrazyKns/Perplexica)', 'https://github.com/ItzCrazyKns/Perplexica'],
+  ['AutoRAG (Marker-Inc-Korea/AutoRAG)', 'https://github.com/Marker-Inc-Korea/AutoRAG'],
+  ['KeyBERT 문서', 'https://maartengr.github.io/KeyBERT/guides/quickstart.html'],
+  ['KR-WordRank (lovit/KR-WordRank)', 'https://github.com/lovit/KR-WordRank'],
+  ['LUTE v3 (LuteOrg/lute-v3)', 'https://github.com/LuteOrg/lute-v3'],
+  ['Learning with Texts (HugoFara/lwt)', 'https://github.com/hugofara/lwt'],
+  ['open-spaced-repetition/srs-benchmark', 'https://github.com/open-spaced-repetition/srs-benchmark'],
+  ['Benchmark of Spaced Repetition Algorithms (Expertium)', 'https://expertium.github.io/Benchmark.html'],
+  ['BERTopic 논문 (arXiv 2203.05794)', 'https://arxiv.org/abs/2203.05794'],
+  ['Duolingo Leagues 분석 (Deconstructor of Fun)', 'https://duolingo.deconstructoroffun.com/mechanics/leagues'],
+  ['RAGAS 지표 평가 (arXiv 2407.12873)', 'https://arxiv.org/abs/2407.12873'],
+  ['Kiwi 한국어 형태소 분석기', 'https://github.com/bab2min/Kiwi'],
+  ['spaCy 한국어 모델 (ko_core_news_md)', 'https://github.com/explosion/spacy-models'],
+  ['Claude Code Hooks reference', 'https://code.claude.com/docs/en/hooks'],
+  ['Stop 훅 last_assistant_message 추가 (이슈 정리)', 'https://claudeissues.com/issue/26710-docs-hooks-docs-missing-last-assistant-message-in-stop-and-subagentstop-input-sc'],
+  ['Windows 훅 역슬래시 경로 문제 (이슈 정리)', 'https://claudeissues.com/issue/88578-bug-windows-hook-commands-with-backslash-paths-silently-never-execute-bash-eats'],
+  ['Windows python3 별칭 문제 사례 (claude-branch-guard)', 'https://github.com/karlkfi/claude-branch-guard/releases/tag/v1.4.2'],
+  ['Claude Code headless 모드', 'https://docs.claude.com/en/docs/claude-code/headless'],
+  ['위키백과 REST API', 'https://ko.wikipedia.org/api/rest_v1/'],
+  ['SearXNG', 'https://github.com/searxng/searxng'],
+  ['ONNX Runtime 양자화', 'https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html'],
+  ['Ollama', 'https://ollama.com']
+];
+var src = $('#src');
+SRC.forEach(function(s){ var li = el('li'); var a = el('a', null, s[0]); a.href = s[1]; a.rel = 'noopener'; li.appendChild(a); src.appendChild(li); });
+/* ---------- 코드 상자 + 복사 ---------- */
+function copyText(text, pre, btn){
+  function done(ok){ btn.textContent = ok ? '복사됨' : 'Ctrl+C로 복사'; setTimeout(function(){ btn.textContent = '복사'; }, 1800); }
+  function selectPre(){ try { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) {} }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, function(){ selectPre(); done(false); });
+    } else { selectPre(); done(false); }
+  } catch (e) { selectPre(); done(false); }
+}
+function codebox(title, where, code, opts){
+  opts = opts || {};
+  var box = el('div', 'codebox' + (opts.one ? ' one' : ''));
+  var h = el('div', 'cb-h');
+  var t = el('div'); t.appendChild(el('b', null, title)); if (where){ t.appendChild(el('span', 'cb-w', where)); }
+  h.appendChild(t);
+  var pre = el('pre'); pre.textContent = code; pre.setAttribute('tabindex', '0');
+  var btn = el('button', 'mini', '복사'); btn.type = 'button';
+  btn.addEventListener('click', function(){ copyText(code, pre, btn); });
+  h.appendChild(btn); box.appendChild(h); box.appendChild(pre);
+  return box;
+}
+function tplText(id){ var n = document.getElementById(id); return n ? n.textContent.replace(/^\n/, '') : ''; }
+
+/* 정적 코드 상자 (클릭 응답, 검증 에이전트) */
+(function(){
+  var a = $('#cb-store'), b = $('#cb-fetch'), c = $('#cb-verify');
+  if (a) a.appendChild(codebox('concept_store.py', '로컬 색인과 클릭 카드 (LLM 0토큰)', tplText('tpl-store')));
+  if (b) b.appendChild(codebox('fetch_sources.py', '무료 계층 검색 + 30일 캐시', tplText('tpl-fetch')));
+  if (c) c.appendChild(codebox('verify_note.py', '검증 에이전트 (kiwipiepy만 필요)', tplText('tpl-verify')));
+})();
+
+/* ---------- 입력 설정 시트 ---------- */
+(function(){
+  if (!$('#su-form')) return;
+  var KEY = 'concept-setup-v2';
+  var WIN = {py: 'C:/Users/LG/anaconda3/python.exe', home: 'C:/Users/LG'}, NIX = {py: '/usr/bin/python3', home: '$HOME'};
+  var DEF = {os: 'win', scope: 'global', proj: '', evUser: true, evAsst: true, evSub: false, async: true, mask: true,
+             timeout: 10, max: 20000, inbox: '~/.claude/concept-inbox.jsonl', src: 'embed', url: '', py: WIN.py, home: WIN.home, tab: 'oneline'};
+  var O = {}, k;
+  for (k in DEF) O[k] = DEF[k];
+  try { var sv = JSON.parse(window.localStorage.getItem(KEY) || 'null'); if (sv && typeof sv === 'object') for (k in DEF) if (sv[k] !== undefined && typeof sv[k] === typeof DEF[k]) O[k] = sv[k]; } catch (e) {}
+  function persist(){
+    try { window.localStorage.setItem(KEY, JSON.stringify(O)); $('#su-saved').textContent = '선택이 이 브라우저에 저장됐어요'; }
+    catch (e) { $('#su-saved').textContent = '이 브라우저에서는 저장되지 않아요 (화면에서는 그대로 사용 가능)'; }
+  }
+  var INSTALLER = tplText('tpl-installer'), LOADER = tplText('tpl-loader');
+  var HOOK_T = (function(){ var m = "HOOK_TEMPLATE = r'''", a = INSTALLER.indexOf(m), b = INSTALLER.indexOf("'''", a + m.length); return a < 0 ? '' : INSTALLER.slice(a + m.length, b); })();
+  function clean(p){ return String(p === undefined || p === null ? '' : p).trim().replace(/\\/g, '/').replace(/["'`$]/g, '').replace(/\/+$/, ''); }
+  function cleanHome(p){ var s = String(p || '').trim(); return s === '$HOME' ? s : clean(s); }
+  function b64(str){
+    var bytes = new TextEncoder().encode(str), bin = '', CH = 0x8000;
+    for (var i = 0; i < bytes.length; i += CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+    return btoa(bin);
+  }
+  var B64 = null; try { B64 = b64(INSTALLER); } catch (e) { B64 = null; }
+  var SHA = null;
+  try {
+    if (window.crypto && window.crypto.subtle && window.TextEncoder){
+      window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(INSTALLER)).then(function(buf){
+        SHA = Array.prototype.map.call(new Uint8Array(buf), function(x){ return ('0' + x.toString(16)).slice(-2); }).join('');
+        if (O.tab === 'file') render();
+      }, function(){});
+    }
+  } catch (e) {}
+  function evList(){ var e = []; if (O.evUser) e.push('user'); if (O.evAsst) e.push('assistant'); if (O.evSub) e.push('subagent'); return e; }
+  function evNames(){ var m = {user: 'UserPromptSubmit', assistant: 'Stop', subagent: 'SubagentStop'}; return evList().map(function(x){ return m[x]; }); }
+  function timeout(){ return Math.max(1, Math.min(60, parseInt(O.timeout, 10) || 10)); }
+  function maxChars(){ return Math.max(1000, parseInt(O.max, 10) || 20000); }
+  function inbox(){ return clean(O.inbox) || DEF.inbox; }
+  function args(extra){
+    var a = [];
+    if (O.scope === 'project') a.push('--scope project --project "' + (clean(O.proj) || '프로젝트폴더') + '"');
+    var ev = evList().join(','); if (ev && ev !== 'user,assistant') a.push('--events ' + ev);
+    if (!O.async) a.push('--sync');
+    if (timeout() !== 10) a.push('--timeout ' + timeout());
+    if (inbox() !== DEF.inbox) a.push('--inbox "' + inbox() + '"');
+    if (!O.mask) a.push('--no-mask');
+    if (maxChars() !== 20000) a.push('--max-chars ' + maxChars());
+    if (extra) a.push(extra);
+    return a.join(' ');
+  }
+  function urlOk(){ var u = String(O.url || '').trim(); return /^https:\/\/[^\s"'`$]+$/.test(u) ? u : ''; }
+  function oneliner(os, extra){
+    var A = args(extra), sp = A ? ' ' + A : '', u = urlOk();
+    if (O.src === 'url' && u){
+      if (os === 'win') return 'irm "' + u + '" -OutFile "$env:TEMP\\install_concept_hook.py"; python "$env:TEMP\\install_concept_hook.py"' + sp;
+      return 'curl -fsSL "' + u + '" | python3 -' + sp;
+    }
+    if (!B64) return '# 이 브라우저에서는 한 줄 명령을 만들 수 없습니다. "설치 파일" 탭의 파일을 저장해 실행하세요.';
+    return (os === 'win' ? 'python' : 'python3') + ' -c "import base64;exec(base64.b64decode(\'' + B64 + '\').decode(\'utf-8\'))"' + sp;
+  }
+  function psPath(p){ return p.replace(/^~\//, '$HOME/').replace(/\//g, '\\'); }
+  function hookCode(){ return HOOK_T.split('@@INBOX@@').join(inbox()).split('@@MASK@@').join(O.mask ? 'True' : 'False').split('@@MAXCHARS@@').join(String(maxChars())); }
+  function settingsJson(){
+    var home = cleanHome(O.home) || (O.os === 'win' ? WIN.home : NIX.home);
+    var hookPath = home + '/.claude/hooks/concept_hook.py';
+    var py = clean(O.py) || (O.os === 'win' ? WIN.py : NIX.py);
+    var cmd = '"' + py + '" "' + hookPath + '"';
+    var cfg = {hooks: {}};
+    evNames().forEach(function(ev){ var h = {type: 'command', command: cmd, timeout: timeout()}; if (O.async) h.async = true; cfg.hooks[ev] = [{hooks: [h]}]; });
+    return {json: JSON.stringify(cfg, null, 2), hookPath: hookPath,
+            where: O.scope === 'project' ? (clean(O.proj) || '프로젝트폴더') + '/.claude/settings.json' : (O.os === 'win' ? home + '/.claude/settings.json' : '~/.claude/settings.json')};
+  }
+  function steps(list){ var ol = el('ol', 'steps'); list.forEach(function(s){ var li = el('li'); if (typeof s === 'string') li.textContent = s; else li.appendChild(s); ol.appendChild(li); }); return ol; }
+  var TABS = [['oneline', '한 줄 설치'], ['file', '설치 파일'], ['manual', '수동 설정'], ['loader', '파이프라인 셀'], ['check', '점검·해제']];
+  function render(){
+    // 폼 동기화
+    segment($('#su-os'), [['win', 'Windows (PowerShell)'], ['nix', 'macOS · Linux']], O.os, function(v){
+      if (v === O.os) return;
+      var from = O.os === 'win' ? WIN : NIX, to = v === 'win' ? WIN : NIX;
+      if (O.py === from.py) O.py = to.py; if (O.home === from.home) O.home = to.home;
+      O.os = v; persist(); render(); });
+    segment($('#su-scope'), [['global', '모든 프로젝트'], ['project', '이 프로젝트만']], O.scope, function(v){ O.scope = v; persist(); render(); });
+    segment($('#su-src'), [['embed', '명령에 포함 (호스팅 없음)'], ['url', '주소에서 받기 (curl·irm)']], O.src, function(v){ O.src = v; persist(); render(); });
+    $('#su-proj-wrap').style.display = O.scope === 'project' ? '' : 'none';
+    $('#su-url-wrap').style.display = O.src === 'url' ? '' : 'none';
+    var map = {'su-proj': 'proj', 'su-inbox': 'inbox', 'su-url': 'url', 'su-py': 'py', 'su-home': 'home', 'su-timeout': 'timeout', 'su-max': 'max'};
+    Object.keys(map).forEach(function(id){ var n = $('#' + id); if (document.activeElement !== n) n.value = O[map[id]]; });
+    var cb = {'su-ev-user': 'evUser', 'su-ev-asst': 'evAsst', 'su-ev-sub': 'evSub', 'su-async': 'async', 'su-mask': 'mask'};
+    Object.keys(cb).forEach(function(id){ $('#' + id).checked = !!O[cb[id]]; });
+    // 탭
+    var tabs = $('#su-tabs'); tabs.replaceChildren();
+    TABS.forEach(function(t){
+      var b = el('button', null, t[1]); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(O.tab === t[0]));
+      b.addEventListener('click', function(){ O.tab = t[0]; persist(); render(); });
+      tabs.appendChild(b);
+    });
+    var pane = $('#su-pane'); pane.replaceChildren();
+    if (!evList().length){ pane.appendChild(el('div', 'callout warn', '수집할 내용을 하나 이상 고르세요.')); return; }
+    var win = O.os === 'win', shell = win ? 'PowerShell' : '터미널';
+    if (O.tab === 'oneline'){
+      pane.appendChild(el('p', 'small', (O.src === 'url' && urlOk()) ? '설치 파일을 주소에서 받아 바로 실행합니다. 같은 주소를 공유하면 다른 사용자도 같은 한 줄로 설치합니다.' : '설치 파일 전체가 명령 안에 들어 있어 호스팅 없이 바로 됩니다. 명령이 길지만 복사 버튼 한 번이면 됩니다.'));
+      if (O.src === 'url' && !urlOk()) pane.appendChild(el('div', 'callout warn', 'https://로 시작하는 Raw 주소를 넣어야 주소 방식 명령이 만들어집니다. 지금은 명령에 포함 방식으로 보여 줍니다.'));
+      pane.appendChild(codebox('1. 설치', shell + '에 붙여넣고 Enter', oneliner(O.os), {one: true}));
+      pane.appendChild(codebox('2. 자가 점검', '"결과: 정상"이 나오면 완료', oneliner(O.os, '--test'), {one: true}));
+      pane.appendChild(steps(['Claude Code를 다시 열고 /hooks에서 ' + evNames().join(', ') + ' 등록을 확인합니다.',
+        '질문을 하나 보낸 뒤 "점검·해제" 탭의 명령으로 인박스 마지막 줄을 확인합니다.',
+        win ? 'python이 실행되지 않으면 Anaconda Prompt에서 같은 명령을 실행하세요. 그때 쓴 Python 경로가 훅에 그대로 등록됩니다.' : 'python3가 없으면 설치 후 다시 실행하세요. 실행한 Python 경로가 훅에 그대로 등록됩니다.']));
+    } else if (O.tab === 'file'){
+      pane.appendChild(el('p', 'small', '한 줄 명령에 들어 있는 것과 같은 파일입니다. 내용을 확인하거나, GitHub Gist(공개)에 올려 Raw 주소를 왼쪽에 넣으면 curl·irm 한 줄 설치가 됩니다.'));
+      var hs = el('p', 'small mono'); hs.textContent = 'SHA-256: ' + (SHA || '계산 중이거나 이 브라우저에서 계산할 수 없음'); pane.appendChild(hs);
+      pane.appendChild(codebox('install_concept_hook.py', '아무 폴더에 저장 → python install_concept_hook.py', INSTALLER));
+      pane.appendChild(el('p', 'small', win ? '받은 파일 확인: Get-FileHash "$env:TEMP\\install_concept_hook.py" -Algorithm SHA256' : '받은 파일 확인: shasum -a 256 install_concept_hook.py'));
+    } else if (O.tab === 'manual'){
+      var s = settingsJson();
+      pane.appendChild(el('p', 'small', '설치 파일 없이 직접 넣는 방법입니다. 경로는 왼쪽 "수동 설정용 경로"에서 바꿉니다. settings.json에 내용이 이미 있으면 "hooks" 부분만 합쳐 넣으세요.'));
+      pane.appendChild(codebox('concept_hook.py', s.hookPath, hookCode()));
+      pane.appendChild(codebox('settings.json', s.where + ' (UTF-8, BOM 없이 저장)', s.json));
+    } else if (O.tab === 'loader'){
+      pane.appendChild(el('p', 'small', '파이프라인 노트북의 첫 셀에 붙여넣습니다. 세션별로 묶고 코드·경로·URL을 걷어 낸 본문과, 코드에서 뽑은 라이브러리·에러 이름을 줍니다.'));
+      pane.appendChild(codebox('파이프라인 첫 셀', '노트북 맨 위 셀', LOADER.split('@@INBOX@@').join(inbox())));
+    } else {
+      pane.appendChild(codebox('버전 확인', '2.1.47 이상이어야 AI 답변이 기록됨', 'claude --version', {one: true}));
+      pane.appendChild(codebox('인박스 마지막 4줄', '질문 하나 보낸 뒤', win ? 'Get-Content "' + psPath(inbox()) + '" -Tail 4 -Encoding UTF8' : 'tail -n 4 ' + inbox(), {one: true}));
+      pane.appendChild(codebox('해제', '이 훅만 제거 (인박스 파일은 남김)', oneliner(O.os, '--uninstall'), {one: true}));
+      var tw = el('div', 'tbl-wrap'), tb = el('table', 'tbl'), th = el('thead'), hr = el('tr');
+      ['증상', '원인', '해결'].forEach(function(x){ hr.appendChild(el('th', null, x)); }); th.appendChild(hr); tb.appendChild(th);
+      var body = el('tbody');
+      [['인박스 파일이 안 생김', '훅이 Python을 찾지 못함 (이름만 쓰면 PATH나 스토어 별칭 문제)', '설치 파일로 다시 설치 (실행한 Python의 절대경로를 등록)'],
+       ['경로가 C:Users...처럼 붙어 버림', 'Windows에서 훅이 Git Bash로 실행돼 역슬래시가 지워짐', '경로를 / 로 쓰고 따옴표로 감쌈 (설치 파일은 자동)'],
+       ['settings.json 읽기 오류', 'BOM이 붙었거나 쉼표·따옴표 오류', 'UTF-8(BOM 없음)으로 저장. 설치 파일은 오류 위치를 알려 줌'],
+       ['질문만 쌓이고 답변이 없음', 'Claude Code가 2.1.47보다 오래됨', 'Claude Code 업데이트'],
+       ['한글이 ??로 보임', '파일을 다른 인코딩으로 열었음', '-Encoding UTF8로 열기 (파일 자체는 UTF-8)'],
+       ['Claude 응답이 느려짐', '동기 실행', '비동기 실행을 켜고 다시 설치'],
+       ['설정을 바꿨는데 그대로', '실행 중인 세션은 예전 설정 사용', 'Claude Code를 다시 열기']].forEach(function(r){
+        var tr = el('tr'); r.forEach(function(x){ tr.appendChild(el('td', null, x)); }); body.appendChild(tr); });
+      tb.appendChild(body); tw.appendChild(tb); pane.appendChild(tw);
+    }
+  }
+  // 입력 이벤트
+  [['su-proj', 'proj'], ['su-inbox', 'inbox'], ['su-url', 'url'], ['su-py', 'py'], ['su-home', 'home'], ['su-timeout', 'timeout'], ['su-max', 'max']].forEach(function(p){
+    $('#' + p[0]).addEventListener('input', function(e){ O[p[1]] = (p[1] === 'timeout' || p[1] === 'max') ? (parseInt(e.target.value, 10) || DEF[p[1]]) : e.target.value; persist(); render(); });
+  });
+  [['su-ev-user', 'evUser'], ['su-ev-asst', 'evAsst'], ['su-ev-sub', 'evSub'], ['su-async', 'async'], ['su-mask', 'mask']].forEach(function(p){
+    $('#' + p[0]).addEventListener('change', function(e){ O[p[1]] = e.target.checked; persist(); render(); });
+  });
+  $('#su-reset').addEventListener('click', function(){ for (var k2 in DEF) O[k2] = DEF[k2]; persist(); render(); });
+  render();
+  window.__conceptSetup = {O: O, oneliner: oneliner, args: args, hookCode: hookCode, settingsJson: settingsJson, render: render};
+})();
+
+})();
+</script>
+</body>
+</html>
