@@ -19,6 +19,7 @@
 - `web/build_page.py` → `kit/*.py`(글자 그대로 읽기), `sim/results/page_data.json` — 둘 다 읽기만 한다.
 - `sim/make_page_data.py` → `sim/concepts.py`, `sim/pipeline.py`, `sim/results/*` — `kit/`를 import하지 않는다.
 - `kit/` → 다른 폴더에 의존하지 않는다 (사용자 PC에 파일 하나씩 복사해도 돌아가야 함). 특히 훅 설치기는 파일 하나로 완결된다.
+- `experiments/`(학습 실험, 첫 실험 때 생김) → `sim/`·`kit/`를 읽기만 한다. 아무것도 `experiments/`를 import하지 않는다. 데이터는 `data/`(git 제외), 규칙은 `docs/TRAINING.md`.
 
 ## 2. 데이터 계약
 
@@ -60,7 +61,7 @@
 | 신뢰성 | 훅은 실패해도 0으로 끝나고 아무것도 출력하지 않는다. 형식이 다르면 버리지 않고 `raw`로 보존 | `tests/test_hook.py` |
 | 보안성 | 키·토큰 가리기, 대화 기록·DB는 git 제외, 밖으로 나가는 건 검색어(개념 이름)뿐 | 훅 fixture 가리기 케이스 |
 | 유지보수성 | 책임별 폴더 분리, 코드 상자 원본은 `kit/` 하나, 생성물은 스크립트로만 만든다 | `build_page.py --check` |
-| 이식성 | 버전 고정(`requirements.txt`), conda-forge 전용 환경, UTF-8·LF 고정, 경로는 스크립트 위치 기준 | CI (Windows·Ubuntu) |
+| 이식성 | 버전 고정(`requirements.txt`), conda-forge 전용 환경, UTF-8·LF 고정, 경로는 스크립트 위치 기준 | CI (Windows·macOS·Ubuntu) |
 
 ## 4. 생명주기 단계별 산출물
 

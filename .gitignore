@@ -21,6 +21,9 @@ concept-inbox.jsonl
 Thumbs.db
 desktop.ini
 
+# 학습 데이터 (크고, 라이선스·개인정보가 있을 수 있음 — 출처·해시만 experiments/DATA.md에)
+/data/
+
 # 학습한 모델·체크포인트 (크고 PC마다 다시 만들 수 있음 — 기록만 커밋: docs/TRAINING.md)
 models/
 *.pt

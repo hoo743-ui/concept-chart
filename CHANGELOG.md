@@ -2,6 +2,12 @@
 
 날짜는 한국 시간. 페이지에 보이는 숫자가 바뀐 변경은 따로 표시한다.
 
+## 0.2.2 — 2026-11-07
+
+- `docs/TRAINING.md` 다시 씀: 데이터 받기 → 살펴보기 → 전처리(데이터 계약) → 개념 단위 분할 → 기준선 → epoch 학습·조기 종료·과적합 대응 → 시험 → 기록·채택, VS Code 확인 체크리스트
+- SETUP.md: 매일 시작 명령, VS Code 세팅(확장 3개·인터프리터·Interactive Window·Data Wrangler), 데이터 도구(pandas·matplotlib·ipykernel·pyarrow), 문제 해결 4줄
+- `.gitignore`에 `/data/`, `docs/ARCHITECTURE.md`에 `experiments/` 의존 방향
+
 ## 0.2.1 — 2026-11-07
 
 - SETUP.md(macOS): Homebrew PATH 설정(`brew shellenv`)과 `node@22` PATH 줄 추가, 관련 문제 해결 2줄

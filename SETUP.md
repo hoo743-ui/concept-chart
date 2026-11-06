@@ -14,7 +14,7 @@
 | conda | 파이썬 환경 | Miniforge (아래 1단계) | Anaconda (있는 것) 또는 Miniforge | `conda --version` |
 | Claude Code (2.1.47 이상) | 개발 + 대화 수집 훅 | `curl -fsSL https://claude.ai/install.sh \| bash` | `irm https://claude.ai/install.ps1 \| iex` | `claude --version` |
 | Node.js 18 이상 (선택) | 페이지 자동 점검 | `brew install node@22` | nodejs.org LTS | `node --version` |
-| VS Code + Python 확장 (선택) | 편집 | | | |
+| VS Code + 확장 3개 (선택) | 편집, 데이터·학습 결과 직접 확인 | `brew install --cask visual-studio-code` | code.visualstudio.com에서 설치 | `code --version` |
 
 ## 1. 기본 도구 설치 (PC마다 한 번)
 
@@ -26,6 +26,7 @@ xcode-select --install                                   # 이미 있으면 '설
 echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile   # Apple Silicon: brew를 PATH에 (Intel Mac은 /usr/local)
 eval "$(/opt/homebrew/bin/brew shellenv)"
 brew install gh node@22                                  # node는 선택 (페이지 자동 점검용)
+brew install --cask visual-studio-code                   # VS Code (선택, 5단계)
 echo 'export PATH="/opt/homebrew/opt/node@22/bin:$PATH"' >> ~/.zshrc   # node@22는 자동으로 PATH에 안 들어감
 
 # Miniforge (conda-forge 전용 conda) — CI가 macOS에서 쓰는 것과 같은 명령
@@ -79,16 +80,34 @@ python dev.py check
 `tests/check_env.py`(패키지, Kiwi·spaCy 한국어 모델, 검증 에이전트, 클릭 카드, 근거 문장 선택, 파이프라인 첫 셀, 훅 설치기, 훅 어댑터 테스트, 페이지 데이터·페이지 빌드 재현)를 돌리고, Node.js가 있으면 `npm ci` → `npm test`까지 한다.
 훅 설치기 점검은 임시 폴더에서만 하므로 진짜 `~/.claude` 설정은 건드리지 않는다.
 
-## 5. Claude Code로 이어서 개발하기
+## 5. 매일 작업 시작 (Claude Code · VS Code)
 
 ```bash
-cd concept-chart
+cd ~/concept-chart              # 클론한 폴더
 conda activate concept-chart
-claude
+git pull
+python dev.py check             # 마지막 줄 '결과: 모두 통과'
+code .                          # VS Code (같은 폴더, 창이 열리고 터미널은 바로 돌아온다)
+claude                          # Claude Code (끝낼 때까지 이 터미널을 쓴다)
 ```
 
-- 레포의 `CLAUDE.md`(작업 원칙·구조·현재 상태·다음 할 일)를 Claude Code가 자동으로 읽는다. 설계와 변경 절차는 `docs/ARCHITECTURE.md`.
-- VS Code: 폴더 열기 → `Cmd/Ctrl+Shift+P` → **Python: Select Interpreter** → `concept-chart`.
+- 레포의 `CLAUDE.md`(작업 원칙·구조·현재 상태·다음 할 일)를 Claude Code가 자동으로 읽는다. 설계와 변경 절차는 `docs/ARCHITECTURE.md`, 학습은 `docs/TRAINING.md`.
+
+### VS Code 세팅 (한 번, 데이터·학습 결과를 직접 확인할 때)
+
+```bash
+code --install-extension ms-python.python          # 파이썬
+code --install-extension ms-toolsai.jupyter        # # %% 셀 실행 (Interactive Window)
+code --install-extension ms-toolsai.datawrangler   # 표 데이터 보기 (CSV·Parquet·JSONL·DataFrame)
+conda activate concept-chart
+python -m pip install ipykernel pandas matplotlib pyarrow   # 셀 실행·표·그림에 필요 (8단계와 같음)
+```
+
+1. `code` 명령이 없으면: VS Code에서 `Cmd+Shift+P` → **Shell Command: Install 'code' command in PATH** → 새 터미널.
+2. 레포 폴더에서 `code .` → `Cmd+Shift+P` → **Python: Select Interpreter** → `concept-chart` (3.13). 목록에 없으면 **Enter interpreter path** → `conda env list`에 나온 경로 뒤에 `/bin/python` (Miniforge 기본: `~/miniforge3/envs/concept-chart/bin/python`).
+3. 통합 터미널(메뉴 보기 → 터미널)에서 `python dev.py check`.
+4. `.py` 파일에 `# %%`를 넣으면 셀 위에 **Run Cell**이 생기고, 누르면 Interactive Window에서 실행된다. 커널은 `concept-chart`를 고른다. 변수 창의 DataFrame 옆 버튼 → Data Wrangler. 파일은 탐색기에서 우클릭 → **Open in Data Wrangler**.
+5. 단계별로 무엇을 확인하는지는 `docs/TRAINING.md` 5절.
 
 ## 6. 대화 수집 훅 (이 PC의 Claude Code 대화도 기록하려면)
 
@@ -122,11 +141,13 @@ python kit/install_concept_hook.py --test    # '결과: 정상'
 ```bash
 python -m pip install torch                                # macOS(Apple Silicon)는 GPU(MPS) 포함 빌드
 python -m pip install transformers sentence-transformers   # 사전학습 인코더 미세조정용 (필요할 때)
+python -m pip install pandas matplotlib ipykernel pyarrow  # 데이터 살펴보기·학습 곡선·VS Code 셀 실행
 ```
 
 - 2026-11-07 PyPI 기준 torch 2.15.0의 macOS용 설치 파일은 Apple Silicon + macOS 14 이상이다.
+- 같은 날 기준 macOS(Apple Silicon)·Python 3.13용 설치 파일 확인: pandas 3.1.1, matplotlib 3.11.2, pyarrow 26.0.1 (ipykernel 7.4.0은 순수 파이썬). 설치 파일이 있는 것만 확인했고 Mac에서 실행은 하지 않았다.
 - 실험이 자리 잡으면 실제로 쓴 버전을 `requirements-ml.txt`로 고정해 레포에 넣는다 (`pip freeze | grep -i -E "torch|transformers|sentence"`).
-- 학습 진행·성능 확인 규칙은 검증 문서의 '학습 실험 가이드라인'을 따른다.
+- 데이터 받기 → 전처리 → 분할 → 학습(epoch·조기 종료) → 시험 → 기록 순서와 규칙은 `docs/TRAINING.md`.
 
 ## 9. PC를 옮길 때
 
@@ -145,6 +166,10 @@ python -m pip install transformers sentence-transformers   # 사전학습 인코
 | (mac) `zsh: command not found: claude` | 터미널을 새로 열거나 `source ~/.zshrc` |
 | (mac) `python: command not found` | conda 환경을 켜기 전에는 `python3`를 쓴다. 환경을 켠 뒤에는 `python` |
 | (mac) MPS에서 지원 안 되는 연산 오류 | `export PYTORCH_ENABLE_MPS_FALLBACK=1` 후 다시 실행 (그 연산만 CPU로) |
+| (mac) `zsh: command not found: code` | VS Code에서 `Cmd+Shift+P` → Shell Command: Install 'code' command in PATH → 새 터미널 |
+| (VS Code) 인터프리터·커널 목록에 `concept-chart`가 없음 | Python: Select Interpreter → Enter interpreter path → `~/miniforge3/envs/concept-chart/bin/python` (`conda env list`로 경로 확인). 커널 선택에 conda 환경이 base만 보이는 문제가 Python Environments 확장(`ms-python.vscode-python-envs`)과 함께 보고된 적이 있다(2026-08, Linux) — 같은 증상이면 그 확장을 꺼 본다 |
+| (VS Code) Run Cell이 안 보이거나 커널 시작 실패 | Jupyter 확장 설치 확인, 환경에 `python -m pip install ipykernel` |
+| (VS Code) Data Wrangler가 열리지 않음 | 선택한 인터프리터 환경에 `python -m pip install pandas` 후 다시 |
 | `conda를 찾지 못했다` (dev.py setup) | macOS: 위 conda init. Windows: Anaconda Prompt에서 실행. conda 없이: `--venv` |
 | `CondaToSNonInteractiveError` (이용약관) | `environment.yml`은 conda-forge만 써서 보통 안 생긴다. `conda create`를 직접 쓸 때는 `--override-channels -c conda-forge` |
 | (Windows) PowerShell에서 `conda activate`가 안 됨 | Anaconda Prompt를 쓰거나 `conda init powershell` 후 새 창 |
@@ -162,4 +187,4 @@ python -m pip install transformers sentence-transformers   # 사전학습 인코
 
 - **CI (GitHub Actions):** Windows·macOS·Ubuntu에서 새 환경에 Python 3.13 + `requirements.txt` 설치 → `python dev.py check`. Windows·macOS에서 conda 설치 경로 `dev.py setup`. 결과는 레포 Actions 탭.
 - **로컬 (Linux):** 새 클론에서 `python dev.py setup`(Miniforge, conda 설정에 defaults가 있어도 건드리지 않음) → `모두 통과`. 훅 설치기·`dev.py`는 Python 3.9(macOS 기본 python3 버전)에서도 동작 확인.
-- **아직 안 해 본 것:** 사용자 Mac·Windows 실기, 실제 Claude Code 세션에서 훅이 기록하는 것, 학습용 패키지(torch 등) 실행.
+- **아직 안 해 본 것:** 사용자 Mac·Windows 실기, 실제 Claude Code 세션에서 훅이 기록하는 것, 학습용 패키지(torch 등) 실행, VS Code 세팅 단계 (확장 ID·명령은 공식 문서·마켓플레이스 기준으로 적었다).
