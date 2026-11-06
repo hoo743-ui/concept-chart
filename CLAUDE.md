@@ -1,0 +1,50 @@
+# CLAUDE.md — 개념 차트 (concept-chart)
+
+Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주고, 개념을 누르면 출처가 붙은 공부 노트로 펼치는 1인 해커톤 프로젝트.
+사용자는 한국어로 짧고 바로 쓸 수 있는 답을 원한다. 코드를 줄 때는 붙여넣을 위치(파일·셀)를 함께 적는다.
+
+## 작업 원칙 (사용자가 가장 중요하게 본 것)
+
+- **방향을 스스로 바꾸거나 앞서 나가지 않는다.** 합의된 다음 할 일만 하고, 그 밖의 것은 제안만 한다.
+- **확인하지 않은 사실을 쓰지 않는다.** 외부 도구 형식·버전·숫자는 문서나 실행 결과로 확인하고, 못 했으면 못 했다고 쓴다.
+- 페이지에 나간 숫자(시뮬레이터 결과)를 바꾸는 변경은 사용자 결정 없이 하지 않는다.
+
+## 구조와 데이터 흐름
+
+- `sim/`: 시뮬레이터 A(중요도)·B(용어 정규화)·C(근거 문장) → `results/A·B·C.json`
+  → `make_page_data.py`(+ `results/badge_eval.json` 기록값, `concepts.py`) → `results/page_data.json`
+  → `build_page.py`(+ `page_template.html`, `kit/*.py`) → `out/index.html`
+- `kit/`: 실제 쓰는 코드. 훅 설치기(`install_concept_hook.py`, 훅 본문은 `HOOK_TEMPLATE` 안의 `normalize()`가 어댑터), 노트북 첫 셀, 클릭 카드, 근거 수집, 검증 에이전트.
+- `tests/`: `check_env.py`(전체 점검), `test_hook.py`(훅 fixture), `check_page.js`·`check_setup.js`(jsdom).
+
+## 규칙
+
+- 텍스트 파일은 UTF-8 + LF (`.gitattributes`). 파일을 열 때 `encoding="utf-8"`를 꼭 쓴다 (Windows 기본 cp949).
+- 경로는 스크립트 위치 기준(`pathlib.Path(__file__)`)으로 잡는다. 어느 폴더에서 실행해도 같아야 한다.
+- 코드 상자 원본은 `kit/`뿐이다. 템플릿의 `tpl-*` 상자는 비워 두고 `build_page.py`가 채운다.
+- 커밋 전: `python tests/check_env.py` (마지막 줄 `모두 정상`). 푸시하면 CI가 Windows·Ubuntu에서 다시 돌린다.
+- git에 올리지 않는 것: `~/.claude/concept-inbox.jsonl`, `*.sqlite` (개인 대화 데이터).
+- 훅은 아무것도 출력하지 않고 항상 0으로 끝나야 한다 (UserPromptSubmit의 stdout은 Claude 문맥에 들어간다).
+
+## 현재 상태 (2026-11-07)
+
+완료
+- 시뮬레이터 A·B·C, 결과 페이지, 입력 설정 시트(한 줄 설치), 클릭 카드·근거 수집·검증 에이전트
+- 추세 배지(두 비율 z-검정)·새 용어 계산을 `sim_A.py`에 복원, `make_page_data.py`로 페이지 데이터 재현
+- 훅 어댑터 정리(형식이 다르면 원문을 `raw`에 보존) + fixture 테스트, CI(Windows + Ubuntu)
+- 사용자 흐름 데모 디자인(캔버스, 비공개): https://claude.ai/artifact/MrXdwFhQjyFokNCraw1Uz4
+
+다음 할 일 (합의된 순서)
+1. 로컬 서버 `serve`: 인박스를 1초마다 이어 읽기 → SQLite → `/api/leaderboard`, `/api/concept/{id}`, `/api/events`(SSE) → 브라우저 `localhost:8765`. 웹 디자인은 데이터를 `/api/...`에서 받게 짠다(데모 모드 = 정적 JSON).
+2. 웹 디자인 확정 (캔버스 기반)
+
+나중에 / 사용자 결정 필요
+- Gemini CLI·Codex CLI 입구(어댑터) 추가 — 범위 확장 포인트로만 둔 상태
+- 배지 방식 비교표 재계산 — 평가 코드가 없어 기록값을 쓰는 중, 재계산하면 숫자가 바뀔 수 있음
+- 사용자가 실제 데이터셋으로 모델 학습 실험을 할 계획 (용어 정규화 B·근거 문장 C 쪽이 적용 후보)
+
+## 알려진 제약
+
+- `badge_eval.json`은 다시 계산할 수 없는 기록값. `NEW_TERM_MIN_IDF = 3.6`은 저장 결과와 맞춰 찾은 값(3.56~3.66 구간).
+- 훅 fixture는 공식 문서 필드로 만든 예시이고 실제 캡처가 아니다. Claude Code 입력이 바뀌면 실제 입력을 케이스로 추가한다.
+- Windows에서 훅은 Git Bash로 실행된다. Git Bash가 없으면 PowerShell에서 실행돼 동작하지 않을 수 있다.

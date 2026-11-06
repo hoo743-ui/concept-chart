@@ -51,7 +51,7 @@ setx PYTHONUTF8 1                          # Windows만. 새 터미널부터 적
 python tests/check_env.py
 ```
 
-패키지, 한국어 모델(Kiwi·spaCy), 검증 에이전트, 클릭 카드, 근거 문장 선택, 파이프라인 첫 셀, 훅 설치기, 페이지 빌드까지 한 번에 확인한다.
+패키지, 한국어 모델(Kiwi·spaCy), 검증 에이전트, 클릭 카드, 근거 문장 선택, 파이프라인 첫 셀, 훅 설치기, 훅 어댑터 테스트, 페이지 데이터·페이지 빌드 재현까지 한 번에 확인한다.
 훅 설치기는 임시 폴더에서 설치 → 점검 → 제거만 하므로 진짜 `~/.claude` 설정은 건드리지 않는다.
 
 (선택) 페이지 자동 점검:
@@ -89,10 +89,11 @@ python kit/install_concept_hook.py --test    # '결과: 정상'이 나오면 끝
 |---|---|
 | `kit/*.py` | `python sim/build_page.py` (페이지 코드 상자·한 줄 설치 명령 갱신) |
 | `sim/page_template.html` | `python sim/build_page.py` |
-| 시뮬레이터 (`sim/*.py`) | `python sim/sim_B.py` 등 → 결과 JSON 갱신 (README '알아 둘 점' 참고) |
+| 시뮬레이터 (`sim/*.py`) | `python sim/sim_B.py` 등 → `python sim/make_page_data.py` → `python sim/build_page.py` |
+| 훅 변환 규칙 (`kit/install_concept_hook.py`) | `python tests/test_hook.py` → `python sim/build_page.py` (페이지의 설치 파일 갱신) |
 | 패키지 추가 | `requirements.txt`에 버전까지 적기 → 다른 PC에서 `conda env update -f environment.yml --prune` |
 
-커밋 전에 `python tests/check_env.py`를 한 번 돌리면 페이지가 최신인지까지 확인된다.
+커밋 전에 `python tests/check_env.py`를 한 번 돌리면 페이지가 최신인지까지 확인된다. 푸시하면 GitHub Actions가 Windows·Ubuntu에서 같은 점검을 다시 돌린다 (레포의 Actions 탭).
 
 ## 7. PC를 옮길 때
 
@@ -113,6 +114,7 @@ python kit/install_concept_hook.py --test    # '결과: 정상'이 나오면 끝
 | `ko_core_news_md` 설치 실패 | GitHub 접속이 막힌 망이다. 다른 망에서 휠 파일을 받아 `pip install ko_core_news_md-3.8.0-py3-none-any.whl` |
 | `kiwipiepy_model` 설치가 오래 걸림 | 형태소 분석 모델 데이터(약 100MB)라 정상이다 |
 | check_env에 Python 버전 경고 | 3.13이 아닌 파이썬으로 실행 중이다. `python --version`과 켜진 환경을 확인한다 |
+| 훅 오류에 `PowerShell started no program` | Git Bash가 없어서 훅이 PowerShell에서 실행된 경우다. Git for Windows를 설치하고 Claude Code 세션을 새로 연다 |
 | 훅이 기록을 남기지 않음 | `claude --version`이 2.1.47 이상인지, `--test` 결과, Claude Code의 `/hooks`를 확인한다. 파이썬 경로가 바뀌었으면 훅을 다시 설치한다 |
 | 페이지 글꼴이 다르게 보임 | 오프라인이면 Google Fonts 대신 기본 글꼴로 보인다. 기능은 같다 |
 
@@ -120,4 +122,5 @@ python kit/install_concept_hook.py --test    # '결과: 정상'이 나오면 끝
 
 - **실행 확인 (Linux, Python 3.13):** 새 가상환경에 `pip install -r requirements.txt` → `check_env.py` 통과 → 시뮬레이터 재실행 결과가 저장된 결과와 같음 → `npm test` 통과. `-X warn_default_encoding`으로 돌려서, 이 저장소 코드에는 인코딩을 지정하지 않은 파일 읽기·쓰기가 없는 것도 확인했다 (외부 패키지 trafilatura가 설정 파일 하나를 그렇게 읽지만 영문뿐이라 Windows에서도 문제없다).
 - **설치 파일 확인 (Windows x64 · Python 3.13/3.12, macOS Apple Silicon · Python 3.13):** 의존 패키지 76개 모두 해당 OS용 설치 파일(wheel)이 PyPI에 있다. `kiwipiepy_model`만 소스 패키지인데, 모델 데이터만 들어 있어서 컴파일러 없이 설치된다.
-- **아직 안 해 본 것:** Windows 실기에서의 실행. 처음 받으면 `check_env.py`부터 돌려 볼 것.
+- **CI (GitHub Actions, windows-latest · ubuntu-latest):** 새 환경에 Python 3.13 + `requirements.txt` 설치 → `check_env.py` → `npm test`가 두 OS 모두 통과했다 (2026-11-07). Windows에서도 UTF-8 모드를 켜지 않은 기본 설정으로 돌렸다.
+- **아직 안 해 본 것:** 개인 Windows PC(Anaconda)에서의 실행과, 실제 Claude Code 세션에서 훅이 기록하는 것. 처음 받으면 `check_env.py`부터 돌려 볼 것.
