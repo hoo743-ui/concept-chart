@@ -199,10 +199,10 @@ def page_data():
 
 
 def page_build():
-    r = subprocess.run([sys.executable, str(ROOT / "sim" / "build_page.py"), "--check"], capture_output=True, timeout=120)
+    r = subprocess.run([sys.executable, str(ROOT / "web" / "build_page.py"), "--check"], capture_output=True, timeout=120)
     if r.returncode != 0:
         raise RuntimeError((r.stdout + r.stderr).decode("utf-8", "replace").strip())
-    return "kit 원본 + page_data.json으로 다시 만든 페이지 = sim/out/index.html"
+    return "kit 원본 + page_data.json으로 다시 만든 페이지 = web/dist/index.html"
 
 
 def node_jsdom():

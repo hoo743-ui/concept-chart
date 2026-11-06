@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""페이지 빌드: page_template.html + kit/*.py + results/page_data.json → out/index.html
+"""페이지 빌드: web/page_template.html + kit/*.py + sim/results/page_data.json → web/dist/index.html
 
-    python sim/build_page.py           # out/index.html 다시 만들기 (어느 폴더에서 실행해도 됨)
-    python sim/build_page.py --check   # 다시 만든 결과가 지금 out/index.html과 같은지만 확인
+    python web/build_page.py           # web/dist/index.html 다시 만들기 (어느 폴더에서 실행해도 됨)
+    python web/build_page.py --check   # 다시 만든 결과가 지금 web/dist/index.html과 같은지만 확인
 
 페이지의 코드 상자(설치 파일·파이프라인 셀·검증 에이전트 등)는 kit/ 원본을 빌드할 때 넣는다.
 코드를 고칠 때는 kit/ 쪽 파일만 고치고 이 스크립트를 다시 돌리면 된다.
@@ -21,8 +21,8 @@ except Exception:
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent
 TEMPLATE = HERE / "page_template.html"
-DATA = HERE / "results" / "page_data.json"
-OUT = HERE / "out" / "index.html"
+DATA = ROOT / "sim" / "results" / "page_data.json"
+OUT = HERE / "dist" / "index.html"
 
 # 템플릿의 <script type="text/plain" id="tpl-…"> 상자 ↔ kit 원본 파일
 EMBED = {
@@ -59,12 +59,12 @@ def build():
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--check", action="store_true", help="파일을 쓰지 않고 out/index.html과 같은지만 확인")
+    ap.add_argument("--check", action="store_true", help="파일을 쓰지 않고 web/dist/index.html과 같은지만 확인")
     args = ap.parse_args()
     html = build()
     if args.check:
         same = OUT.exists() and read(OUT) == html
-        print("[build_page] out/index.html:", "최신 상태" if same else "다름 → python sim/build_page.py 로 다시 만들기")
+        print("[build_page] web/dist/index.html:", "최신 상태" if same else "다름 → python web/build_page.py 로 다시 만들기")
         sys.exit(0 if same else 1)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT, "w", encoding="utf-8", newline="") as f:

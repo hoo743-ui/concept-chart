@@ -1,12 +1,12 @@
 // 설정 시트(04) 자동 점검: 한 줄 설치 명령 생성, 옵션 반영, 탭 렌더, 설치 파일 동일성
-// 사용: node tests/check_setup.js [sim/out/index.html]   (npm test 에 포함)
+// 사용: node tests/check_setup.js [web/dist/index.html]   (npm test 에 포함)
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { JSDOM, VirtualConsole } = require('jsdom');
 const { TextEncoder } = require('util');
 const ROOT = path.join(__dirname, '..');
-const html = fs.readFileSync(process.argv[2] || path.join(ROOT, 'sim', 'out', 'index.html'), 'utf8');
+const html = fs.readFileSync(process.argv[2] || path.join(ROOT, 'web', 'dist', 'index.html'), 'utf8');
 const vc = new VirtualConsole(); const errors = [];
 vc.on('jsdomError', e => errors.push(String(e && (e.stack || e.message || e))));
 const dom = new JSDOM(html, { runScripts: 'dangerously', virtualConsole: vc, pretendToBeVisual: true, url: 'https://example.org/',

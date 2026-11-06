@@ -1,9 +1,9 @@
 // 페이지 전체 자동 점검: 스크립트 오류, 빈 값, 리더보드·차트·표 렌더, 조작(페르소나·주차·방법 전환)
-// 사용: node tests/check_page.js [sim/out/index.html]   (npm test 에 포함)
+// 사용: node tests/check_page.js [web/dist/index.html]   (npm test 에 포함)
 const fs = require('fs');
 const path = require('path');
 const { JSDOM, VirtualConsole } = require('jsdom');
-const html = fs.readFileSync(process.argv[2] || path.join(__dirname, '..', 'sim', 'out', 'index.html'), 'utf8');
+const html = fs.readFileSync(process.argv[2] || path.join(__dirname, '..', 'web', 'dist', 'index.html'), 'utf8');
 const vc = new VirtualConsole();
 const errors = [];
 vc.on('jsdomError', e => errors.push(String(e && (e.stack || e.message || e))));

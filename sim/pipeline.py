@@ -5,7 +5,14 @@ import numpy as np
 from kiwipiepy import Kiwi
 from concepts import CONCEPTS, CONCEPT_IDS, VARIANTS, DISPLAY
 
-kiwi = Kiwi()
+_kiwi = None
+
+def get_kiwi():
+    """형태소 분석기는 처음 쓸 때 한 번만 만든다 (모델 로딩 ~2초·메모리 ~0.5GB: 안 쓰는 스크립트는 건너뜀)"""
+    global _kiwi
+    if _kiwi is None:
+        _kiwi = Kiwi()
+    return _kiwi
 
 def norm_key(s):
     return re.sub(r'[\s\-_/]+', '', s.lower())
@@ -54,7 +61,7 @@ def tok_T1(text):
 NOUN = ('NNG', 'NNP', 'SL', 'SH')
 
 def kiwi_nouns(text):
-    return [x.form for x in kiwi.tokenize(text) if x.tag in NOUN and len(x.form) >= 2]
+    return [x.form for x in get_kiwi().tokenize(text) if x.tag in NOUN and len(x.form) >= 2]
 
 def tok_T2(text):
     return kiwi_nouns(text)
