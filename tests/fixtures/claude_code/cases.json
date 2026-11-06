@@ -1,0 +1,53 @@
+{
+  "_about": "Claude Code 훅 입력 예시. 실제 캡처가 아니라 공식 문서(code.claude.com/docs/en/hooks)의 필드 이름으로 만든 것. Claude Code가 업데이트돼 입력 형식이 바뀌면, 실제 입력을 여기에 케이스로 추가해서 tests/test_hook.py로 확인한다.",
+  "cases": [
+    {
+      "name": "질문 (UserPromptSubmit)",
+      "payload": {"session_id": "s-001", "transcript_path": "/home/u/.claude/projects/p/s-001.jsonl", "cwd": "C:/work/chatbot",
+                  "permission_mode": "default", "hook_event_name": "UserPromptSubmit", "prompt": "RAG랑 벡터DB 차이가 뭐야?"},
+      "expect": {"role": "user", "text": "RAG랑 벡터DB 차이가 뭐야?", "session_id": "s-001", "project": "C:/work/chatbot", "raw": false}
+    },
+    {
+      "name": "답변 (Stop, last_assistant_message 있음)",
+      "payload": {"session_id": "s-001", "transcript_path": "/home/u/.claude/projects/p/s-001.jsonl", "cwd": "C:/work/chatbot",
+                  "permission_mode": "default", "hook_event_name": "Stop", "stop_hook_active": false,
+                  "last_assistant_message": "RAG는 검색한 문서를 근거로 답을 만드는 방식이에요."},
+      "expect": {"role": "assistant", "text": "RAG는 검색한 문서를 근거로 답을 만드는 방식이에요.", "raw": false}
+    },
+    {
+      "name": "서브에이전트 답변 (SubagentStop)",
+      "payload": {"session_id": "s-001", "transcript_path": "/home/u/.claude/projects/p/s-001.jsonl", "cwd": "C:/work/chatbot",
+                  "hook_event_name": "SubagentStop", "stop_hook_active": false, "agent_id": "a-77", "agent_type": "Explore",
+                  "last_assistant_message": "관련 파일 3개를 찾았어요."},
+      "expect": {"role": "subagent", "text": "관련 파일 3개를 찾았어요.", "agent_type": "Explore", "raw": false}
+    },
+    {
+      "name": "구버전 Stop (last_assistant_message 없음) → 원문 보존",
+      "payload": {"session_id": "s-002", "transcript_path": "/home/u/.claude/projects/p/s-002.jsonl", "cwd": "/home/u/app",
+                  "hook_event_name": "Stop", "stop_hook_active": false},
+      "expect": {"role": "assistant", "text": "", "raw": true, "raw_has": "transcript_path"}
+    },
+    {
+      "name": "키·토큰 가리기",
+      "payload": {"session_id": "s-003", "cwd": "/home/u/app", "hook_event_name": "UserPromptSubmit",
+                  "prompt": "이 키로 호출하면 돼 sk-test1234567890abcdefghijklmn 그리고 api_key=abcd1234efgh5678"},
+      "expect": {"role": "user", "text_has": "[MASKED]", "text_not_has": ["sk-test1234567890", "abcd1234efgh5678"], "raw": false}
+    },
+    {
+      "name": "등록하지 않은 이벤트 (PreToolUse) → 기록 안 함",
+      "payload": {"session_id": "s-004", "cwd": "/home/u/app", "hook_event_name": "PreToolUse", "tool_name": "Bash",
+                  "tool_input": {"command": "npm test"}},
+      "expect": null
+    },
+    {
+      "name": "JSON이 아닌 입력 → 원문 보존",
+      "stdin": "not a json payload",
+      "expect": {"role": "unknown", "text": "", "raw": true, "raw_has": "not a json payload"}
+    },
+    {
+      "name": "아주 긴 질문 → 잘라서 저장",
+      "payload": {"session_id": "s-005", "cwd": "/home/u/app", "hook_event_name": "UserPromptSubmit", "prompt": "@@LONG@@"},
+      "expect": {"role": "user", "text_len": 20000, "truncated": true, "raw": false}
+    }
+  ]
+}

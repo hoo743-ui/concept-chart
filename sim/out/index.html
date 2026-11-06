@@ -776,24 +776,54 @@ SECRETS = [
     (re.compile(r"(?i)((?:api[_-]?key|secret|token|password)\s*[:=]\s*['\"]?)[^\s'\"]{8,}"), r"\1[MASKED]"),
 ]
 
-def main():
-    data = json.loads(sys.stdin.buffer.read().decode("utf-8", errors="replace") or "{}")
-    ev = data.get("hook_event_name")
-    if ev not in ROLE:
-        return
-    role, key = ROLE[ev]
-    text = data.get(key) or ""
-    if not isinstance(text, str) or not text.strip():
-        return
+def mask(text):
     if MASK:
         for rx, rep in SECRETS:
             text = rx.sub(rep, text)
-    rec = {"v": 1, "source": "claude-code", "session_id": data.get("session_id"),
-           "project": data.get("cwd"),
-           "ts": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
-           "role": role, "text": text[:MAX_CHARS], "truncated": len(text) > MAX_CHARS}
+    return text
+
+def keep_raw(x):
+    """형식이 예상과 다를 때 원문을 남긴다 (문자열은 가리고 자른다)"""
+    if isinstance(x, dict):
+        return {str(k): keep_raw(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [keep_raw(v) for v in x[:50]]
+    if isinstance(x, str):
+        return mask(x)[:MAX_CHARS]
+    return x
+
+def normalize(data, ts):
+    """[어댑터] Claude Code 훅 입력 → inbox v1 레코드. 등록하지 않은 이벤트면 None.
+    기대한 글 필드가 없거나 비어 있으면(구버전·형식 변경) text는 비우고 원문을 raw에 담는다."""
+    if not isinstance(data, dict):
+        return {"v": 1, "source": "claude-code", "ts": ts, "role": "unknown", "text": "", "truncated": False,
+                "raw": keep_raw(data)}
+    ev = data.get("hook_event_name")
+    if ev not in ROLE:
+        return None
+    role, key = ROLE[ev]
+    rec = {"v": 1, "source": "claude-code", "session_id": data.get("session_id"), "project": data.get("cwd"),
+           "ts": ts, "role": role}
+    text = data.get(key)
+    if isinstance(text, str) and text.strip():
+        text = mask(text)
+        rec.update(text=text[:MAX_CHARS], truncated=len(text) > MAX_CHARS)
+    else:
+        rec.update(text="", truncated=False, raw=keep_raw(data))
     if data.get("agent_type"):
         rec["agent_type"] = data.get("agent_type")
+    return rec
+
+def main():
+    body = sys.stdin.buffer.read().decode("utf-8", errors="replace")
+    ts = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+    try:
+        data = json.loads(body or "{}")
+    except ValueError:
+        data = ["unparsed", body]
+    rec = normalize(data, ts)
+    if rec is None:
+        return
     INBOX.parent.mkdir(parents=True, exist_ok=True)
     with INBOX.open("a", encoding="utf-8") as f:
         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
@@ -913,14 +943,19 @@ def check_claude_version():
         pass
 
 
+def render_hook(inbox, mask=True, max_chars=20000):
+    """설치될 훅 파일 내용 (테스트도 이 함수로 같은 훅을 만든다)"""
+    return (HOOK_TEMPLATE.replace("@@INBOX@@", inbox)
+            .replace("@@MASK@@", "True" if mask else "False")
+            .replace("@@MAXCHARS@@", str(max(1000, max_chars))))
+
+
 def install(a):
-    events = [EVENT_NAMES[e.strip()] for e in a.events.split(",") if e.strip() in EVENT_NAMES]
+    events =[EVENT_NAMES[e.strip()] for e in a.events.split(",") if e.strip() in EVENT_NAMES]
     if not events:
         sys.exit("--events에 user, assistant, subagent 중 하나 이상을 넣으세요.")
     inbox = clean_path(a.inbox) or "~/.claude/concept-inbox.jsonl"
-    code = (HOOK_TEMPLATE.replace("@@INBOX@@", inbox)
-            .replace("@@MASK@@", "False" if a.no_mask else "True")
-            .replace("@@MAXCHARS@@", str(max(1000, a.max_chars))))
+    code = render_hook(inbox, not a.no_mask, a.max_chars)
     hf = hook_file()
     hf.parent.mkdir(parents=True, exist_ok=True)
     hf.write_text(code, encoding="utf-8")
