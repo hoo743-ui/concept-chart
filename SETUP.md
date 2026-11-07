@@ -1,6 +1,6 @@
 # 개발환경 세팅 — 다른 PC에서 이어 하기 (macOS · Windows)
 
-목표: `git clone` → `python dev.py setup` 두 단계로 원래 PC와 같은 상태를 만든다.
+목표: `git clone` → `python dev.py setup` 두 단계로 원래 PC와 같은 상태를 만든다. 명령만 순서대로 보려면 `docs/COMMANDS.md`.
 마지막에 `결과: 모두 통과`가 나오면 끝이다. 각 단계는 macOS(Apple Silicon)와 Windows를 나눠 적었다.
 
 ## 0. 준비물

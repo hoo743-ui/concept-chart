@@ -3,7 +3,7 @@
 Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주고, 개념을 누르면 출처가 붙은 공부 노트로 펼쳐 주는 개인 학습 도구.
 이 저장소에는 모델 선택 시뮬레이터, Claude Code 입력 수집 키트, 결과 페이지가 들어 있다.
 
-> 다른 PC에서 처음 받는다면 **[SETUP.md](SETUP.md)**, 구조와 설계 이유는 **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+> 다른 PC에서 처음 받는다면 **[SETUP.md](SETUP.md)**, 복사해서 쓰는 명령만 보려면 **[docs/COMMANDS.md](docs/COMMANDS.md)**, 구조와 설계 이유는 **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 ## 빠른 시작
 
@@ -46,7 +46,8 @@ concept-chart/
 │  ├─ test_hook.py              훅 어댑터 계약 테스트 (fixtures/claude_code/cases.json)
 │  └─ check_page.js · check_setup.js   페이지 렌더·설정 시트 점검 (jsdom)
 ├─ docs/ARCHITECTURE.md         구성·데이터 계약·품질 특성별 설계·생명주기
-├─ docs/TRAINING.md             학습 실험 가이드라인 (기준선·분할·기록·채택 기준)
+├─ docs/TRAINING.md             학습 가이드라인 (데이터 → 전처리 → 분할 → 학습 → 시험 → 채택)
+├─ docs/COMMANDS.md             명령어 모음 (세팅·매일·커밋·학습 실험, Mac 기준)
 ├─ .github/workflows/ci.yml     푸시마다 Windows·macOS·Ubuntu 점검 + conda 설치 경로 점검
 ├─ CLAUDE.md                    Claude Code로 이어서 작업할 때 읽는 현황·규칙
 ├─ CHANGELOG.md                 변경 기록

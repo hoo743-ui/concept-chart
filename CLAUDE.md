@@ -11,7 +11,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 
 ## 구조와 데이터 흐름
 
-자세한 구성·데이터 계약·품질 특성별 설계·변경 절차는 `docs/ARCHITECTURE.md`.
+자세한 구성·데이터 계약·품질 특성별 설계·변경 절차는 `docs/ARCHITECTURE.md`. 사용자가 쓰는 명령 모음은 `docs/COMMANDS.md`.
 
 - `dev.py`: 작업 진입점 (`setup` · `check` · `build` · `sim`), 표준 라이브러리만.
 - `sim/`: 시뮬레이터 A(중요도)·B(용어 정규화)·C(근거 문장) → `results/A·B·C.json`
