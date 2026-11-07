@@ -158,9 +158,10 @@ git status -sb && git log --oneline -3
 
 ## 11. 막혔을 때
 
+- `zsh: command not found: #` 또는 `unrecognized arguments: # …` → 0단계 두 줄을 실행한다.
+- `dev.py: error: the following arguments are required: cmd` → `dev.py` 뒤에 `setup`·`check`·`build`·`sim` 중 하나를 붙인다 (예: `python3 dev.py setup`).
+
 ```bash
-setopt interactivecomments                            # command not found: # / unrecognized arguments: # … (0단계)
-python dev.py check                                   # 'arguments are required: cmd' → dev.py 뒤에 setup·check·build·sim 중 하나
 eval "$(/opt/homebrew/bin/brew shellenv)"            # brew: command not found
 "$HOME/miniforge3/bin/conda" init zsh                 # conda: command not found → 새 터미널
 source ~/.zshrc                                       # claude·node: command not found
