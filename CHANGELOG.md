@@ -2,6 +2,10 @@
 
 날짜는 한국 시간. 페이지에 보이는 숫자가 바뀐 변경은 따로 표시한다.
 
+## 0.2.4 — 2026-11-07
+
+- SETUP.md·`docs/COMMANDS.md`: Mac zsh는 기본 설정에서 `#` 설명을 명령으로 읽으므로 `setopt interactivecomments`를 맨 앞에 추가, 문제 해결 2줄(`#` 에러, `dev.py` 하위 명령 빠짐)
+
 ## 0.2.3 — 2026-11-07
 
 - `docs/COMMANDS.md`: 세팅·VS Code·매일 시작·다시 만들기·커밋→CI→main·학습 실험·상태 확인·막혔을 때 명령 모음 (Mac 기준)

@@ -1,7 +1,16 @@
 # 명령어 모음 (Mac 기준)
 
 설명은 `SETUP.md`(세팅)와 `docs/TRAINING.md`(학습)에 있다. 여기는 순서대로 복사해서 쓰는 명령만 모았다.
-`#` 뒤는 설명이라 같이 붙여넣어도 된다. Windows는 `python3` 대신 `python`, 1단계는 `SETUP.md`의 Windows 항목을 따른다.
+`#` 뒤는 설명이다. Windows는 `python3` 대신 `python`, 1단계는 `SETUP.md`의 Windows 항목을 따른다.
+
+## 0. 맨 처음 — 터미널에서 `#` 설명 켜기 (Mac 한 번)
+
+Mac 터미널(zsh)은 기본 설정에서 `#`를 설명으로 보지 않고 명령의 일부로 넘긴다. 이 두 줄을 **먼저 따로** 실행하면, 그다음부터 `#` 설명이 붙은 줄을 그대로 붙여넣어도 된다.
+
+```bash
+setopt interactivecomments
+echo 'setopt interactivecomments' >> ~/.zshrc
+```
 
 ## 1. 처음 한 번 — 도구 설치 (터미널)
 
@@ -150,6 +159,8 @@ git status -sb && git log --oneline -3
 ## 11. 막혔을 때
 
 ```bash
+setopt interactivecomments                            # command not found: # / unrecognized arguments: # … (0단계)
+python dev.py check                                   # 'arguments are required: cmd' → dev.py 뒤에 setup·check·build·sim 중 하나
 eval "$(/opt/homebrew/bin/brew shellenv)"            # brew: command not found
 "$HOME/miniforge3/bin/conda" init zsh                 # conda: command not found → 새 터미널
 source ~/.zshrc                                       # claude·node: command not found

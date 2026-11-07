@@ -20,6 +20,13 @@
 
 ### macOS
 
+먼저 이 두 줄만 따로 실행한다. Mac 터미널(zsh)은 기본 설정에서 `#` 뒤 설명을 명령으로 읽어서, 아래처럼 설명이 붙은 줄을 붙여넣으면 에러가 난다.
+
+```bash
+setopt interactivecomments
+echo 'setopt interactivecomments' >> ~/.zshrc
+```
+
 ```bash
 xcode-select --install                                   # 이미 있으면 '설치됨' 메시지
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -159,6 +166,8 @@ python -m pip install pandas matplotlib ipykernel pyarrow  # 데이터 살펴보
 
 | 증상 | 해결 |
 |---|---|
+| (mac) `zsh: command not found: #` 또는 `unrecognized arguments: # …` | zsh가 `#` 설명을 명령으로 읽은 것. `setopt interactivecomments` 실행 + `~/.zshrc`에 같은 줄 (1단계 맨 앞) |
+| `dev.py: error: the following arguments are required: cmd` | `dev.py` 뒤에 할 일을 붙인다: `setup` · `check` · `build` · `sim` (예: `python3 dev.py setup`) |
 | (mac) `xcrun: error: invalid active developer path` | `xcode-select --install` |
 | (mac) `conda: command not found` | `"$HOME/miniforge3/bin/conda" init zsh` 후 터미널을 새로 연다 |
 | (mac) `zsh: command not found: brew` | `eval "$(/opt/homebrew/bin/brew shellenv)"` 후, 위 `~/.zprofile` 줄이 들어갔는지 확인 |
