@@ -191,16 +191,30 @@ st.stop.set()
         real_wiki, real_searx = fs.wikipedia, fs.searxng
         fs.wikipedia = lambda term, lang="ko": []
         try:
-            fs.searxng = lambda term, base: [{"url": "https://example.org/e", "text": "임베딩은 단어를 벡터로 바꾸는 방법이다.", "src": "searxng"}]
+            fs.searxng = lambda term, base, **k: [{"url": "https://example.org/e", "text": "임베딩은 단어를 벡터로 바꾸는 방법이다.", "src": "searxng"}]
             d, s = serve.fetch_note("임베딩", searx="http://localhost:8888")
             ok("위키백과에 없으면 SearXNG로 채움", d.startswith("임베딩은") and s[0]["url"] == "https://example.org/e", d)
             d, s = serve.fetch_note("임베딩")
             ok("--searx off면 검색하지 않음", d == "" and s == [])
-            fs.searxng = lambda term, base: [{"url": "javascript:alert(1)", "text": "임베딩은 단어를 벡터로 바꾸는 방법이다.", "src": "searxng"}]
+            fs.searxng = lambda term, base, **k: [{"url": "javascript:alert(1)", "text": "임베딩은 단어를 벡터로 바꾸는 방법이다.", "src": "searxng"}]
             d, s = serve.fetch_note("임베딩", searx="http://localhost:8888")
             ok("http(s)가 아닌 링크는 버림", d == "" and s == [])
 
-            def down(term, base):
+            asked = []
+
+            def by_context(term, base, n=3, context=()):
+                asked.append(list(context))
+                good = {"url": "https://example.org/t", "text": "torch는 GPU를 쓰는 파이썬 딥러닝 라이브러리이다.", "src": "searxng"}
+                return [good] if not context else []
+            fs.searxng = by_context
+            d, s = serve.fetch_note("torch", searx="http://localhost:8888", context=["GPU", "CUDA"])
+            ok("맥락 2개 → 1개 → 이름만 순서로 찾기", asked == [["GPU", "CUDA"], ["GPU"], []] and d.startswith("torch는"), str(asked))
+            # 실제 SearXNG에서 이름만으로 찾았을 때 나온 다른 뜻 (2026-11-08)
+            fs.searxng = lambda term, base, **k: [{"url": "https://example.org/c", "text": "캐시는 현금을 뜻하는 영어 단어이다.", "src": "searxng"}]
+            d, s = serve.fetch_note("캐시", searx="http://localhost:8888", context=["메모리", "서버"])
+            ok("맥락 단어가 없는 결과는 다른 뜻으로 보고 버림", d == "" and s == [], d)
+
+            def down(term, base, **k):
                 raise OSError("연결 거부")
             fs.searxng = down
             try:
@@ -210,6 +224,19 @@ st.stop.set()
                 ok("SearXNG가 꺼져 있으면 예외", True)
         finally:
             fs.wikipedia, fs.searxng = real_wiki, real_searx
+
+        # 검색 결과 문장 거르기: 실제 SearXNG 응답에서 나온 문장 (2026-11-08)
+        def defs(term, text):
+            return [e["text"] for e in fs.definition_sents(term, [], [{"url": "https://example.org", "text": text}])]
+        ok("정의 문장은 통과", defs("랭체인", "랭체인은 언어 모델 기반의 애플리케이션을 개발하는 프레임워크입니다.") != [])
+        ok("다른 언어·뜻의 문장 거름", defs("torch", "The torch sends out a powerful beam of light.") == [])
+        ok("개념으로 시작하지 않으면 거름", defs("활성화 함수", "ReLU, 시그모이드 함수, 쌍곡탄젠트 함수 등이 대표적인 활성화 함수이다.") == [])
+        ok("질문 문장 거름", defs("교차 검증", "1) 교차 검증은 그럼 뭔가?") == [])
+        ok("잘린 문장 거름", defs("임베딩", "임베딩은 텍스트, 이미지 등의 데이터를 벡터 공간에 표현하는 기술로 LLM의 성능과 활용에 핵심적인 역할을 ...") == [])
+        ok("앞 문맥이 필요한 문장 거름", defs("임베딩", "임베딩이란 위와 같이 사람이 쓰는 자연어를 벡터로 바꾼 결과를 의미합니다.") == [])
+        ok("띄어쓰기만 달라도 통과", defs("조기종료", "조기 종료는 과적합이 일어나기 전 훈련을 멈추는 정규화 기법입니다.") != [])
+        ok("앞 질문 떼고 통과", defs("KeyError", "KeyError란?KeyError는 파이썬 딕셔너리에서 요청한 키가 존재하지 않을 때 발생하는 내장 예외입니다.")
+           == ["KeyError는 파이썬 딕셔너리에서 요청한 키가 존재하지 않을 때 발생하는 내장 예외입니다."])
 
         # 한 줄 요약: 실제 위키백과 문장 (2026-11-08 응답)
         line = serve.one_line("딥 러닝에서 파인 튜닝(fine-tuning)은 하나의 작업을 위해 설계된 모델(상위 작업)을 새로운 작업(하위 작업)에 특화시키는 과정이다.")
@@ -243,7 +270,7 @@ st.stop.set()
         threading.Thread(target=serve.tail_loop, args=(st, 0.2), daemon=True).start()
         note_calls = []
 
-        def fake_note(term, aliases=()):                         # 네트워크 없이 정의 수집 흉내
+        def fake_note(term, aliases=(), context=()):             # 네트워크 없이 정의 수집 흉내
             note_calls.append(term)
             if term == "양자화":
                 return "양자화는 연속적인 값을 띄엄띄엄한 값으로 근사하는 과정이다.", [{"text": "근거 문장", "url": "https://example.org/q"}]
@@ -260,7 +287,7 @@ st.stop.set()
             ok("처음 누르면 기다리지 않고 수집 예약", d["note_status"] in ("pending", "ready"), d["note_status"])
 
             def wait_note(path, want):
-                for _ in range(50):
+                for _ in range(600):                             # CI는 Kiwi 로딩이 느릴 수 있다
                     _, card = get(port, path)
                     if card["note_status"] == want:
                         return card

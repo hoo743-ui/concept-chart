@@ -54,6 +54,7 @@ NOTE_RETRY = 60                # 수집 실패 후 다시 시도하기까지 (�
 NOTE_LANGS = ("ko", "en")      # 한국어 위키백과에 근거가 없을 때만 영어
 DEFAULT_SEARX = "http://localhost:8888"   # python dev.py searx up
 SUMMARY_MAX = 90               # 화면 한 줄 길이 (글자)
+SEARCH_RESULTS = 8             # 정의 문장을 고를 검색 결과 수
 QUESTION_MAX = 200             # 카드에 보여 줄 질문 길이 (글자). 원문은 DB에 그대로 있다
 WORKER_IDLE = 600              # 새 답변이 이만큼(초) 없으면 분석 프로세스를 끝내 메모리를 돌려준다
 WORKER_BACKOFF = 30            # 분석 프로세스가 실패하면 다시 시도하기까지 (초)
@@ -181,6 +182,7 @@ def open_db(path):
     p = pathlib.Path(path).expanduser()
     p.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(str(p), timeout=10, check_same_thread=False)
+    con.execute("PRAGMA synchronous=NORMAL")      # 줄마다 커밋해도 느리지 않게 (색인은 인박스에서 다시 만들 수 있다)
     if con.execute("PRAGMA user_version").fetchone()[0] != SCHEMA_VERSION:   # 같으면 쓰지 않는다: 색인이 쓰는 동안 조회가 막히지 않게
         for t in DERIVED:
             con.execute(f"DROP TABLE IF EXISTS {t}")
@@ -266,17 +268,22 @@ def ingest(con, inbox, roles):
     end = chunk.rfind(b"\n")
     if end < 0:                                   # 아직 쓰는 중인 줄만 있음
         return 0
-    n = 0
+    n, pos = 0, off
     for line in chunk[:end].split(b"\n"):
+        pos += len(line) + 1
         try:
             r = json.loads(line.decode("utf-8"))
         except (ValueError, UnicodeDecodeError):
-            continue
-        if isinstance(r, dict) and index_record(con, r, roles):
-            n += 1
-    meta_set(con, "offset", off + end + 1)
-    meta_set(con, "turns", int(meta_get(con, "turns", 0)) + n)
-    con.commit()
+            r = None
+        try:                                      # 줄마다 커밋: 쓰기 잠금을 짧게 쥐어 정의 저장·조회를 막지 않는다
+            if isinstance(r, dict) and index_record(con, r, roles):
+                n += 1
+                meta_set(con, "turns", int(meta_get(con, "turns", 0)) + 1)
+            meta_set(con, "offset", pos)
+            con.commit()
+        except Exception:
+            con.rollback()
+            raise
     return n
 
 
@@ -326,8 +333,14 @@ def leaderboard(con, k=10, now=None):
             "n_concepts": len(by), "items": out}
 
 
-def fetch_note(term, aliases=(), searx=None):
-    """개념 이름 → (정의 문장, [{text, url}]). 위키백과(ko → en) → 그래도 없으면 SearXNG.
+def context_terms(con, concept, k=2):
+    """뜻을 가를 검색어: 내 대화에서 이 개념과 가장 자주 함께 나온 개념 이름"""
+    rows = con.execute("SELECT b FROM cooc WHERE a=? ORDER BY n DESC, b LIMIT ?", (concept, k)).fetchall()
+    return [label_of(con, r[0]) for r in rows]
+
+
+def fetch_note(term, aliases=(), searx=None, context=()):
+    """개념 이름 → (정의 문장, [{text, url}]). 위키백과(ko → en) → 그래도 없으면 SearXNG (함께 나온 개념을 붙여서 → 없으면 이름만).
     근거가 없으면 ("", []), 네트워크 오류·SearXNG 꺼짐은 예외로 올린다 (저장하지 않고 나중에 다시 시도).
     출처 문장을 그대로 쓴다 (LLM이 만든 문장 없음). 밖으로 나가는 건 개념 이름뿐."""
     import fetch_sources as fs                            # 클릭할 때만 필요
@@ -343,9 +356,12 @@ def fetch_note(term, aliases=(), searx=None):
         if got:
             return got
     if searx:
-        got = result(fs.pick(term, aliases, fs.searxng(term, searx)))
-        if got:
-            return got
+        context = list(context)
+        for ctx in ([context, context[:1], []] if len(context) > 1 else [context, []] if context else [[]]):
+            srcs = fs.searxng(term, searx, n=SEARCH_RESULTS, context=ctx)
+            got = result(fs.definition_sents(term, aliases, srcs, context=context))
+            if got:
+                return got
     return "", []
 
 
@@ -480,7 +496,7 @@ def note_loop(st, fetcher=None):
             continue
         try:
             forms = [r[0] for r in con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form", (c,))]
-            definition, sources = fetcher(forms[0] if forms else c, forms[1:])
+            definition, sources = fetcher(forms[0] if forms else c, forms[1:], context_terms(con, c))
             save_note(con, c, definition, sources)
             with st.note_lock:
                 st.note_failed.pop(c, None)
@@ -717,7 +733,7 @@ def main():
     st = State(a.db, a.inbox, roles, a.web)
     threading.Thread(target=tail_loop, args=(st,), daemon=True).start()
     searx = None if a.searx.lower() == "off" else a.searx
-    threading.Thread(target=note_loop, args=(st, lambda t, al=(): fetch_note(t, al, searx)), daemon=True).start()
+    threading.Thread(target=note_loop, args=(st, lambda t, al=(), ctx=(): fetch_note(t, al, searx, ctx)), daemon=True).start()
     srv = make_server(st, a.host, a.port)
     print(f"열림: http://localhost:{srv.server_address[1]}  (끝내려면 Ctrl+C)", flush=True)
     try:

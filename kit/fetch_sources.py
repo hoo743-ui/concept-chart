@@ -52,8 +52,9 @@ def wikipedia(term, lang="ko"):
     return [{"url": url, "text": j.get("extract", ""), "src": "wikipedia", "title": j.get("title", hits[1][0])}] if j.get("extract") else []
 
 
-def searxng(term, base="http://localhost:8888", n=3):
-    q = urllib.parse.quote(term + " 뜻")
+def searxng(term, base="http://localhost:8888", n=3, context=()):
+    """context: 뜻을 가르려고 검색어에 함께 넣는 개념 이름 (torch → torch GPU 뜻)"""
+    q = urllib.parse.quote(" ".join([term, *context, "뜻"]))
     j = json.loads(_get(f"{base}/search?q={q}&format=json&language=ko"))
     return [{"url": r["url"], "text": r.get("content", ""), "src": "searxng"} for r in j.get("results", [])[:n] if r.get("content")]
 
@@ -87,6 +88,40 @@ def pick(term, aliases, sources):
         out.append({"text": s, "url": sources[i]["url"], "score": round(sc, 2)})
         used += len(s)
     return out
+
+
+def _term_pattern(term):
+    """띄어쓰기만 다른 표기도 같게 본다 (조기종료 = 조기 종료)"""
+    return r"\s*".join(re.escape(ch) for ch in re.sub(r"\s+", "", term))
+
+
+LEAD_QUESTION = re.compile(r"^[^.?!]{1,40}\?\s*")                  # "KeyError란?KeyError는 …"의 앞부분
+ENDS_DONE = re.compile(r"(다|요)[.]?$")
+NOT_DONE = re.compile(r"(\.\.\.|…|\?)")
+NEEDS_CONTEXT = re.compile(r"(위와 같이|이처럼|앞서|다음과 같|이 글|이번 글)")
+
+
+def definition_sents(term, aliases, sources, limit=MAX_SENT, context=()):
+    """검색 결과처럼 문장 품질을 믿기 어려운 출처용: '개념 + 은/는/이란'으로 시작하는 완결된 문장만 고른다.
+    context가 있으면 그 낱말이 하나라도 들어 있는 검색 결과만 쓴다 (캐시 → 현금 같은 다른 뜻을 거른다).
+    맞는 문장이 없으면 빈 목록 (틀린 정의보다 '근거 없음'이 낫다)"""
+    ctx = [c.lower() for c in context if c.strip()]
+    names = "|".join(_term_pattern(k) for k in sorted({term, *aliases}, key=len, reverse=True) if k.strip())
+    head = re.compile(rf"^(?:[^,.?!]{{0,20}}에서\s+)?(?:{names})(?:\s*\([^()]*\))?\s*(?:은|는|이란|란|이라 함은|라 함은)\s", re.I)
+    out, seen = [], set()
+    for src in sources:
+        low = src.get("text", "").lower()
+        if ctx and not any(c in low for c in ctx):
+            continue
+        for s in split_sents(src.get("text", "")):
+            s = LEAD_QUESTION.sub("", re.sub(r"\s+", " ", s)).strip()
+            if s in seen or not 15 <= len(s) <= 200:
+                continue
+            if head.search(s) and ENDS_DONE.search(s) and not NOT_DONE.search(s) \
+                    and not NEEDS_CONTEXT.search(s) and not SKIP.search(s):
+                seen.add(s)
+                out.append({"text": s, "url": src["url"]})
+    return out[:limit]
 
 
 def fetch_evidence(con, term, aliases=(), searx_base=None):
