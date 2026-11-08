@@ -113,6 +113,22 @@ def main():
         cc = serve.concept_card(qc, serve.norm_key("컨테이너"))
         ok("답변의 개념이 내 질문과 연결", cc["records"][0]["question"] == "배포가 자꾸 실패하는데 왜 그래?", str(cc["records"][0]["question"]))
         ok("답변 하나에 개념 1행", len(cc["records"]) == 1, f"{len(cc['records'])}행")
+        # 경합: 카드를 읽은 직후 정의가 저장돼도 'ready인데 정의 없음'이 나가면 안 된다 (CI에서 가끔 나던 버그)
+        real_card = serve.concept_card
+        race_id = serve.norm_key("컨테이너")
+
+        def card_then_save(c, concept, cursor=None, k=3):
+            out = real_card(c, concept, cursor, k)
+            serve.save_note(c, concept, "컨테이너는 격리된 실행 환경이다.", [])
+            return out
+        serve.concept_card = card_then_save
+        try:
+            r = serve.card_response(serve.State(str(qdb), str(qinbox), ROLES, None), qc, race_id)
+        finally:
+            serve.concept_card = real_card
+        ok("카드와 저장이 겹쳐도 ready인데 정의 없음은 없음", not (r["note_status"] == "ready" and r["definition"] is None), r["note_status"])
+        qc.execute("DELETE FROM notes")
+        qc.commit()
         ok("다른 세션의 질문과 섞이지 않음", serve.concept_card(qc, serve.norm_key("어텐션"))["records"][0]["question"] is None)
         ok("카드의 긴 질문은 잘림 (원문은 DB에)",
            len(serve.concept_card(qc, serve.norm_key("가중치"))["records"][0]["question"]) == serve.QUESTION_MAX

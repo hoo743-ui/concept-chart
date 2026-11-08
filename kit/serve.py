@@ -506,6 +506,13 @@ def note_status(st, con, concept):
     return status
 
 
+def card_response(st, con, concept, cursor=None):
+    """상태를 카드보다 먼저 읽는다. 반대로 읽으면 그 사이에 정의가 저장됐을 때 'ready'인데 정의가 빈 응답이 나간다.
+    이 순서면 최악의 경우 'pending' + 정의가 나가고, 저장 뒤 update 이벤트로 다시 읽으므로 안전하다"""
+    status = note_status(st, con, concept)
+    return dict(concept_card(con, concept, cursor), note_status=status)
+
+
 def note_loop(st, fetcher=None):
     """노트 수집 일꾼 1개 (같은 사이트 1초 1번 규칙을 지키려고 한 번에 하나씩). 끝나면 update 이벤트로 알린다"""
     fetcher = fetcher or fetch_note
@@ -664,8 +671,7 @@ def make_handler(st):
                         cid = urllib.parse.unquote(path[len("/api/concept/"):])
                         if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
                             return self.send(404, {"error": "없는 개념", "id": cid})
-                        return self.send(200, dict(concept_card(con, cid, q.get("cursor")),
-                                                   note_status=note_status(st, con, cid)))
+                        return self.send(200, card_response(st, con, cid, q.get("cursor")))
                     if path == "/api/status":
                         return self.send(200, {"inbox": str(pathlib.Path(st.inbox).expanduser()),
                                                "offset": int(meta_get(con, "offset", 0)),
