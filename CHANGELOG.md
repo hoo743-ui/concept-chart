@@ -2,6 +2,12 @@
 
 날짜는 한국 시간. 페이지에 보이는 숫자가 바뀐 변경은 따로 표시한다.
 
+## 0.3.0 — 2026-11-08
+
+- 로컬 서버 `kit/serve.py` + `python dev.py serve`: 인박스 1초 이어 읽기 → SQLite → `/api/leaderboard`·`/api/concept/{id}`·`/api/events`(SSE)·`/api/status`, 내장 간이 화면. 개념 = 명사+코드 용어, 점수 = 제안 C(H 7·세션 단위)를 내 세션 IDF로 적용
+- `tests/test_serve.py`(18항목)를 `check_env`에 추가, `docs/ARCHITECTURE.md`에 API 계약
+- 페이지 숫자 변경 없음
+
 ## 0.2.4 — 2026-11-07
 
 - SETUP.md·`docs/COMMANDS.md`: Mac zsh는 기본 설정에서 `#` 설명을 명령으로 읽으므로 `setopt interactivecomments`를 맨 앞에 추가, 문제 해결 2줄(`#` 에러, `dev.py` 하위 명령 빠짐)

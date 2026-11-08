@@ -1,0 +1,474 @@
+# -*- coding: utf-8 -*-
+"""serve.py : 개념 차트 로컬 서버 (파일 하나로 완결, 표준 라이브러리 + kiwipiepy)
+
+    python kit/serve.py                      # http://localhost:8765
+    python kit/serve.py --port 8765 --inbox ~/.claude/concept-inbox.jsonl --db ~/.claude/concept-chart.sqlite
+    python kit/serve.py --once               # 인박스를 한 번만 읽어 색인하고 끝 (점검용)
+    python kit/serve.py --rebuild            # 색인을 지우고 인박스 처음부터 다시
+
+인박스를 1초마다 이어 읽기 → SQLite 색인 → API
+    GET /api/leaderboard?k=10      중요도 순위 (제안 C: 세션 빈도 반감기 7일 × 세션 IDF)
+    GET /api/concept/{id}?cursor=  클릭 카드 (정의·출처·관련 개념 3개·기록 3개, LLM 없음)
+    GET /api/events                새 기록이 색인되면 'update' 이벤트 (SSE)
+    GET /api/status                인박스 위치·읽은 위치·세션·턴 수
+    GET /                          --web 폴더의 index.html, 없으면 내장 간이 화면
+
+- 개념 = Kiwi 명사(붙어 쓴 명사·접미사는 한 덩어리, 영문·한자 포함, 2글자 이상) + 코드 속 라이브러리·에러 이름.
+  개념 사전은 쓰지 않는다. IDF 배경은 내 세션들(세션 1개 = 문서 1개).
+- 기본으로 AI 답변(assistant·subagent)만 센다 (--roles로 변경).
+- 127.0.0.1에만 열고 CORS 헤더를 붙이지 않는다 (다른 사이트가 내 대화 개념을 읽지 못하게).
+- 색인 DB는 인박스에서 언제든 다시 만들 수 있다. git에 올리지 않는다.
+"""
+import argparse
+import json
+import math
+import os
+import pathlib
+import re
+import sqlite3
+import sys
+import threading
+import time
+import urllib.parse
+from collections import Counter
+from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
+DEFAULT_INBOX = os.environ.get("CONCEPT_INBOX") or "~/.claude/concept-inbox.jsonl"
+DEFAULT_DB = "~/.claude/concept-chart.sqlite"
+HALF_LIFE_DAYS = 7.0           # 제안 C(안정성 균형): H=7, β=0, γ=0, 단위=세션
+BADGE_Z, BADGE_MIN_SESS = 1.64, 2
+SNIPPET = 160
+
+# ---------------- 정제 (kit/loader_cell.py와 같은 규칙) ----------------
+FENCE  = re.compile(r"```[^\n]*\n(.*?)```", re.S)
+INLINE = re.compile(r"`([^`\n]+)`")
+URL    = re.compile(r"https?://\S+")
+PATH   = re.compile(r"(?:[A-Za-z]:)?(?:[\\/][\w.\-]+){2,}")
+IMPORT = re.compile(r"^\s*(?:from\s+([A-Za-z_][\w.]*)\s+import|import\s+([A-Za-z_][\w.]*))", re.M)
+PKG    = r"[A-Za-z0-9_.\-\[\]=<>]+"
+PIP    = re.compile(rf"pip3?\s+install\s+((?:{PKG}[ \t]*)+)")
+ERR    = re.compile(r"\b([A-Z][A-Za-z]+(?:Error|Exception))\b")
+SENT   = re.compile(r"(?<=[.!?。])\s+|\n+")
+# 어느 대화에나 나오는 일반 명사 (IDF로도 낮아지지만 처음 몇 세션은 IDF가 약해서 미리 뺀다)
+STOP = set("""것 수 때 등 경우 부분 정도 이번 다음 하나 방법 내용 문제 결과 설명 확인 필요 기준 이유 상태 시간 처리 생각
+정리 진행 실행 추가 변경 수정 사용 위치 방식 단계 지금 아래 위 앞 뒤 전 후 중 안 밖 쪽 줄 개 번 거 게 데 뭐 이것 그것
+여기 거기 하나 두 세 모두 전체 각 기본 대부분 직접 바로 그대로 정상 가능 예 예시 참고 요청 답 질문 말 글 경우 이상 이하""".split())
+STOP_EN = {"the", "and", "for", "you", "this", "that", "with", "not", "are", "ok", "is", "it", "to", "of", "in", "on"}
+
+_kiwi = None
+
+
+def get_kiwi():
+    global _kiwi
+    if _kiwi is None:
+        from kiwipiepy import Kiwi
+        _kiwi = Kiwi()
+    return _kiwi
+
+
+def norm_key(s):
+    return re.sub(r"[\s\-_/]+", "", s.lower())
+
+
+def noun_groups(s):
+    """붙어 있는 명사(+명사 파생 접미사 XSN)는 한 덩어리로: 가중+치 → 가중치, 시각+화 → 시각화. 영문·한자는 그대로"""
+    out, cur, end = [], "", -1
+    for t in get_kiwi().tokenize(s):
+        glued = bool(cur) and t.start == end
+        if t.tag in ("NNG", "NNP") or (t.tag == "XSN" and glued):
+            if glued:
+                cur += t.form
+            else:
+                if cur:
+                    out.append(cur)
+                cur = t.form
+        else:
+            if cur:
+                out.append(cur)
+                cur = ""
+            if t.tag in ("SL", "SH"):
+                out.append(t.form)
+        end = t.start + t.len
+    if cur:
+        out.append(cur)
+    return out
+
+
+def extract(text):
+    """본문 → [(문장, {개념 키: 표기})] (코드 용어는 첫 문장 자리에 붙인다)"""
+    code = "\n".join(FENCE.findall(text))
+    prose = FENCE.sub(" ", text)
+    inline = INLINE.findall(prose)
+    prose = PATH.sub(" ", URL.sub(" ", INLINE.sub(" ", prose)))
+    both = code + "\n" + "\n".join(inline) + "\n" + text
+    code_terms = {(a or b).split(".")[0] for a, b in IMPORT.findall(code)}
+    code_terms |= {re.split(r"[=<>\[]", p)[0] for m in PIP.findall(both) for p in m.split() if not p.startswith("-")}
+    code_terms |= set(ERR.findall(both))
+    out = []
+    for s in SENT.split(prose):
+        s = re.sub(r"\s+", " ", s).strip()
+        if len(s) < 4:
+            continue
+        cs = {}
+        for f in noun_groups(s):
+            if len(f) >= 2 and f not in STOP and f.lower() not in STOP_EN:
+                cs.setdefault(norm_key(f), f)
+        if cs:
+            out.append((s, cs))
+    code_cs = {norm_key(c): c for c in code_terms if len(c) >= 2 and c.lower() not in STOP_EN}
+    if code_cs:
+        snip = out[0][0] if out else re.sub(r"\s+", " ", prose).strip() or "(코드)"
+        out.append((snip, code_cs))
+    return out
+
+
+# ---------------- 저장소 ----------------
+SCHEMA = """
+PRAGMA journal_mode=WAL;
+CREATE TABLE IF NOT EXISTS mentions (concept TEXT, ts TEXT, session TEXT, role TEXT, snippet TEXT);
+CREATE INDEX IF NOT EXISTS ix_m ON mentions (concept, ts DESC);
+CREATE TABLE IF NOT EXISTS cooc (a TEXT, b TEXT, n INTEGER, PRIMARY KEY (a, b));
+CREATE TABLE IF NOT EXISTS freq (concept TEXT PRIMARY KEY, n INTEGER);
+CREATE TABLE IF NOT EXISTS notes (concept TEXT PRIMARY KEY, definition TEXT, sources TEXT, updated TEXT);
+CREATE TABLE IF NOT EXISTS forms (concept TEXT, form TEXT, n INTEGER, PRIMARY KEY (concept, form));
+CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, last_ts REAL);
+CREATE TABLE IF NOT EXISTS term_sess (concept TEXT, session TEXT, PRIMARY KEY (concept, session));
+CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT);
+"""
+DERIVED = ("mentions", "cooc", "freq", "forms", "sessions", "term_sess", "meta")   # notes(웹 근거)는 남긴다
+
+
+def open_db(path):
+    p = pathlib.Path(path).expanduser()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(str(p), timeout=10, check_same_thread=False)
+    con.executescript(SCHEMA)
+    return con
+
+
+def meta_get(con, k, default=None):
+    r = con.execute("SELECT v FROM meta WHERE k=?", (k,)).fetchone()
+    return r[0] if r else default
+
+
+def meta_set(con, k, v):
+    con.execute("INSERT INTO meta VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v", (k, str(v)))
+
+
+def reset(con):
+    for t in DERIVED:
+        con.execute(f"DELETE FROM {t}")
+    con.commit()
+
+
+def parse_ts(ts):
+    try:
+        d = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=timezone.utc)
+        return d.timestamp()
+    except (ValueError, TypeError):
+        return None
+
+
+def index_record(con, r, roles):
+    if r.get("role") not in roles or not r.get("text"):
+        return False
+    t = parse_ts(r.get("ts")) or time.time()
+    ts = datetime.fromtimestamp(t, timezone.utc).isoformat()
+    sess = r.get("session_id") or "day:" + ts[:10]
+    sc = extract(r["text"])
+    if not sc:
+        return False
+    seen = set()
+    for s, cs in sc:
+        for k, form in cs.items():
+            con.execute("INSERT INTO mentions VALUES (?,?,?,?,?)", (k, ts, sess, r["role"], s[:SNIPPET]))
+            con.execute("INSERT INTO forms VALUES (?,?,1) ON CONFLICT(concept, form) DO UPDATE SET n=n+1", (k, form))
+        seen |= set(cs)
+    con.execute("INSERT INTO sessions VALUES (?,?) ON CONFLICT(id) DO UPDATE SET last_ts=max(last_ts, excluded.last_ts)",
+                (sess, t))
+    for c in seen:
+        con.execute("INSERT INTO freq VALUES (?,1) ON CONFLICT(concept) DO UPDATE SET n=n+1", (c,))
+        con.execute("INSERT OR IGNORE INTO term_sess VALUES (?,?)", (c, sess))
+        for d in seen:
+            if c != d:
+                con.execute("INSERT INTO cooc VALUES (?,?,1) ON CONFLICT(a,b) DO UPDATE SET n=n+1", (c, d))
+    return True
+
+
+def ingest(con, inbox, roles):
+    """인박스에서 아직 안 읽은 완성된 줄만 색인한다. 파일이 줄었으면(새로 만듦) 처음부터 다시. → 새로 색인한 턴 수"""
+    p = pathlib.Path(inbox).expanduser()
+    if not p.exists():
+        return 0
+    size = p.stat().st_size
+    off = int(meta_get(con, "offset", 0))
+    if size < off:
+        reset(con)
+        off = 0
+    if size == off:
+        return 0
+    with open(p, "rb") as f:
+        f.seek(off)
+        chunk = f.read(size - off)
+    end = chunk.rfind(b"\n")
+    if end < 0:                                   # 아직 쓰는 중인 줄만 있음
+        return 0
+    n = 0
+    for line in chunk[:end].split(b"\n"):
+        try:
+            r = json.loads(line.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if isinstance(r, dict) and index_record(con, r, roles):
+            n += 1
+    meta_set(con, "offset", off + end + 1)
+    meta_set(con, "turns", int(meta_get(con, "turns", 0)) + n)
+    con.commit()
+    return n
+
+
+# ---------------- 조회 ----------------
+def label_of(con, k):
+    r = con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (k,)).fetchone()
+    return r[0] if r else k
+
+
+def two_prop_z(x1, n1, x0, n0):
+    if not (n1 and n0):
+        return 0.0
+    p = (x1 + x0) / (n1 + n0)
+    if not 0 < p < 1:
+        return 0.0
+    return (x1 / n1 - x0 / n0) / math.sqrt(p * (1 - p) * (1 / n1 + 1 / n0))
+
+
+def leaderboard(con, k=10, now=None):
+    """점수 = log1p(Σ 개념이 나온 세션의 2^(-경과일/7)) × (log((N+1)/(df+1)) + 1)"""
+    now = time.time() if now is None else now
+    sess = dict(con.execute("SELECT id, last_ts FROM sessions"))
+    N = len(sess)
+    age = {s: max(0.0, (now - t) / 86400) for s, t in sess.items()}
+    rec = [s for s, a in age.items() if a < 14]
+    pri = [s for s, a in age.items() if 14 <= a < 42]
+    by = {}
+    for c, s in con.execute("SELECT concept, session FROM term_sess"):
+        by.setdefault(c, []).append(s)
+    items = []
+    for c, ss in by.items():
+        dsf = sum(2.0 ** (-age[s] / HALF_LIFE_DAYS) for s in ss if s in age)
+        idf = math.log((N + 1) / (len(ss) + 1)) + 1
+        x1 = sum(1 for s in ss if s in rec and s in age)
+        x0 = sum(1 for s in ss if s in pri and s in age)
+        z = two_prop_z(x1, len(rec), x0, len(pri))
+        badge = "up" if z > BADGE_Z and x1 >= BADGE_MIN_SESS else "down" if z < -BADGE_Z and x0 >= BADGE_MIN_SESS else ""
+        items.append((math.log1p(dsf) * idf, c, len(ss), badge, max(sess[s] for s in ss if s in sess)))
+    items.sort(key=lambda x: (-x[0], x[1]))
+    out = []
+    for i, (score, c, nsess, badge, last) in enumerate(items[:k], 1):
+        m = con.execute("SELECT n FROM freq WHERE concept=?", (c,)).fetchone()
+        out.append({"rank": i, "id": c, "label": label_of(con, c), "score": round(score, 4), "sessions": nsess,
+                    "turns": m[0] if m else 0, "badge": badge,
+                    "last_seen": datetime.fromtimestamp(last, timezone.utc).isoformat()})
+    return {"generated": datetime.fromtimestamp(now, timezone.utc).isoformat(), "n_sessions": N,
+            "n_concepts": len(by), "items": out}
+
+
+def concept_card(con, concept, cursor=None, k=3):
+    """클릭 응답 (kit/concept_store.py와 같은 형식 + label): LLM 호출 없이 1~2KB"""
+    note = con.execute("SELECT definition, sources FROM notes WHERE concept=?", (concept,)).fetchone()
+    related = con.execute(
+        """SELECT b, c.n * 1.0 / ((SELECT n FROM freq WHERE concept=?) * (SELECT n FROM freq WHERE concept=b)) AS s
+           FROM cooc c WHERE a=? ORDER BY s DESC, c.n DESC, b LIMIT ?""", (concept, concept, k)).fetchall()
+    q = "SELECT ts, role, snippet, rowid FROM mentions WHERE concept=?"
+    args = [concept]
+    if cursor:
+        ts, rid = cursor.rsplit("|", 1)
+        q += " AND (ts < ? OR (ts = ? AND rowid < ?))"
+        args += [ts, ts, int(rid)]
+    rows = con.execute(q + " ORDER BY ts DESC, rowid DESC LIMIT ?", args + [k]).fetchall()
+    return {"concept": concept, "label": label_of(con, concept),
+            "definition": note[0] if note else None,
+            "sources": json.loads(note[1]) if note and note[1] and note[1][:1] in "[{" else (note[1] if note else None),
+            "related": [{"id": r[0], "label": label_of(con, r[0])} for r in related],
+            "records": [{"ts": r[0], "role": r[1], "snippet": r[2]} for r in rows],
+            "next_cursor": "%s|%d" % (rows[-1][0], rows[-1][3]) if len(rows) == k else None}
+
+
+# ---------------- 서버 ----------------
+PAGE = """<!doctype html><meta charset="utf-8"><title>개념 차트</title>
+<style>body{font:15px/1.5 system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem}
+li{cursor:pointer;margin:.3rem 0}small{color:#777}#card{border-top:1px solid #ddd;margin-top:1rem;padding-top:.5rem}</style>
+<h1>개념 차트 <small id="st"></small></h1><ol id="lb"></ol><div id="card"></div>
+<script>
+const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function lb(){const d=await (await fetch('/api/leaderboard?k=10')).json();
+ $('#st').textContent=`세션 ${d.n_sessions} · 개념 ${d.n_concepts}`;
+ $('#lb').innerHTML=d.items.map(x=>`<li data-id="${esc(x.id)}"><b>${esc(x.label)}</b> ${x.badge=='up'?'▲':x.badge=='down'?'▼':''} <small>${x.score} · ${x.sessions}세션</small></li>`).join('')||'<small>아직 기록이 없어요. Claude Code를 쓰면 여기에 쌓여요.</small>';}
+$('#lb').onclick=async e=>{const li=e.target.closest('li');if(!li)return;
+ const c=await (await fetch('/api/concept/'+encodeURIComponent(li.dataset.id))).json();
+ $('#card').innerHTML=`<h2>${esc(c.label)}</h2><p>${esc(c.definition||'정의 없음 (근거 수집 전)')}</p>
+ <p>관련: ${c.related.map(r=>esc(r.label)).join(', ')||'-'}</p><ul>${c.records.map(r=>`<li><small>${esc(r.ts.slice(0,16))}</small> ${esc(r.snippet)}</li>`).join('')}</ul>`;};
+lb(); new EventSource('/api/events').addEventListener('update',lb);
+</script>"""
+
+
+class State:
+    def __init__(self, db, inbox, roles, web):
+        self.db, self.inbox, self.roles, self.web = db, inbox, roles, web
+        self.version = 0
+        self.cond = threading.Condition()
+        self.stop = threading.Event()
+
+    def bump(self):
+        with self.cond:
+            self.version += 1
+            self.cond.notify_all()
+
+
+def tail_loop(st, interval=1.0):
+    con = open_db(st.db)
+    while not st.stop.is_set():
+        try:
+            if ingest(con, st.inbox, st.roles):
+                st.bump()
+        except Exception as e:  # noqa: BLE001 — 한 번 실패해도 서버는 계속 돈다
+            print(f"[경고] 인박스 읽기 실패: {type(e).__name__}: {e}", flush=True)
+        st.stop.wait(interval)
+    con.close()
+
+
+def make_handler(st):
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def send(self, code, body, ctype="application/json; charset=utf-8"):
+            b = body if isinstance(body, bytes) else (
+                body.encode("utf-8") if isinstance(body, str) else json.dumps(body, ensure_ascii=False).encode("utf-8"))
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(b)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(b)
+
+        def do_GET(self):
+            u = urllib.parse.urlparse(self.path)
+            q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
+            path = u.path
+            if path == "/api/events":
+                return self.events()
+            if path.startswith("/api/"):
+                con = open_db(st.db)
+                try:
+                    if path == "/api/leaderboard":
+                        return self.send(200, leaderboard(con, k=max(1, min(int(q.get("k", 10)), 100))))
+                    if path.startswith("/api/concept/"):
+                        cid = urllib.parse.unquote(path[len("/api/concept/"):])
+                        if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
+                            return self.send(404, {"error": "없는 개념", "id": cid})
+                        return self.send(200, concept_card(con, cid, q.get("cursor")))
+                    if path == "/api/status":
+                        return self.send(200, {"inbox": str(pathlib.Path(st.inbox).expanduser()),
+                                               "offset": int(meta_get(con, "offset", 0)),
+                                               "turns": int(meta_get(con, "turns", 0)),
+                                               "sessions": con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0],
+                                               "version": st.version})
+                    return self.send(404, {"error": "없는 API"})
+                except ValueError as e:
+                    return self.send(400, {"error": str(e)})
+                finally:
+                    con.close()
+            return self.static(path)
+
+        def static(self, path):
+            if st.web:
+                root = pathlib.Path(st.web).resolve()
+                f = (root / (path.lstrip("/") or "index.html")).resolve()
+                if f.is_dir():
+                    f = f / "index.html"
+                if root in f.parents and f.is_file():
+                    ctype = {".html": "text/html", ".js": "text/javascript", ".css": "text/css",
+                             ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png"}.get(
+                        f.suffix, "application/octet-stream")
+                    return self.send(200, f.read_bytes(), ctype + ("; charset=utf-8" if ctype.startswith("text") else ""))
+                return self.send(404, {"error": "없는 파일"})
+            if path in ("/", "/index.html"):
+                return self.send(200, PAGE, "text/html; charset=utf-8")
+            return self.send(404, {"error": "없는 경로"})
+
+        def events(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            seen = -1
+            try:
+                while not st.stop.is_set():
+                    with st.cond:
+                        if st.version == seen:
+                            st.cond.wait(timeout=15)
+                        v = st.version
+                    if v != seen:
+                        seen = v
+                        self.wfile.write(f"event: update\ndata: {json.dumps({'version': v})}\n\n".encode("utf-8"))
+                    else:
+                        self.wfile.write(b": ping\n\n")
+                    self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                pass
+    return H
+
+
+def make_server(st, host="127.0.0.1", port=8765):
+    srv = ThreadingHTTPServer((host, port), make_handler(st))
+    srv.daemon_threads = True
+    return srv
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--inbox", default=DEFAULT_INBOX)
+    ap.add_argument("--db", default=DEFAULT_DB)
+    ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--roles", default="assistant,subagent", help="색인할 역할 (쉼표로)")
+    ap.add_argument("--web", default=None, help="화면 폴더 (index.html). 없으면 내장 간이 화면")
+    ap.add_argument("--once", action="store_true", help="한 번 색인하고 순위를 출력한 뒤 끝")
+    ap.add_argument("--rebuild", action="store_true", help="색인을 지우고 처음부터 다시")
+    a = ap.parse_args()
+    roles = {r.strip() for r in a.roles.split(",") if r.strip()}
+    con = open_db(a.db)
+    if a.rebuild:
+        reset(con)
+    t0 = time.time()
+    n = ingest(con, a.inbox, roles)
+    print(f"색인: 새 턴 {n}개 ({time.time() - t0:.1f}초) · 인박스 {pathlib.Path(a.inbox).expanduser()}", flush=True)
+    if a.once:
+        for x in leaderboard(con)["items"]:
+            print(f"{x['rank']:>2}. {x['label']}  {x['score']}  ({x['sessions']}세션) {x['badge']}")
+        return
+    con.close()
+    st = State(a.db, a.inbox, roles, a.web)
+    threading.Thread(target=tail_loop, args=(st,), daemon=True).start()
+    srv = make_server(st, a.host, a.port)
+    print(f"열림: http://localhost:{srv.server_address[1]}  (끝내려면 Ctrl+C)", flush=True)
+    try:
+        srv.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        st.stop.set()
+        srv.server_close()
+
+
+if __name__ == "__main__":
+    main()

@@ -11,7 +11,7 @@
 | `sim/` | 방식 비교 실험과 그 결과 | 가상 사용자 대화 → `results/A·B·C.json` → `results/page_data.json` | 개발 시 |
 | `web/` | 결과 페이지 (화면) | `sim/results/page_data.json` + `kit/*.py` → `web/dist/index.html` | 개발 시 |
 | `tests/` | 점검·계약 테스트 | 위 전부를 호출 | 커밋 전·CI |
-| `dev.py` | 생명주기 작업 진입점 (setup·check·build·sim) | — | 어디서나 |
+| `dev.py` | 생명주기 작업 진입점 (setup·check·build·sim·serve) | — | 어디서나 |
 | `.github/workflows/` | CI (Windows·macOS·Ubuntu, conda 설치 경로 포함) | 푸시 | GitHub |
 
 의존 방향 (반대 방향 import 금지):
@@ -49,6 +49,26 @@
 
 `mentions(concept, ts, session, role, snippet)`, `cooc(a, b, n)`, `freq(concept, n)`, `notes(concept, definition, sources, updated)`.
 인박스에서 언제든 다시 만들 수 있는 파생 데이터라 git에 올리지 않는다.
+
+### 로컬 서버 API (`kit/serve.py`, `http://localhost:8765`, 127.0.0.1만)
+
+인박스를 1초마다 이어 읽어(읽은 위치는 DB `meta.offset`, 쓰다 만 줄은 다음에) 색인 DB(`~/.claude/concept-chart.sqlite`)에 넣는다.
+위 클릭 카드 표 4개 + `forms(concept, form, n)` 표기, `sessions(id, last_ts)`, `term_sess(concept, session)`, `meta`. 인박스가 줄면(새 파일) 색인을 처음부터 다시 만든다(`notes`는 남김).
+
+| 경로 | 돌려주는 것 |
+|---|---|
+| `GET /api/leaderboard?k=10` | `{generated, n_sessions, n_concepts, items:[{rank, id, label, score, sessions, turns, badge, last_seen}]}` |
+| `GET /api/concept/{id}?cursor=` | `{concept, label, definition, sources, related:[{id, label}], records:[{ts, role, snippet}] ×3, next_cursor}` · 없으면 404 |
+| `GET /api/events` | SSE. 연결할 때 1번, 새 턴을 색인할 때마다 `event: update` / `data: {"version": n}`. 15초마다 `: ping` |
+| `GET /api/status` | `{inbox, offset, turns, sessions, version}` |
+| `GET /` | `--web` 폴더의 파일, 없으면 내장 간이 화면 |
+
+- 개념 `id` = 표기를 소문자로 바꾸고 공백·`-`·`_`·`/`를 뺀 키. `label` = 가장 많이 나온 표기.
+- 개념 추출: Kiwi 명사(붙어 쓴 명사·명사 파생 접미사는 한 덩어리, 영문·한자 포함) + 코드 속 import·pip·에러 이름. 개념 사전 없음, 일반 명사 불용어 목록(`STOP`)만.
+- 점수 = 제안 C(안정성 균형, `sim/results/A.json`의 `balanced` = H 7일·β 0·γ 0·세션 단위)를 사전 없이 적용: `log1p(Σ 개념이 나온 세션의 2^(-경과일/7)) × (log((N+1)/(df+1))+1)`, N·df는 내 세션 기준.
+- 배지: 최근 14일 vs 그 전 28일 세션 비율 z-검정 (`sim_A.py`와 같은 기준 1.64, 최소 2세션).
+- 기본으로 `assistant`·`subagent` 글만 센다 (`--roles`). CORS 헤더는 붙이지 않는다 (다른 사이트가 읽지 못하게).
+- 점검: `tests/test_serve.py` (check_env에 포함).
 
 ## 3. 품질 특성별 설계 결정 (ISO/IEC 25010 8가지 특성 기준)
 

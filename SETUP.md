@@ -129,6 +129,15 @@ python kit/install_concept_hook.py --test    # '결과: 정상'
 - 제거: `python kit/install_concept_hook.py --uninstall`. 옵션: `--scope project --project <폴더>`, `--events user,assistant,subagent`, `--inbox <경로>`, `--no-mask`.
 - 결과 페이지(`web/dist/index.html`)의 **04 입력 설정 시트**에서 같은 설치를 한 줄 명령으로 만들 수 있다 (macOS는 'mac/Linux' 선택).
 
+### 내 대화로 보기 (로컬 서버)
+
+```bash
+python dev.py serve          # http://localhost:8765 — 인박스를 1초마다 읽어 순위·클릭 카드를 보여 준다 (Ctrl+C로 끝)
+python dev.py serve --once   # 순위만 터미널에 출력
+```
+
+색인 DB는 `~/.claude/concept-chart.sqlite` (git 제외, 인박스에서 다시 만들 수 있음).
+
 ## 7. 작업 흐름
 
 | 바꾼 것 | 다음에 할 일 |
@@ -137,6 +146,7 @@ python kit/install_concept_hook.py --test    # '결과: 정상'
 | `web/page_template.html` | `python dev.py build` |
 | 시뮬레이터 (`sim/*.py`) | `python dev.py sim` (A·B·C 재실행 → 페이지 데이터 → 페이지) |
 | 훅 변환 규칙 (`kit/install_concept_hook.py`) | `python tests/test_hook.py` → `python dev.py build` |
+| 로컬 서버 (`kit/serve.py`) | `python tests/test_serve.py` → `docs/ARCHITECTURE.md` API 표 |
 | 패키지 추가 | `requirements.txt`에 버전까지 적기 → 다른 PC에서 `python dev.py setup` |
 
 커밋 전에 `python dev.py check`. 브랜치 → 푸시 → GitHub Actions(Windows·macOS·Ubuntu)가 같은 점검을 다시 돌린다 → 통과하면 main.

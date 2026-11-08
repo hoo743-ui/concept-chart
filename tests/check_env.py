@@ -183,6 +183,14 @@ def installer():
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+def serve_api():
+    r = subprocess.run([sys.executable, str(ROOT / "tests" / "test_serve.py")], capture_output=True, timeout=300)
+    out = r.stdout.decode("utf-8", "replace").strip().splitlines()
+    if r.returncode != 0:
+        raise RuntimeError(" / ".join(l for l in out if l.startswith("[FAIL]"))[:400] or (r.stderr.decode("utf-8", "replace")[-400:]))
+    return f"{sum(l.startswith('[OK]') for l in out)}개 항목 (이어 읽기·순위·카드·API·SSE)"
+
+
 def hook_fixtures():
     r = subprocess.run([sys.executable, str(ROOT / "tests" / "test_hook.py")], capture_output=True, timeout=300)
     out = r.stdout.decode("utf-8", "replace").strip().splitlines()
@@ -229,6 +237,7 @@ if __name__ == "__main__":
     check("파이프라인 첫 셀 (loader_cell)", loader)
     check("훅 설치기 (임시 홈에서)", installer)
     check("훅 어댑터 fixture (tests/test_hook.py)", hook_fixtures)
+    check("로컬 서버 serve (tests/test_serve.py)", serve_api)
     check("페이지 데이터 재현 (make_page_data)", page_data)
     check("페이지 빌드 재현", page_build)
     check("페이지 자동 점검 도구 (선택)", node_jsdom, required=False)

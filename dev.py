@@ -7,8 +7,9 @@
     python dev.py check          전체 점검 (tests/check_env.py + Node가 있으면 npm test)
     python dev.py build          결과 → 페이지 데이터 → 결과 페이지 다시 만들기
     python dev.py sim            시뮬레이터 A·B·C 다시 실행 → build
+    python dev.py serve          로컬 서버 http://localhost:8765 (인박스 → 순위·클릭 카드, kit/serve.py)
 
-check·build·sim은 concept-chart 환경을 켠 상태에서 실행한다.
+check·build·sim·serve는 concept-chart 환경을 켠 상태에서 실행한다.
 """
 import argparse
 import json
@@ -128,6 +129,14 @@ def sim():
     return build()
 
 
+def serve(extra):
+    step("로컬 서버 (kit/serve.py) — 끝내려면 Ctrl+C")
+    try:
+        return run([sys.executable, "kit/serve.py"] + extra)
+    except KeyboardInterrupt:
+        return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -136,9 +145,14 @@ def main():
     sub.add_parser("check", help="전체 점검")
     sub.add_parser("build", help="페이지 데이터·결과 페이지 다시 만들기")
     sub.add_parser("sim", help="시뮬레이터 다시 실행 + build")
-    a = ap.parse_args()
+    sub.add_parser("serve", help="로컬 서버 (뒤에 붙인 옵션은 kit/serve.py로 전달: --port, --once, --rebuild ...)")
+    a, extra = ap.parse_known_args()
+    if extra and a.cmd != "serve":
+        ap.error("알 수 없는 옵션: " + " ".join(extra))
     if a.cmd == "setup":
         rc = setup_venv() if a.venv else setup_conda()
+    elif a.cmd == "serve":
+        rc = serve(extra)
     else:
         rc = {"check": check, "build": build, "sim": sim}[a.cmd]()
     sys.exit(rc)

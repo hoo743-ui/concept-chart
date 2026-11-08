@@ -13,12 +13,12 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 
 자세한 구성·데이터 계약·품질 특성별 설계·변경 절차는 `docs/ARCHITECTURE.md`. 사용자가 쓰는 명령 모음은 `docs/COMMANDS.md`.
 
-- `dev.py`: 작업 진입점 (`setup` · `check` · `build` · `sim`), 표준 라이브러리만.
+- `dev.py`: 작업 진입점 (`setup` · `check` · `build` · `sim` · `serve`), 표준 라이브러리만.
 - `sim/`: 시뮬레이터 A(중요도)·B(용어 정규화)·C(근거 문장) → `results/A·B·C.json`
   → `make_page_data.py`(+ `results/badge_eval.json` 기록값, `concepts.py`) → `results/page_data.json`
 - `web/`: `build_page.py`(+ `page_template.html`, `kit/*.py`, `sim/results/page_data.json`) → `dist/index.html`
-- `kit/`: 실제 쓰는 코드. 훅 설치기(`install_concept_hook.py`, 훅 본문은 `HOOK_TEMPLATE` 안의 `normalize()`가 어댑터), 노트북 첫 셀, 클릭 카드, 근거 수집, 검증 에이전트.
-- `tests/`: `check_env.py`(전체 점검), `test_hook.py`(훅 fixture), `check_page.js`·`check_setup.js`(jsdom).
+- `kit/`: 실제 쓰는 코드. 로컬 서버(`serve.py`, API 계약은 `docs/ARCHITECTURE.md`), 훅 설치기(`install_concept_hook.py`, 훅 본문은 `HOOK_TEMPLATE` 안의 `normalize()`가 어댑터), 노트북 첫 셀, 클릭 카드, 근거 수집, 검증 에이전트.
+- `tests/`: `check_env.py`(전체 점검), `test_hook.py`(훅 fixture), `test_serve.py`(서버), `check_page.js`·`check_setup.js`(jsdom).
 
 ## 규칙
 
@@ -30,20 +30,20 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - git에 올리지 않는 것: `~/.claude/concept-inbox.jsonl`, `*.sqlite` (개인 대화 데이터).
 - 훅은 아무것도 출력하지 않고 항상 0으로 끝나야 한다 (UserPromptSubmit의 stdout은 Claude 문맥에 들어간다).
 
-## 현재 상태 (2026-11-07)
+## 현재 상태 (2026-11-08)
 
-개발 PC: 다음 작업은 macOS(Apple Silicon)에서 한다. 세팅은 `SETUP.md` (macOS 명령 포함).
+개발 PC: macOS(Apple Silicon)·Windows 둘 다. 세팅은 `SETUP.md`.
 
 완료
 - 시뮬레이터 A·B·C, 결과 페이지, 입력 설정 시트(한 줄 설치), 클릭 카드·근거 수집·검증 에이전트
 - 추세 배지(두 비율 z-검정)·새 용어 계산을 `sim_A.py`에 복원, `make_page_data.py`로 페이지 데이터 재현
 - 훅 어댑터 정리(형식이 다르면 원문을 `raw`에 보존) + fixture 테스트, CI(Windows + Ubuntu)
 - 구조 정리(0.2.0): 결과 페이지 `web/` 분리, `dev.py`, `docs/ARCHITECTURE.md`, `CHANGELOG.md`, 형태소 분석기 지연 로딩
+- 로컬 서버 `serve`(0.3.0): 인박스 1초 이어 읽기 → SQLite → `/api/leaderboard`·`/api/concept/{id}`·`/api/events`(SSE)·`/api/status`, `localhost:8765`. 사용자 결정(11-08): 개념 = 명사+코드 용어(사전 없음), IDF 배경 = 내 세션
 - 사용자 흐름 데모 디자인(캔버스, 비공개): https://claude.ai/artifact/MrXdwFhQjyFokNCraw1Uz4
 
 다음 할 일 (합의된 순서)
-1. 로컬 서버 `serve`: 인박스를 1초마다 이어 읽기 → SQLite → `/api/leaderboard`, `/api/concept/{id}`, `/api/events`(SSE) → 브라우저 `localhost:8765`. 웹 디자인은 데이터를 `/api/...`에서 받게 짠다(데모 모드 = 정적 JSON).
-2. 웹 디자인 확정 (캔버스 기반)
+1. 웹 디자인 확정 (캔버스 기반). 데이터는 `/api/...`에서 받게 짜고(데모 모드 = 정적 JSON), `python dev.py serve --web <폴더>`로 띄운다.
 
 나중에 / 사용자 결정 필요
 - Gemini CLI·Codex CLI 입구(어댑터) 추가 — 범위 확장 포인트로만 둔 상태
@@ -51,6 +51,8 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - 사용자가 실제 데이터셋으로 모델 학습 실험을 할 계획 (용어 정규화 B·근거 문장 C 쪽이 적용 후보). 규칙은 `docs/TRAINING.md`를 따른다 (기준선 먼저, 개념 단위 분할, 시험 세트 고정, 기록만 커밋, 채택은 사용자 결정).
 
 ## 알려진 제약
+
+- serve 개념 추출은 띄어 쓴 복합어(`조기 종료`)를 두 개로 센다. 인박스를 같은 크기 이상의 다른 파일로 바꾸면 자동으로 감지하지 못한다 → `--rebuild`.
 
 - `badge_eval.json`은 다시 계산할 수 없는 기록값. `NEW_TERM_MIN_IDF = 3.6`은 저장 결과와 맞춰 찾은 값(3.56~3.66 구간).
 - 훅 fixture는 공식 문서 필드로 만든 예시이고 실제 캡처가 아니다. Claude Code 입력이 바뀌면 실제 입력을 케이스로 추가한다.

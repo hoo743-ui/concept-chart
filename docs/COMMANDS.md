@@ -90,6 +90,15 @@ code .                                 # VS Code
 claude                                 # Claude Code
 ```
 
+## 6-1. 내 대화로 개념 차트 보기 (로컬 서버)
+
+```bash
+conda activate concept-chart
+python3 dev.py serve                   # 브라우저에서 http://localhost:8765 (끝내기 Ctrl+C)
+python3 dev.py serve --once            # 서버 없이 순위만 터미널에 출력
+python3 dev.py serve --rebuild         # 색인을 지우고 인박스 처음부터 다시
+```
+
 ## 7. 고친 뒤 다시 만들기
 
 ```bash
