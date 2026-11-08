@@ -79,6 +79,15 @@ def main():
         ok("더 보기: 남은 기록", len(more["records"]) == 0 or more["records"][0] != card["records"][0])
         ok("카드 크기 2KB 이하", len(json.dumps(card, ensure_ascii=False).encode("utf-8")) <= 2048)
 
+        # 정의가 없을 때 내 대화 문장
+        line = card["chat_line"]
+        ok("정의가 없으면 개념으로 시작하는 내 대화 문장", line and line["text"] == "어텐션은 문맥을 본다.", str(line))
+        ok("코드에서만 나온 개념은 엉뚱한 문장을 안 보여 줌", serve.concept_card(con, "torch")["chat_line"] is None)
+        serve.save_note(con, serve.norm_key("어텐션"), "어텐션은 정의 문장이다.", [])
+        ok("정의가 있으면 대화 문장을 쓰지 않음", serve.concept_card(con, serve.norm_key("어텐션"))["chat_line"] is None)
+        con.execute("DELETE FROM notes")
+        con.commit()
+
         # 개념이 아닌 조각 빼기 (순위판에 cu·GB·https가 올라오던 문제)
         def terms(s):
             return {k for _, cs in serve.extract(s) for k in cs}

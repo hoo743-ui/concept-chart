@@ -386,6 +386,23 @@ def save_note(con, concept, definition, sources):
     con.commit()
 
 
+def chat_line(con, concept):
+    """정의를 못 찾았을 때 보여 줄 내 대화 속 문장. 개념 이름이 실제로 든 문장만 (코드에서만 나온 개념은 없음).
+    '개념 + 은/는/이란'으로 시작하는 설명 문장을 먼저, 그다음 최근 문장"""
+    forms = [re.sub(r"\s+", "", r[0]).lower() for r in con.execute("SELECT form FROM forms WHERE concept=?", (concept,))]
+    rows = con.execute("""SELECT m.ts, m.snippet, substr(qs.text, 1, ?) FROM mentions m LEFT JOIN questions qs ON qs.id = m.question
+                          WHERE m.concept=? ORDER BY m.ts DESC, m.rowid DESC LIMIT 20""", (QUESTION_MAX, concept)).fetchall()
+    best = None
+    for ts, snippet, question in rows:
+        flat = re.sub(r"\s+", "", snippet).lower()
+        if any(flat.startswith((f + "은", f + "는", f + "이란", f + "란")) for f in forms):
+            best = (ts, snippet, question)
+            break
+        if best is None and any(f in flat for f in forms):
+            best = (ts, snippet, question)
+    return {"ts": best[0], "text": one_line(best[1]), "question": best[2]} if best else None
+
+
 def concept_card(con, concept, cursor=None, k=3):
     """클릭 응답 (kit/concept_store.py와 같은 형식 + label): LLM 호출 없이. 근거 문장까지 채워지면 최대 약 4KB"""
     note = con.execute("SELECT definition, sources FROM notes WHERE concept=?", (concept,)).fetchone()
@@ -403,6 +420,7 @@ def concept_card(con, concept, cursor=None, k=3):
     return {"concept": concept, "label": label_of(con, concept),
             "summary": one_line(note[0]) if note else None,
             "definition": (note[0] or None) if note else None,
+            "chat_line": None if note and note[0] else chat_line(con, concept),
             "sources": json.loads(note[1]) if note and note[1] and note[1][:1] in "[{" else [],
             "related": [{"id": r[0], "label": label_of(con, r[0])} for r in related],
             "records": [{"ts": r[0], "role": r[1], "snippet": r[2], "question": r[4]} for r in rows],
@@ -424,7 +442,9 @@ async function card(){if(!cur)return;
  const c=await (await fetch('/api/concept/'+encodeURIComponent(cur))).json();
  const more=open?`<ol>${c.sources.map(s=>`<li style="cursor:auto">${esc(s.text)} <a href="${esc(s.url)}" target="_blank" rel="noopener">출처</a></li>`).join('')}</ol>
  <p>관련: ${c.related.map(r=>esc(r.label)).join(', ')||'-'}</p><ul>${c.records.map(r=>`<li style="cursor:auto"><small>${esc(r.ts.slice(0,16))}</small> ${r.question?`<b>내 질문:</b> ${esc(r.question)}<br>`:''}${esc(r.snippet)}</li>`).join('')}</ul>`:'';
- $('#card').innerHTML=`<h2>${esc(c.label)}</h2><p>${esc(c.summary||NOTE[c.note_status]||'')}</p>
+ const chat=!c.summary&&c.note_status!=='pending'&&c.chat_line;
+ const line=chat?`<small>내 대화에서 (출처 확인 전)</small><br>${esc(c.chat_line.text)}`:esc(c.summary||NOTE[c.note_status]||'');
+ $('#card').innerHTML=`<h2>${esc(c.label)}</h2><p>${line}</p>
  <button type="button" id="more" aria-expanded="${open}">${open?'접기':'더 알아보기'}</button>${more}`;}
 $('#lb').onclick=e=>{const li=e.target.closest('li');if(!li)return;cur=li.dataset.id;open=false;card();};
 $('#card').onclick=e=>{if(e.target.id==='more'){open=!open;card();}};
