@@ -73,7 +73,9 @@ SENT   = re.compile(r"(?<=[.!?。])\s+|\n+")
 STOP = set("""것 수 때 등 경우 부분 정도 이번 다음 하나 방법 내용 문제 결과 설명 확인 필요 기준 이유 상태 시간 처리 생각
 정리 진행 실행 추가 변경 수정 사용 위치 방식 단계 지금 아래 위 앞 뒤 전 후 중 안 밖 쪽 줄 개 번 거 게 데 뭐 이것 그것
 여기 거기 하나 두 세 모두 전체 각 기본 대부분 직접 바로 그대로 정상 가능 예 예시 참고 요청 답 질문 말 글 경우 이상 이하""".split())
-STOP_EN = {"the", "and", "for", "you", "this", "that", "with", "not", "are", "ok", "is", "it", "to", "of", "in", "on"}
+STOP_EN = {"the", "and", "for", "you", "this", "that", "with", "not", "are", "ok", "is", "it", "to", "of", "in", "on",
+           "kb", "mb", "gb", "tb", "ms", "mhz", "ghz", "px", "fps"}     # 뒤쪽: 단위
+STOP_LOWER = {"http", "https", "www"}   # 주소 조각. 소문자만 뺀다 (대문자 HTTP·HTTPS는 개념일 수 있음)
 
 _kiwi = None
 
@@ -90,10 +92,24 @@ def norm_key(s):
     return re.sub(r"[\s\-_/]+", "", s.lower())
 
 
+def number_fragment(t, toks, i):
+    """숫자에 붙어 잘린 영문 조각인지: 8GB의 GB, 2FA의 FA(숫자 바로 뒤), cu121의 cu, py3의 py(소문자 1~2글자 + 숫자).
+    GPT4의 GPT, Python3의 Python은 이름이라 남긴다."""
+    if t.tag != "SL":
+        return False
+    prev = toks[i - 1] if i else None
+    nxt = toks[i + 1] if i + 1 < len(toks) else None
+    if prev is not None and prev.tag == "SN" and prev.start + prev.len == t.start:
+        return True
+    return (nxt is not None and nxt.tag == "SN" and t.start + t.len == nxt.start
+            and len(t.form) <= 2 and t.form.islower())
+
+
 def noun_groups(s):
     """붙어 있는 명사(+명사 파생 접미사 XSN)는 한 덩어리로: 가중+치 → 가중치, 시각+화 → 시각화. 영문·한자는 그대로"""
     out, cur, end = [], "", -1
-    for t in get_kiwi().tokenize(s):
+    toks = get_kiwi().tokenize(s)
+    for i, t in enumerate(toks):
         glued = bool(cur) and t.start == end
         if t.tag in ("NNG", "NNP") or (t.tag == "XSN" and glued):
             if glued:
@@ -106,7 +122,7 @@ def noun_groups(s):
             if cur:
                 out.append(cur)
                 cur = ""
-            if t.tag in ("SL", "SH"):
+            if t.tag in ("SL", "SH") and not number_fragment(t, toks, i):
                 out.append(t.form)
         end = t.start + t.len
     if cur:
@@ -131,7 +147,7 @@ def extract(text):
             continue
         cs = {}
         for f in noun_groups(s):
-            if len(f) >= 2 and f not in STOP and f.lower() not in STOP_EN:
+            if len(f) >= 2 and f not in STOP and f not in STOP_LOWER and f.lower() not in STOP_EN:
                 cs.setdefault(norm_key(f), f)
         if cs:
             out.append((s, cs))
@@ -157,7 +173,7 @@ CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, last_ts REAL);
 CREATE TABLE IF NOT EXISTS term_sess (concept TEXT, session TEXT, PRIMARY KEY (concept, session));
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT);
 """
-SCHEMA_VERSION = 2             # 색인 표 구조가 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
+SCHEMA_VERSION = 3             # 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
 DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta")   # notes(웹 근거)는 남긴다
 
 

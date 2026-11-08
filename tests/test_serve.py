@@ -79,6 +79,14 @@ def main():
         ok("더 보기: 남은 기록", len(more["records"]) == 0 or more["records"][0] != card["records"][0])
         ok("카드 크기 2KB 이하", len(json.dumps(card, ensure_ascii=False).encode("utf-8")) <= 2048)
 
+        # 개념이 아닌 조각 빼기 (순위판에 cu·GB·https가 올라오던 문제)
+        def terms(s):
+            return {k for _, cs in serve.extract(s) for k in cs}
+        got = terms("cu121로 받고 py3를 쓴다. 메모리는 8GB이고 16 GB도 된다. 주소는 https로 시작하고 www도 붙는다. 2FA를 켠다.")
+        ok("숫자 조각·단위·주소 조각은 개념이 아님", not ({"cu", "py", "gb", "https", "www", "fa"} & got), ", ".join(sorted(got)))
+        got = terms("GPT4와 Python3를 쓰고 HTTPS와 HTTP와 API와 GPU 메모리를 본다.")
+        ok("이름과 대문자 용어는 남음", {"gpt", "python", "https", "http", "api", "gpu", "메모리"} <= got, ", ".join(sorted(got)))
+
         # 질문: 분석하지 않고 원문 저장 → 뒤따르는 답변의 개념과 연결
         qinbox, qdb = tmp / "q.jsonl", tmp / "q.sqlite"
         long_q = "왜 이럴 때 " + "어떻게 " * 200
