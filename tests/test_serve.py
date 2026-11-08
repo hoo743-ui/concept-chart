@@ -4,8 +4,10 @@
     python tests/test_serve.py
 """
 import json
+import os
 import pathlib
 import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -76,6 +78,90 @@ def main():
         more = serve.concept_card(con, serve.norm_key("어텐션"), card["next_cursor"])
         ok("더 보기: 남은 기록", len(more["records"]) == 0 or more["records"][0] != card["records"][0])
         ok("카드 크기 2KB 이하", len(json.dumps(card, ensure_ascii=False).encode("utf-8")) <= 2048)
+
+        # 질문: 분석하지 않고 원문 저장 → 뒤따르는 답변의 개념과 연결
+        qinbox, qdb = tmp / "q.jsonl", tmp / "q.sqlite"
+        long_q = "왜 이럴 때 " + "어떻게 " * 200
+        qinbox.write_text(
+            rec("2026-11-08T09:00:00+09:00", "q1", "배포가 자꾸 실패하는데 왜 그래?", role="user")
+            + rec("2026-11-08T09:01:00+09:00", "q1", "컨테이너 로그를 보세요. 컨테이너 설정도 보세요.")
+            + rec("2026-11-08T09:02:00+09:00", "q2", "어텐션 답변")
+            + rec("2026-11-08T09:03:00+09:00", "q3", long_q, role="user")
+            + rec("2026-11-08T09:04:00+09:00", "q3", "가중치 답변"),
+            encoding="utf-8")
+        qc = serve.open_db(qdb)
+        ok("질문은 턴 수에 안 들어감", serve.ingest(qc, qinbox, ROLES) == 3)
+        ok("질문 원문 그대로 저장", qc.execute("SELECT text FROM questions ORDER BY id LIMIT 1").fetchone()[0] == "배포가 자꾸 실패하는데 왜 그래?")
+        ok("질문의 낱말은 개념이 아님", not qc.execute("SELECT 1 FROM freq WHERE concept=?", ("배포",)).fetchone())
+        cc = serve.concept_card(qc, serve.norm_key("컨테이너"))
+        ok("답변의 개념이 내 질문과 연결", cc["records"][0]["question"] == "배포가 자꾸 실패하는데 왜 그래?", str(cc["records"][0]["question"]))
+        ok("답변 하나에 개념 1행", len(cc["records"]) == 1, f"{len(cc['records'])}행")
+        ok("다른 세션의 질문과 섞이지 않음", serve.concept_card(qc, serve.norm_key("어텐션"))["records"][0]["question"] is None)
+        ok("카드의 긴 질문은 잘림 (원문은 DB에)",
+           len(serve.concept_card(qc, serve.norm_key("가중치"))["records"][0]["question"]) == serve.QUESTION_MAX
+           and qc.execute("SELECT MAX(length(text)) FROM questions").fetchone()[0] > serve.QUESTION_MAX)
+        qc.close()
+
+        # 예전 구조의 DB: 색인만 다시 만들고 정의는 남긴다
+        odb = tmp / "old.sqlite"
+        oc = serve.sqlite3.connect(odb)
+        oc.executescript("""CREATE TABLE mentions (concept TEXT, ts TEXT, session TEXT, role TEXT, snippet TEXT);
+            INSERT INTO mentions VALUES ('a','t','s','assistant','x');
+            CREATE TABLE notes (concept TEXT PRIMARY KEY, definition TEXT, sources TEXT, updated TEXT);
+            INSERT INTO notes VALUES ('a','정의','[]','t');""")
+        oc.close()
+        oc = serve.open_db(odb)
+        ok("구조가 바뀌면 색인을 다시 만듦 (정의는 남김)",
+           oc.execute("SELECT COUNT(*) FROM mentions").fetchone()[0] == 0
+           and oc.execute("SELECT definition FROM notes").fetchone()[0] == "정의"
+           and "question" in [r[1] for r in oc.execute("PRAGMA table_info(mentions)")])
+        oc.close()
+        oc = serve.open_db(odb)
+        ok("같은 구조면 다시 열어도 유지", oc.execute("SELECT definition FROM notes").fetchone()[0] == "정의")
+        oc.execute("BEGIN IMMEDIATE")                            # 색인이 쓰는 중이라고 가정
+        oc.execute("INSERT INTO meta VALUES ('x','y')")
+        reader = serve.sqlite3.connect(odb, timeout=0.2)         # 잠금 대기를 짧게 해서 막히면 바로 실패
+        reader.close()
+        t0 = time.time()
+        try:
+            rc = serve.open_db(odb)
+            rc.execute("SELECT COUNT(*) FROM notes").fetchone()
+            rc.close()
+            ok("쓰는 중에도 DB를 열어 조회 가능", time.time() - t0 < 1, f"{time.time() - t0:.2f}초")
+        except serve.sqlite3.OperationalError as e:
+            ok("쓰는 중에도 DB를 열어 조회 가능", False, str(e))
+        oc.rollback()
+        oc.close()
+
+        # 서버 본체는 Kiwi를 불러오지 않고, 분석 프로세스는 쉬면 끝난다
+        winbox, wdb = tmp / "w.jsonl", tmp / "w.sqlite"
+        winbox.write_text("", encoding="utf-8")
+        probe = f"""
+import sys, threading, time
+sys.path.insert(0, {str(ROOT / 'kit')!r})
+import serve
+st = serve.State({str(wdb)!r}, {str(winbox)!r}, {{'assistant'}}, None)
+threading.Thread(target=serve.tail_loop, args=(st, 0.1, 1.0), daemon=True).start()
+time.sleep(0.5)
+print('idle_start', st.worker_starts)
+with open({str(winbox)!r}, 'a', encoding='utf-8') as f:
+    f.write({rec('2026-11-08T09:00:00+09:00', 'w1', '양자화 답변')!r})
+for _ in range(1200):
+    if st.version: break
+    time.sleep(0.1)
+print('version', st.version, 'starts', st.worker_starts)
+for _ in range(100):
+    if st.worker_closes: break
+    time.sleep(0.1)
+print('closes', st.worker_closes, 'kiwi', 'kiwipiepy' in sys.modules)
+st.stop.set()
+"""
+        pr = subprocess.run([sys.executable, "-c", probe], capture_output=True, timeout=180, env=dict(os.environ, PYTHONUTF8="1"))
+        out = pr.stdout.decode("utf-8", "replace")
+        ok("기록이 없으면 분석 프로세스를 띄우지 않음", "idle_start 0" in out, out.replace("\n", " / ") + pr.stderr.decode("utf-8", "replace")[-200:])
+        ok("새 기록이 오면 분석 프로세스가 색인", "version 1 starts 1" in out)
+        ok("쉬면 분석 프로세스가 끝남", "closes 1" in out)
+        ok("서버 본체는 Kiwi를 불러오지 않음", "kiwi False" in out)
 
         # 위키백과 응답 흉내: 동음이의 문서 제외, 띄어쓰기만 다른 제목 허용, 다른 제목 거부 (네트워크 없음)
         import fetch_sources as fs
@@ -197,7 +283,7 @@ def main():
             serve.reset(con)
             ok("--rebuild 해도 정의는 남음", con.execute("SELECT COUNT(*) FROM notes").fetchone()[0] >= 1)
             con.close()
-            for _ in range(50):                                  # 지운 색인을 서버가 처음부터 다시 읽을 때까지 기다림
+            for _ in range(600):                                 # 지운 색인을 서버가 처음부터 다시 읽을 때까지 기다림 (분석 프로세스 시작 포함)
                 _, s = get(port, "/api/status")
                 if s["turns"] >= 1:
                     break
@@ -215,7 +301,7 @@ def main():
             got = []
 
             def listen():
-                with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/events", timeout=10) as r:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/events", timeout=60) as r:
                     for line in r:
                         got.append(line.decode("utf-8").strip())
                         if len([g for g in got if g.startswith("event: update")]) >= 2:
@@ -225,7 +311,7 @@ def main():
             time.sleep(0.5)
             with open(inbox, "a", encoding="utf-8") as f:
                 f.write(rec("2026-11-08T11:00:00+09:00", "n2", "증류 모델 이야기."))
-            th.join(timeout=8)
+            th.join(timeout=60)
             ok("SSE: 연결 시 1번 + 새 기록 색인 후 1번 더", len([g for g in got if g.startswith("event: update")]) >= 2)
             code, d = get(port, "/api/leaderboard?k=10")
             ok("서버가 1초 주기로 이어 읽음", "증류" in [x["label"] for x in d["items"]])

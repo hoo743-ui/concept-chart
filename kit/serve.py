@@ -16,7 +16,8 @@
 
 - 개념 = Kiwi 명사(붙어 쓴 명사·접미사는 한 덩어리, 영문·한자 포함, 2글자 이상) + 코드 속 라이브러리·에러 이름.
   개념 사전은 쓰지 않는다. IDF 배경은 내 세션들(세션 1개 = 문서 1개).
-- 기본으로 AI 답변(assistant·subagent)만 센다 (--roles로 변경).
+- 기본으로 AI 답변(assistant·subagent)만 분석한다 (--roles로 변경). 질문은 분석하지 않고 원문을 저장해 뒤따르는 답변의 개념과 연결한다.
+- Kiwi는 자식 프로세스(--worker)에만 올리고, 10분간 새 기록이 없으면 끝낸다. 서버 본체는 Kiwi를 불러오지 않는다.
 - 127.0.0.1에만 열고 CORS 헤더를 붙이지 않는다 (다른 사이트가 내 대화 개념을 읽지 못하게).
 - 색인 DB는 인박스에서 언제든 다시 만들 수 있다. git에 올리지 않는다.
 """
@@ -28,6 +29,7 @@ import pathlib
 import queue
 import re
 import sqlite3
+import subprocess
 import sys
 import threading
 import time
@@ -52,6 +54,10 @@ NOTE_RETRY = 60                # 수집 실패 후 다시 시도하기까지 (�
 NOTE_LANGS = ("ko", "en")      # 한국어 위키백과에 근거가 없을 때만 영어
 DEFAULT_SEARX = "http://localhost:8888"   # python dev.py searx up
 SUMMARY_MAX = 90               # 화면 한 줄 길이 (글자)
+QUESTION_MAX = 200             # 카드에 보여 줄 질문 길이 (글자). 원문은 DB에 그대로 있다
+WORKER_IDLE = 600              # 새 답변이 이만큼(초) 없으면 분석 프로세스를 끝내 메모리를 돌려준다
+WORKER_BACKOFF = 30            # 분석 프로세스가 실패하면 다시 시도하기까지 (초)
+LB_TTL = 60                    # 새 기록이 없어도 순위를 다시 계산하는 주기 (초, 경과일 반영)
 
 # ---------------- 정제 (kit/loader_cell.py와 같은 규칙) ----------------
 FENCE  = re.compile(r"```[^\n]*\n(.*?)```", re.S)
@@ -139,8 +145,10 @@ def extract(text):
 # ---------------- 저장소 ----------------
 SCHEMA = """
 PRAGMA journal_mode=WAL;
-CREATE TABLE IF NOT EXISTS mentions (concept TEXT, ts TEXT, session TEXT, role TEXT, snippet TEXT);
+CREATE TABLE IF NOT EXISTS mentions (concept TEXT, ts TEXT, session TEXT, role TEXT, snippet TEXT, question INTEGER);
 CREATE INDEX IF NOT EXISTS ix_m ON mentions (concept, ts DESC);
+CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY, session TEXT, ts TEXT, text TEXT);
+CREATE INDEX IF NOT EXISTS ix_q ON questions (session, id);
 CREATE TABLE IF NOT EXISTS cooc (a TEXT, b TEXT, n INTEGER, PRIMARY KEY (a, b));
 CREATE TABLE IF NOT EXISTS freq (concept TEXT PRIMARY KEY, n INTEGER);
 CREATE TABLE IF NOT EXISTS notes (concept TEXT PRIMARY KEY, definition TEXT, sources TEXT, updated TEXT);
@@ -149,14 +157,21 @@ CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, last_ts REAL);
 CREATE TABLE IF NOT EXISTS term_sess (concept TEXT, session TEXT, PRIMARY KEY (concept, session));
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT);
 """
-DERIVED = ("mentions", "cooc", "freq", "forms", "sessions", "term_sess", "meta")   # notes(웹 근거)는 남긴다
+SCHEMA_VERSION = 2             # 색인 표 구조가 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
+DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta")   # notes(웹 근거)는 남긴다
 
 
 def open_db(path):
     p = pathlib.Path(path).expanduser()
     p.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(str(p), timeout=10, check_same_thread=False)
-    con.executescript(SCHEMA)
+    if con.execute("PRAGMA user_version").fetchone()[0] != SCHEMA_VERSION:   # 같으면 쓰지 않는다: 색인이 쓰는 동안 조회가 막히지 않게
+        for t in DERIVED:
+            con.execute(f"DROP TABLE IF EXISTS {t}")
+        con.commit()
+        con.executescript(SCHEMA)
+        con.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
+        con.commit()
     return con
 
 
@@ -186,18 +201,24 @@ def parse_ts(ts):
 
 
 def index_record(con, r, roles):
-    if r.get("role") not in roles or not r.get("text"):
+    if not r.get("text"):
         return False
     t = parse_ts(r.get("ts")) or time.time()
     ts = datetime.fromtimestamp(t, timezone.utc).isoformat()
     sess = r.get("session_id") or "day:" + ts[:10]
+    if r.get("role") == "user":                           # 질문은 분석하지 않고 원문 그대로 저장 → 뒤따르는 답변의 개념과 연결
+        con.execute("INSERT INTO questions (session, ts, text) VALUES (?,?,?)", (sess, ts, r["text"]))
+    if r.get("role") not in roles:
+        return False
     sc = extract(r["text"])
     if not sc:
         return False
+    q = con.execute("SELECT MAX(id) FROM questions WHERE session=?", (sess,)).fetchone()[0]
     seen = set()
     for s, cs in sc:
         for k, form in cs.items():
-            con.execute("INSERT INTO mentions VALUES (?,?,?,?,?)", (k, ts, sess, r["role"], s[:SNIPPET]))
+            if k not in seen:                             # 답변 하나에 개념 1행 (처음 나온 문장만). 순위는 freq·term_sess로 계산해 영향 없음
+                con.execute("INSERT INTO mentions VALUES (?,?,?,?,?,?)", (k, ts, sess, r["role"], s[:SNIPPET], q))
             con.execute("INSERT INTO forms VALUES (?,?,1) ON CONFLICT(concept, form) DO UPDATE SET n=n+1", (k, form))
         seen |= set(cs)
     con.execute("INSERT INTO sessions VALUES (?,?) ON CONFLICT(id) DO UPDATE SET last_ts=max(last_ts, excluded.last_ts)",
@@ -339,19 +360,20 @@ def concept_card(con, concept, cursor=None, k=3):
     related = con.execute(
         """SELECT b, c.n * 1.0 / ((SELECT n FROM freq WHERE concept=?) * (SELECT n FROM freq WHERE concept=b)) AS s
            FROM cooc c WHERE a=? ORDER BY s DESC, c.n DESC, b LIMIT ?""", (concept, concept, k)).fetchall()
-    q = "SELECT ts, role, snippet, rowid FROM mentions WHERE concept=?"
-    args = [concept]
+    q = """SELECT m.ts, m.role, m.snippet, m.rowid, substr(qs.text, 1, ?) FROM mentions m
+           LEFT JOIN questions qs ON qs.id = m.question WHERE m.concept=?"""
+    args = [QUESTION_MAX, concept]
     if cursor:
         ts, rid = cursor.rsplit("|", 1)
-        q += " AND (ts < ? OR (ts = ? AND rowid < ?))"
+        q += " AND (m.ts < ? OR (m.ts = ? AND m.rowid < ?))"
         args += [ts, ts, int(rid)]
-    rows = con.execute(q + " ORDER BY ts DESC, rowid DESC LIMIT ?", args + [k]).fetchall()
+    rows = con.execute(q + " ORDER BY m.ts DESC, m.rowid DESC LIMIT ?", args + [k]).fetchall()
     return {"concept": concept, "label": label_of(con, concept),
             "summary": one_line(note[0]) if note else None,
             "definition": (note[0] or None) if note else None,
             "sources": json.loads(note[1]) if note and note[1] and note[1][:1] in "[{" else [],
             "related": [{"id": r[0], "label": label_of(con, r[0])} for r in related],
-            "records": [{"ts": r[0], "role": r[1], "snippet": r[2]} for r in rows],
+            "records": [{"ts": r[0], "role": r[1], "snippet": r[2], "question": r[4]} for r in rows],
             "next_cursor": "%s|%d" % (rows[-1][0], rows[-1][3]) if len(rows) == k else None}
 
 
@@ -369,7 +391,7 @@ let cur=null,open=false;const NOTE={pending:'정의를 찾는 중이에요…',n
 async function card(){if(!cur)return;
  const c=await (await fetch('/api/concept/'+encodeURIComponent(cur))).json();
  const more=open?`<ol>${c.sources.map(s=>`<li style="cursor:auto">${esc(s.text)} <a href="${esc(s.url)}" target="_blank" rel="noopener">출처</a></li>`).join('')}</ol>
- <p>관련: ${c.related.map(r=>esc(r.label)).join(', ')||'-'}</p><ul>${c.records.map(r=>`<li style="cursor:auto"><small>${esc(r.ts.slice(0,16))}</small> ${esc(r.snippet)}</li>`).join('')}</ul>`:'';
+ <p>관련: ${c.related.map(r=>esc(r.label)).join(', ')||'-'}</p><ul>${c.records.map(r=>`<li style="cursor:auto"><small>${esc(r.ts.slice(0,16))}</small> ${r.question?`<b>내 질문:</b> ${esc(r.question)}<br>`:''}${esc(r.snippet)}</li>`).join('')}</ul>`:'';
  $('#card').innerHTML=`<h2>${esc(c.label)}</h2><p>${esc(c.summary||NOTE[c.note_status]||'')}</p>
  <button type="button" id="more" aria-expanded="${open}">${open?'접기':'더 알아보기'}</button>${more}`;}
 $('#lb').onclick=e=>{const li=e.target.closest('li');if(!li)return;cur=li.dataset.id;open=false;card();};
@@ -388,6 +410,20 @@ class State:
         self.note_lock = threading.Lock()
         self.note_pending = set()
         self.note_failed = {}      # 개념 → 실패 시각 (NOTE_RETRY 동안 다시 시도하지 않음)
+        self.worker_starts = self.worker_closes = 0
+        self.lb_cache = {}         # k → (version, 계산 시각, 결과)
+        self.lb_lock = threading.Lock()
+
+    def cached_leaderboard(self, con, k):
+        """순위는 기록이 많으면 수백 ms 걸린다. 새 기록이 있거나 LB_TTL이 지났을 때만 다시 계산한다"""
+        with self.lb_lock:
+            hit = self.lb_cache.get(k)
+            if hit and hit[0] == self.version and time.time() - hit[1] < LB_TTL:
+                return hit[2]
+            v = self.version
+            out = leaderboard(con, k=k)
+            self.lb_cache[k] = (v, time.time(), out)
+            return out
 
     def bump(self):
         with self.cond:
@@ -449,15 +485,95 @@ def note_loop(st, fetcher=None):
     con.close()
 
 
-def tail_loop(st, interval=1.0):
+def has_new_lines(con, inbox):
+    """분석 프로세스를 깨울 일이 있는지: 파일이 줄었거나, 읽은 위치 뒤에 완성된 줄이 있음 (Kiwi 없이 가볍게)"""
+    p = pathlib.Path(inbox).expanduser()
+    if not p.exists():
+        return False
+    size = p.stat().st_size
+    off = int(meta_get(con, "offset", 0))
+    if size < off:
+        return True
+    with open(p, "rb") as f:
+        f.seek(off)
+        while True:
+            chunk = f.read(65536)
+            if not chunk:
+                return False
+            if b"\n" in chunk:
+                return True
+
+
+class IndexWorker:
+    """Kiwi(약 550MB)는 이 자식 프로세스에만 올린다. 서버 본체는 가볍게 두고, 오래 쉬면 프로세스째 끝낸다."""
+
+    def __init__(self, st):
+        self.proc = subprocess.Popen(
+            [sys.executable, str(pathlib.Path(__file__).resolve()), "--worker", "--inbox", str(st.inbox),
+             "--db", str(st.db), "--roles", ",".join(sorted(st.roles))],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, encoding="utf-8")
+
+    def ingest(self):
+        self.proc.stdin.write("go\n")
+        self.proc.stdin.flush()
+        line = self.proc.stdout.readline().strip()        # 새 턴 수. 실패는 -1, 프로세스가 죽으면 빈 줄
+        if not line or int(line) < 0:
+            raise RuntimeError("분석 프로세스 실패")
+        return int(line)
+
+    def close(self):
+        try:
+            self.proc.stdin.close()
+            self.proc.wait(timeout=10)
+        except Exception:  # noqa: BLE001
+            self.proc.kill()
+            self.proc.wait()
+        self.proc.stdout.close()
+
+
+def worker_main(inbox, db, roles):
+    """--worker: 부모가 'go'를 보낼 때마다 이어 읽기. 부모가 끝나 stdin이 닫히면 같이 끝난다"""
+    con = open_db(db)
+    try:
+        for _ in sys.stdin:
+            try:
+                n = ingest(con, inbox, roles)
+            except Exception as e:  # noqa: BLE001
+                print(f"[경고] 색인 실패: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+                n = -1
+            print(n, flush=True)
+    except KeyboardInterrupt:
+        pass
+    con.close()
+
+
+def tail_loop(st, interval=1.0, idle=WORKER_IDLE):
     con = open_db(st.db)
+    worker, last_work, retry_at = None, 0.0, 0.0
     while not st.stop.is_set():
         try:
-            if ingest(con, st.inbox, st.roles):
-                st.bump()
+            now = time.time()
+            if now >= retry_at and has_new_lines(con, st.inbox):
+                if worker is None:
+                    worker = IndexWorker(st)
+                    st.worker_starts += 1
+                n = worker.ingest()
+                last_work = time.time()
+                if n:
+                    st.bump()
+            if worker is not None and time.time() - last_work >= idle:
+                worker.close()
+                worker = None
+                st.worker_closes += 1
         except Exception as e:  # noqa: BLE001 — 한 번 실패해도 서버는 계속 돈다
             print(f"[경고] 인박스 읽기 실패: {type(e).__name__}: {e}", flush=True)
+            retry_at = time.time() + WORKER_BACKOFF
+            if worker is not None:
+                worker.close()
+                worker = None
         st.stop.wait(interval)
+    if worker is not None:
+        worker.close()
     con.close()
 
 
@@ -469,12 +585,15 @@ def make_handler(st):
         def send(self, code, body, ctype="application/json; charset=utf-8"):
             b = body if isinstance(body, bytes) else (
                 body.encode("utf-8") if isinstance(body, str) else json.dumps(body, ensure_ascii=False).encode("utf-8"))
-            self.send_response(code)
-            self.send_header("Content-Type", ctype)
-            self.send_header("Content-Length", str(len(b)))
-            self.send_header("Cache-Control", "no-store")
-            self.end_headers()
-            self.wfile.write(b)
+            try:
+                self.send_response(code)
+                self.send_header("Content-Type", ctype)
+                self.send_header("Content-Length", str(len(b)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(b)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                pass                                      # 브라우저가 먼저 닫은 경우
 
         def do_GET(self):
             u = urllib.parse.urlparse(self.path)
@@ -486,7 +605,7 @@ def make_handler(st):
                 con = open_db(st.db)
                 try:
                     if path == "/api/leaderboard":
-                        return self.send(200, leaderboard(con, k=max(1, min(int(q.get("k", 10)), 100))))
+                        return self.send(200, st.cached_leaderboard(con, max(1, min(int(q.get("k", 10)), 100))))
                     if path.startswith("/api/concept/"):
                         cid = urllib.parse.unquote(path[len("/api/concept/"):])
                         if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
@@ -562,19 +681,23 @@ def main():
     ap.add_argument("--searx", default=DEFAULT_SEARX, help="위키백과에 없는 개념을 찾을 SearXNG 주소. 안 쓰려면 off")
     ap.add_argument("--once", action="store_true", help="한 번 색인하고 순위를 출력한 뒤 끝")
     ap.add_argument("--rebuild", action="store_true", help="색인을 지우고 처음부터 다시")
+    ap.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)   # 서버가 띄우는 분석 프로세스
     a = ap.parse_args()
     roles = {r.strip() for r in a.roles.split(",") if r.strip()}
+    if a.worker:
+        return worker_main(a.inbox, a.db, roles)
     con = open_db(a.db)
     if a.rebuild:
         reset(con)
-    t0 = time.time()
-    n = ingest(con, a.inbox, roles)
-    print(f"색인: 새 턴 {n}개 ({time.time() - t0:.1f}초) · 인박스 {pathlib.Path(a.inbox).expanduser()}", flush=True)
     if a.once:
+        t0 = time.time()
+        n = ingest(con, a.inbox, roles)
+        print(f"색인: 새 턴 {n}개 ({time.time() - t0:.1f}초) · 인박스 {pathlib.Path(a.inbox).expanduser()}", flush=True)
         for x in leaderboard(con)["items"]:
             print(f"{x['rank']:>2}. {x['label']}  {x['score']}  ({x['sessions']}세션) {x['badge']}")
         return
     con.close()
+    print(f"인박스 {pathlib.Path(a.inbox).expanduser()} 을 뒤에서 색인합니다", flush=True)
     st = State(a.db, a.inbox, roles, a.web)
     threading.Thread(target=tail_loop, args=(st,), daemon=True).start()
     searx = None if a.searx.lower() == "off" else a.searx

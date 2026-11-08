@@ -58,7 +58,7 @@
 | 경로 | 돌려주는 것 |
 |---|---|
 | `GET /api/leaderboard?k=10` | `{generated, n_sessions, n_concepts, items:[{rank, id, label, score, sessions, turns, badge, last_seen}]}` |
-| `GET /api/concept/{id}?cursor=` | `{concept, label, summary, definition, sources:[{text, url}], note_status, related:[{id, label}], records:[{ts, role, snippet}] ×3, next_cursor}` · 없으면 404 |
+| `GET /api/concept/{id}?cursor=` | `{concept, label, summary, definition, sources:[{text, url}], note_status, related:[{id, label}], records:[{ts, role, snippet, question}] ×3, next_cursor}` · 없으면 404. `question` = 그 답변을 끌어낸 내 질문(최대 200자), 없으면 null |
 | `GET /api/events` | SSE. 연결할 때 1번, 새 턴을 색인하거나 정의 수집이 끝날 때마다 `event: update` / `data: {"version": n}`. 15초마다 `: ping` |
 | `GET /api/status` | `{inbox, offset, turns, sessions, version}` |
 | `GET /` | `--web` 폴더의 파일, 없으면 내장 간이 화면 |
@@ -69,7 +69,10 @@
 - 배지: 최근 14일 vs 그 전 28일 세션 비율 z-검정 (`sim_A.py`와 같은 기준 1.64, 최소 2세션).
 - 정의(`note_status`: `ready`·`none`·`pending`·`failed`): 카드를 열 때 정의가 없으면 응답은 바로 주고, 일꾼 스레드 1개가 뒤에서 `kit/fetch_sources.py`로 위키백과(한국어 → 영어) → SearXNG(`kit/searxng/`, `python dev.py searx up`, `--searx off`로 끔) 순서로 찾아 `notes`에 저장한 뒤 `update`를 보낸다. 출처 문장을 그대로 쓰고 LLM은 쓰지 않는다. 밖으로 나가는 건 개념 이름뿐. 30일 유효. 동음이의 안내 문서와 이름이 다른 위키백과 문서, `http(s)`가 아닌 링크는 받지 않는다. 실패(SearXNG 꺼짐 포함)는 저장하지 않고 60초 뒤 다시 시도, 429는 대기열 전체를 `Retry-After`(없으면 60초)만큼 쉰다.
 - 화면 표시: 기본은 `summary` 한 줄(`definition`에서 괄호 설명을 걷어 내고 최대 90자, 새 낱말을 만들지 않음). "더 알아보기"를 누르면 근거 문장·출처·관련 개념·내 기록을 펼친다.
-- 기본으로 `assistant`·`subagent` 글만 센다 (`--roles`). CORS 헤더는 붙이지 않는다 (다른 사이트가 읽지 못하게).
+- 기본으로 `assistant`·`subagent` 글만 분석한다 (`--roles`). CORS 헤더는 붙이지 않는다 (다른 사이트가 읽지 못하게).
+- 질문(`user`): 형태소 분석·학습에 넣지 않고 원문을 `questions(id, session, ts, text)`에 저장한다. 답변의 `mentions.question`이 같은 세션의 가장 최근 질문을 가리킨다.
+- `mentions`는 답변 하나에 개념 1행(처음 나온 문장). 순위는 `freq`·`term_sess`로 계산하므로 영향 없다. 표 구조가 바뀌면 `SCHEMA_VERSION`을 올린다 → 색인을 지우고 다시 만든다(`notes`는 남김).
+- 메모리: Kiwi는 자식 프로세스(`--worker`)에만 올린다. 서버 본체는 1초마다 파일 크기만 보고, 완성된 새 줄이 있을 때 자식을 깨운다. 10분(`WORKER_IDLE`) 쉬면 자식을 끝내고, 다음 기록은 Kiwi 로딩 약 2.5초 뒤에 반영된다. 순위는 새 기록이 있거나 60초가 지났을 때만 다시 계산한다.
 - 점검: `tests/test_serve.py` (check_env에 포함).
 
 ## 3. 품질 특성별 설계 결정 (ISO/IEC 25010 8가지 특성 기준)
