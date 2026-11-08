@@ -60,6 +60,7 @@
 | `GET /api/leaderboard?k=10` | `{generated, n_sessions, n_concepts, items:[{rank, id, label, score, sessions, turns, badge, last_seen}]}` |
 | `GET /api/concept/{id}?cursor=` | `{concept, label, summary, definition, chat_line:{ts, text, question}, sources:[{text, url}], note_status, related:[{id, label}], records:[{ts, role, snippet, question}] ×3, next_cursor}` · 없으면 404. `question` = 그 답변을 끌어낸 내 질문(최대 200자), 없으면 null |
 | `GET /api/events` | SSE. 연결할 때 1번, 새 턴을 색인하거나 정의 수집이 끝날 때마다 `event: update` / `data: {"version": n}`. 15초마다 `: ping` |
+| `GET /api/projects` | `{default, items:[{path, name, sessions, last_seen}], no_project_sessions}` 최근에 쓴 폴더부터. `default` = `--project` |
 | `GET /api/status` | `{inbox, offset, turns, sessions, version}` |
 | `GET /` | `--web` 폴더의 파일, 없으면 내장 간이 화면 |
 
@@ -68,6 +69,7 @@
 - 점수 = 제안 C(안정성 균형, `sim/results/A.json`의 `balanced` = H 7일·β 0·γ 0·세션 단위)를 사전 없이 적용: `log1p(Σ 개념이 나온 세션의 2^(-경과일/7)) × (log((N+1)/(df+1))+1)`, N·df는 내 세션 기준.
 - 배지: 최근 14일 vs 그 전 28일 세션 비율 z-검정 (`sim_A.py`와 같은 기준 1.64, 최소 2세션).
 - 정의(`note_status`: `ready`·`none`·`pending`·`failed`): 카드를 열 때 정의가 없으면 응답은 바로 주고, 일꾼 스레드 1개가 뒤에서 `kit/fetch_sources.py`로 위키백과(한국어 → 영어) → SearXNG(`kit/searxng/`, `python dev.py searx up`, `--searx off`로 끔) 순서로 찾아 `notes`에 저장한 뒤 `update`를 보낸다. 출처 문장을 그대로 쓰고 LLM은 쓰지 않는다. 밖으로 나가는 건 개념 이름뿐. 30일 유효. 동음이의 안내 문서와 이름이 다른 위키백과 문서, `http(s)`가 아닌 링크는 받지 않는다. 실패(SearXNG 꺼짐 포함)는 저장하지 않고 60초 뒤 다시 시도, 429는 대기열 전체를 `Retry-After`(없으면 60초)만큼 쉰다.
+- 폴더: 인박스의 `project`(훅이 기록하는 `cwd`)를 `sessions.project`에 저장한다. 세션 하나 = 폴더 하나(처음 기록된 값). `/api/leaderboard`·`/api/concept/{id}`의 `?project=경로`는 그 폴더와 하위 폴더로 좁히고, 빈 값은 전체, 없으면 `--project` 값을 쓴다. 순위의 N·df·세션·턴 수와 카드의 내 기록·대화 문장이 좁혀진다. 정의와 관련 개념은 폴더와 무관하다. 폴더 정보가 없는 세션은 전체에서만 보인다.
 - 검색 결과 고르기(`fetch_sources.definition_sents`): "개념 + 은/는/이란"으로 시작하는 완결된 문장만 받는다(띄어쓰기 차이는 허용). 검색어는 내 대화에서 함께 나온 개념 2개 → 1개 → 이름만 순서로 넓히되, 어느 단계든 그 개념들이 하나도 없는 결과는 다른 뜻으로 보고 버린다. 맞는 문장이 없으면 `none`.
 - 색인은 줄마다 커밋한다. 쓰기 잠금을 짧게 쥐어 정의 저장·조회를 막지 않고, 도중에 끊겨도 이어서 읽는다.
 - 정의를 못 찾으면(`none`·`failed`) `chat_line`을 "내 대화에서 (출처 확인 전)"으로 구분해 보여 준다: 개념 이름이 실제로 든 AI 답변 문장 중 "개념 + 은/는/이란"으로 시작하는 문장, 없으면 최근 문장. 그런 문장도 없으면 `null`. 정의가 있으면 항상 `null`.

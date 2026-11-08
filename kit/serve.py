@@ -3,6 +3,7 @@
 
     python kit/serve.py                      # http://localhost:8765
     python kit/serve.py --port 8765 --inbox ~/.claude/concept-inbox.jsonl --db ~/.claude/concept-chart.sqlite
+    python kit/serve.py --project C:/work/app  # 이 폴더(하위 포함)의 대화만 먼저 보여 준다
     python kit/serve.py --once               # 인박스를 한 번만 읽어 색인하고 끝 (점검용)
     python kit/serve.py --rebuild            # 색인을 지우고 인박스 처음부터 다시
 
@@ -11,6 +12,7 @@
     GET /api/concept/{id}?cursor=  클릭 카드 (정의·출처·관련 개념 3개·기록 3개, LLM 없음).
                                    정의가 없으면 뒤에서 위키백과를 찾아 notes에 저장 (30일 유효)
     GET /api/events                새 기록을 색인하거나 정의를 저장하면 'update' 이벤트 (SSE)
+    GET /api/projects              기록된 작업 폴더 목록 (순위·카드는 ?project=경로 로 좁힌다, 빈 값 = 전체)
     GET /api/status                인박스 위치·읽은 위치·세션·턴 수
     GET /                          --web 폴더의 index.html, 없으면 내장 간이 화면
 
@@ -170,11 +172,11 @@ CREATE TABLE IF NOT EXISTS cooc (a TEXT, b TEXT, n INTEGER, PRIMARY KEY (a, b));
 CREATE TABLE IF NOT EXISTS freq (concept TEXT PRIMARY KEY, n INTEGER);
 CREATE TABLE IF NOT EXISTS notes (concept TEXT PRIMARY KEY, definition TEXT, sources TEXT, updated TEXT);
 CREATE TABLE IF NOT EXISTS forms (concept TEXT, form TEXT, n INTEGER, PRIMARY KEY (concept, form));
-CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, last_ts REAL);
+CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, last_ts REAL, project TEXT);
 CREATE TABLE IF NOT EXISTS term_sess (concept TEXT, session TEXT, PRIMARY KEY (concept, session));
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT);
 """
-SCHEMA_VERSION = 3             # 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
+SCHEMA_VERSION = 4            # 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
 DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta")   # notes(웹 근거)는 남긴다
 
 
@@ -239,8 +241,9 @@ def index_record(con, r, roles):
                 con.execute("INSERT INTO mentions VALUES (?,?,?,?,?,?)", (k, ts, sess, r["role"], s[:SNIPPET], q))
             con.execute("INSERT INTO forms VALUES (?,?,1) ON CONFLICT(concept, form) DO UPDATE SET n=n+1", (k, form))
         seen |= set(cs)
-    con.execute("INSERT INTO sessions VALUES (?,?) ON CONFLICT(id) DO UPDATE SET last_ts=max(last_ts, excluded.last_ts)",
-                (sess, t))
+    con.execute("""INSERT INTO sessions VALUES (?,?,?) ON CONFLICT(id) DO UPDATE
+                   SET last_ts=max(last_ts, excluded.last_ts), project=COALESCE(project, excluded.project)""",
+                (sess, t, norm_project(r.get("project"))))
     for c in seen:
         con.execute("INSERT INTO freq VALUES (?,1) ON CONFLICT(concept) DO UPDATE SET n=n+1", (c,))
         con.execute("INSERT OR IGNORE INTO term_sess VALUES (?,?)", (c, sess))
@@ -302,17 +305,51 @@ def two_prop_z(x1, n1, x0, n0):
     return (x1 / n1 - x0 / n0) / math.sqrt(p * (1 - p) * (1 / n1 + 1 / n0))
 
 
-def leaderboard(con, k=10, now=None):
-    """점수 = log1p(Σ 개념이 나온 세션의 2^(-경과일/7)) × (log((N+1)/(df+1)) + 1)"""
+def norm_project(p):
+    """폴더 경로 비교용 표기: 슬래시 통일, 끝 슬래시 제거, 드라이브 대문자 (C:\\work\\app\\ = c:/work/app). 없으면 None"""
+    if not p:
+        return None
+    s = str(p).strip().replace("\\", "/").rstrip("/")
+    if re.match(r"^[a-z]:", s):
+        s = s[0].upper() + s[1:]
+    return s or None
+
+
+def project_clause(project, column="project"):
+    """그 폴더와 하위 폴더만 (app은 app/sub를 포함하고 app2는 포함하지 않는다) → (SQL 조건, 인자). 전체면 ("1=1", [])"""
+    if not project:
+        return "1=1", []
+    return f"({column}=? OR substr({column},1,?)=?)", [project, len(project) + 1, project + "/"]
+
+
+def in_project(project, column="m.session"):
+    where, args = project_clause(project)
+    return f"{column} IN (SELECT id FROM sessions WHERE {where})", args
+
+
+def projects(con):
+    """화면의 폴더 고르기: 최근에 쓴 폴더부터. 폴더 정보가 없는 세션(예전 기록 등)은 '전체'에서만 보인다"""
+    rows = con.execute("""SELECT project, COUNT(*), MAX(last_ts) FROM sessions WHERE project IS NOT NULL
+                          GROUP BY project ORDER BY MAX(last_ts) DESC, project""").fetchall()
+    unknown = con.execute("SELECT COUNT(*) FROM sessions WHERE project IS NULL").fetchone()[0]
+    return {"items": [{"path": p, "name": p.rsplit("/", 1)[-1] or p, "sessions": n,
+                       "last_seen": datetime.fromtimestamp(t, timezone.utc).isoformat()} for p, n, t in rows],
+            "no_project_sessions": unknown}
+
+
+def leaderboard(con, k=10, now=None, project=None):
+    """점수 = log1p(Σ 개념이 나온 세션의 2^(-경과일/7)) × (log((N+1)/(df+1)) + 1). project를 주면 N·df도 그 폴더의 세션만으로 계산"""
     now = time.time() if now is None else now
-    sess = dict(con.execute("SELECT id, last_ts FROM sessions"))
+    where, wargs = project_clause(project)
+    sess = dict(con.execute(f"SELECT id, last_ts FROM sessions WHERE {where}", wargs))
     N = len(sess)
     age = {s: max(0.0, (now - t) / 86400) for s, t in sess.items()}
     rec = [s for s, a in age.items() if a < 14]
     pri = [s for s, a in age.items() if 14 <= a < 42]
     by = {}
     for c, s in con.execute("SELECT concept, session FROM term_sess"):
-        by.setdefault(c, []).append(s)
+        if s in sess:
+            by.setdefault(c, []).append(s)
     items = []
     for c, ss in by.items():
         dsf = sum(2.0 ** (-age[s] / HALF_LIFE_DAYS) for s in ss if s in age)
@@ -325,11 +362,15 @@ def leaderboard(con, k=10, now=None):
     items.sort(key=lambda x: (-x[0], x[1]))
     out = []
     for i, (score, c, nsess, badge, last) in enumerate(items[:k], 1):
-        m = con.execute("SELECT n FROM freq WHERE concept=?", (c,)).fetchone()
+        if project:
+            clause, cargs = in_project(project, "session")
+            m = con.execute(f"SELECT COUNT(*) FROM mentions WHERE concept=? AND {clause}", [c] + cargs).fetchone()
+        else:
+            m = con.execute("SELECT n FROM freq WHERE concept=?", (c,)).fetchone()
         out.append({"rank": i, "id": c, "label": label_of(con, c), "score": round(score, 4), "sessions": nsess,
                     "turns": m[0] if m else 0, "badge": badge,
                     "last_seen": datetime.fromtimestamp(last, timezone.utc).isoformat()})
-    return {"generated": datetime.fromtimestamp(now, timezone.utc).isoformat(), "n_sessions": N,
+    return {"generated": datetime.fromtimestamp(now, timezone.utc).isoformat(), "project": project, "n_sessions": N,
             "n_concepts": len(by), "items": out}
 
 
@@ -386,12 +427,14 @@ def save_note(con, concept, definition, sources):
     con.commit()
 
 
-def chat_line(con, concept):
+def chat_line(con, concept, project=None):
     """정의를 못 찾았을 때 보여 줄 내 대화 속 문장. 개념 이름이 실제로 든 문장만 (코드에서만 나온 개념은 없음).
     '개념 + 은/는/이란'으로 시작하는 설명 문장을 먼저, 그다음 최근 문장"""
     forms = [re.sub(r"\s+", "", r[0]).lower() for r in con.execute("SELECT form FROM forms WHERE concept=?", (concept,))]
-    rows = con.execute("""SELECT m.ts, m.snippet, substr(qs.text, 1, ?) FROM mentions m LEFT JOIN questions qs ON qs.id = m.question
-                          WHERE m.concept=? ORDER BY m.ts DESC, m.rowid DESC LIMIT 20""", (QUESTION_MAX, concept)).fetchall()
+    clause, cargs = in_project(project)
+    rows = con.execute(f"""SELECT m.ts, m.snippet, substr(qs.text, 1, ?) FROM mentions m LEFT JOIN questions qs ON qs.id = m.question
+                           WHERE m.concept=? AND {clause} ORDER BY m.ts DESC, m.rowid DESC LIMIT 20""",
+                       [QUESTION_MAX, concept] + cargs).fetchall()
     best = None
     for ts, snippet, question in rows:
         flat = re.sub(r"\s+", "", snippet).lower()
@@ -403,15 +446,17 @@ def chat_line(con, concept):
     return {"ts": best[0], "text": one_line(best[1]), "question": best[2]} if best else None
 
 
-def concept_card(con, concept, cursor=None, k=3):
-    """클릭 응답 (kit/concept_store.py와 같은 형식 + label): LLM 호출 없이. 근거 문장까지 채워지면 최대 약 4KB"""
+def concept_card(con, concept, cursor=None, k=3, project=None):
+    """클릭 응답 (kit/concept_store.py와 같은 형식 + label): LLM 호출 없이. 근거 문장까지 채워지면 최대 약 4KB.
+    project를 주면 내 기록·대화 문장만 그 폴더로 좁힌다 (정의와 관련 개념은 폴더와 무관)"""
     note = con.execute("SELECT definition, sources FROM notes WHERE concept=?", (concept,)).fetchone()
     related = con.execute(
         """SELECT b, c.n * 1.0 / ((SELECT n FROM freq WHERE concept=?) * (SELECT n FROM freq WHERE concept=b)) AS s
            FROM cooc c WHERE a=? ORDER BY s DESC, c.n DESC, b LIMIT ?""", (concept, concept, k)).fetchall()
-    q = """SELECT m.ts, m.role, m.snippet, m.rowid, substr(qs.text, 1, ?) FROM mentions m
-           LEFT JOIN questions qs ON qs.id = m.question WHERE m.concept=?"""
-    args = [QUESTION_MAX, concept]
+    clause, cargs = in_project(project)
+    q = f"""SELECT m.ts, m.role, m.snippet, m.rowid, substr(qs.text, 1, ?) FROM mentions m
+            LEFT JOIN questions qs ON qs.id = m.question WHERE m.concept=? AND {clause}"""
+    args = [QUESTION_MAX, concept] + cargs
     if cursor:
         ts, rid = cursor.rsplit("|", 1)
         q += " AND (m.ts < ? OR (m.ts = ? AND m.rowid < ?))"
@@ -420,7 +465,7 @@ def concept_card(con, concept, cursor=None, k=3):
     return {"concept": concept, "label": label_of(con, concept),
             "summary": one_line(note[0]) if note else None,
             "definition": (note[0] or None) if note else None,
-            "chat_line": None if note and note[0] else chat_line(con, concept),
+            "chat_line": None if note and note[0] else chat_line(con, concept, project),
             "sources": json.loads(note[1]) if note and note[1] and note[1][:1] in "[{" else [],
             "related": [{"id": r[0], "label": label_of(con, r[0])} for r in related],
             "records": [{"ts": r[0], "role": r[1], "snippet": r[2], "question": r[4]} for r in rows],
@@ -431,15 +476,24 @@ def concept_card(con, concept, cursor=None, k=3):
 PAGE = """<!doctype html><meta charset="utf-8"><title>개념 차트</title>
 <style>body{font:15px/1.5 system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem}
 li{cursor:pointer;margin:.3rem 0}small{color:#777}#card{border-top:1px solid #ddd;margin-top:1rem;padding-top:.5rem}</style>
-<h1>개념 차트 <small id="st"></small></h1><ol id="lb"></ol><div id="card"></div>
+<h1>개념 차트 <small id="st"></small></h1>
+<p id="pjbox" hidden><label>폴더 <select id="pj"></select></label></p><ol id="lb"></ol><div id="card"></div>
 <script>
 const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-async function lb(){const d=await (await fetch('/api/leaderboard?k=10')).json();
+let pj,pjHtml='';const pq=()=>pj===undefined?'':'project='+encodeURIComponent(pj);
+async function projects(){const d=await (await fetch('/api/projects')).json();
+ if(pj===undefined)pj=d.default||'';
+ const items=d.items.slice();if(pj&&!items.some(x=>x.path===pj))items.unshift({path:pj,name:pj.split('/').pop(),sessions:0});
+ const html=`<option value="">전체 폴더</option>`+items.map(x=>`<option value="${esc(x.path)}" title="${esc(x.path)}">${esc(x.name)} (${x.sessions}세션) — ${esc(x.path)}</option>`).join('');
+ if(html!==pjHtml){pjHtml=html;$('#pj').innerHTML=html;}
+ $('#pj').value=pj;$('#pjbox').hidden=!items.length;}
+$('#pj').onchange=e=>{pj=e.target.value;cur=null;open=false;$('#card').innerHTML='';lb();};
+async function lb(){const d=await (await fetch('/api/leaderboard?k=10&'+pq())).json();
  $('#st').textContent=`세션 ${d.n_sessions} · 개념 ${d.n_concepts}`;
  $('#lb').innerHTML=d.items.map(x=>`<li data-id="${esc(x.id)}"><b>${esc(x.label)}</b> ${x.badge=='up'?'▲':x.badge=='down'?'▼':''} <small>${x.score} · ${x.sessions}세션</small></li>`).join('')||'<small>아직 기록이 없어요. Claude Code를 쓰면 여기에 쌓여요.</small>';}
 let cur=null,open=false;const NOTE={pending:'정의를 찾는 중이에요…',none:'위키백과와 검색에서 근거를 찾지 못했어요.',failed:'정의를 가져오지 못했어요. 인터넷이나 SearXNG(python dev.py searx up)를 확인해 주세요.'};
 async function card(){if(!cur)return;
- const c=await (await fetch('/api/concept/'+encodeURIComponent(cur))).json();
+ const c=await (await fetch('/api/concept/'+encodeURIComponent(cur)+'?'+pq())).json();
  const more=open?`<ol>${c.sources.map(s=>`<li style="cursor:auto">${esc(s.text)} <a href="${esc(s.url)}" target="_blank" rel="noopener">출처</a></li>`).join('')}</ol>
  <p>관련: ${c.related.map(r=>esc(r.label)).join(', ')||'-'}</p><ul>${c.records.map(r=>`<li style="cursor:auto"><small>${esc(r.ts.slice(0,16))}</small> ${r.question?`<b>내 질문:</b> ${esc(r.question)}<br>`:''}${esc(r.snippet)}</li>`).join('')}</ul>`:'';
  const chat=!c.summary&&c.note_status!=='pending'&&c.chat_line;
@@ -448,13 +502,14 @@ async function card(){if(!cur)return;
  <button type="button" id="more" aria-expanded="${open}">${open?'접기':'더 알아보기'}</button>${more}`;}
 $('#lb').onclick=e=>{const li=e.target.closest('li');if(!li)return;cur=li.dataset.id;open=false;card();};
 $('#card').onclick=e=>{if(e.target.id==='more'){open=!open;card();}};
-lb(); new EventSource('/api/events').addEventListener('update',()=>{lb();card();});
+projects().then(lb); new EventSource('/api/events').addEventListener('update',()=>{projects();lb();card();});
 </script>"""
 
 
 class State:
-    def __init__(self, db, inbox, roles, web):
+    def __init__(self, db, inbox, roles, web, project=None):
         self.db, self.inbox, self.roles, self.web = db, inbox, roles, web
+        self.project = norm_project(project)   # --project: 화면이 처음 보여 줄 폴더
         self.version = 0
         self.cond = threading.Condition()
         self.stop = threading.Event()
@@ -464,18 +519,22 @@ class State:
         self.note_failed = {}      # 개념 → 실패 시각 (NOTE_RETRY 동안 다시 시도하지 않음)
         self.note_error = None     # 마지막 수집 오류 (진단용)
         self.worker_starts = self.worker_closes = 0
-        self.lb_cache = {}         # k → (version, 계산 시각, 결과)
+        self.lb_cache = {}         # (k, 폴더) → (version, 계산 시각, 결과)
         self.lb_lock = threading.Lock()
 
-    def cached_leaderboard(self, con, k):
+    def pick_project(self, q):
+        """요청의 폴더: project=경로, project=(빈 값)은 전체, 없으면 서버 기본값(--project)"""
+        return norm_project(q["project"]) if "project" in q else self.project
+
+    def cached_leaderboard(self, con, k, project=None):
         """순위는 기록이 많으면 수백 ms 걸린다. 새 기록이 있거나 LB_TTL이 지났을 때만 다시 계산한다"""
         with self.lb_lock:
-            hit = self.lb_cache.get(k)
+            hit = self.lb_cache.get((k, project))
             if hit and hit[0] == self.version and time.time() - hit[1] < LB_TTL:
                 return hit[2]
             v = self.version
-            out = leaderboard(con, k=k)
-            self.lb_cache[k] = (v, time.time(), out)
+            out = leaderboard(con, k=k, project=project)
+            self.lb_cache[(k, project)] = (v, time.time(), out)
             return out
 
     def bump(self):
@@ -506,11 +565,11 @@ def note_status(st, con, concept):
     return status
 
 
-def card_response(st, con, concept, cursor=None):
+def card_response(st, con, concept, cursor=None, project=None):
     """상태를 카드보다 먼저 읽는다. 반대로 읽으면 그 사이에 정의가 저장됐을 때 'ready'인데 정의가 빈 응답이 나간다.
     이 순서면 최악의 경우 'pending' + 정의가 나가고, 저장 뒤 update 이벤트로 다시 읽으므로 안전하다"""
     status = note_status(st, con, concept)
-    return dict(concept_card(con, concept, cursor), note_status=status)
+    return dict(concept_card(con, concept, cursor, project=project), note_status=status)
 
 
 def note_loop(st, fetcher=None):
@@ -522,6 +581,7 @@ def note_loop(st, fetcher=None):
             c = st.note_q.get(timeout=0.2)
         except queue.Empty:
             continue
+        pause = 0
         try:
             forms = [r[0] for r in con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form", (c,))]
             definition, sources = fetcher(forms[0] if forms else c, forms[1:], context_terms(con, c))
@@ -538,11 +598,12 @@ def note_loop(st, fetcher=None):
                     pause = int(e.headers.get("Retry-After", NOTE_RETRY))
                 except (TypeError, ValueError):
                     pause = NOTE_RETRY
-                st.stop.wait(pause)
         finally:
             with st.note_lock:
                 st.note_pending.discard(c)
             st.bump()
+        if pause:                                 # 화면에 결과를 먼저 알린 뒤에 쉰다
+            st.stop.wait(pause)
     con.close()
 
 
@@ -658,7 +719,7 @@ def make_handler(st):
 
         def do_GET(self):
             u = urllib.parse.urlparse(self.path)
-            q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
+            q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query, keep_blank_values=True).items()}
             path = u.path
             if path == "/api/events":
                 return self.events()
@@ -666,12 +727,14 @@ def make_handler(st):
                 con = open_db(st.db)
                 try:
                     if path == "/api/leaderboard":
-                        return self.send(200, st.cached_leaderboard(con, max(1, min(int(q.get("k", 10)), 100))))
+                        return self.send(200, st.cached_leaderboard(con, max(1, min(int(q.get("k", 10)), 100)), st.pick_project(q)))
+                    if path == "/api/projects":
+                        return self.send(200, dict(projects(con), default=st.project))
                     if path.startswith("/api/concept/"):
                         cid = urllib.parse.unquote(path[len("/api/concept/"):])
                         if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
                             return self.send(404, {"error": "없는 개념", "id": cid})
-                        return self.send(200, card_response(st, con, cid, q.get("cursor")))
+                        return self.send(200, card_response(st, con, cid, q.get("cursor"), st.pick_project(q)))
                     if path == "/api/status":
                         return self.send(200, {"inbox": str(pathlib.Path(st.inbox).expanduser()),
                                                "offset": int(meta_get(con, "offset", 0)),
@@ -739,6 +802,7 @@ def main():
     ap.add_argument("--roles", default="assistant,subagent", help="색인할 역할 (쉼표로)")
     ap.add_argument("--web", default=None, help="화면 폴더 (index.html). 없으면 내장 간이 화면")
     ap.add_argument("--searx", default=DEFAULT_SEARX, help="위키백과에 없는 개념을 찾을 SearXNG 주소. 안 쓰려면 off")
+    ap.add_argument("--project", default=None, help="이 폴더(하위 포함)의 대화만 보기. 화면에서 다른 폴더로 바꿀 수 있다")
     ap.add_argument("--once", action="store_true", help="한 번 색인하고 순위를 출력한 뒤 끝")
     ap.add_argument("--rebuild", action="store_true", help="색인을 지우고 처음부터 다시")
     ap.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)   # 서버가 띄우는 분석 프로세스
@@ -746,6 +810,7 @@ def main():
     roles = {r.strip() for r in a.roles.split(",") if r.strip()}
     if a.worker:
         return worker_main(a.inbox, a.db, roles)
+    project = norm_project(pathlib.Path(a.project).expanduser().resolve()) if a.project else None
     con = open_db(a.db)
     if a.rebuild:
         reset(con)
@@ -753,12 +818,20 @@ def main():
         t0 = time.time()
         n = ingest(con, a.inbox, roles)
         print(f"색인: 새 턴 {n}개 ({time.time() - t0:.1f}초) · 인박스 {pathlib.Path(a.inbox).expanduser()}", flush=True)
-        for x in leaderboard(con)["items"]:
+        board = leaderboard(con, project=project)
+        if project:
+            print(f"폴더 {project} · 세션 {board['n_sessions']}개", flush=True)
+            if not board["n_sessions"]:
+                known = [x["path"] for x in projects(con)["items"]]
+                print("이 폴더의 대화가 없습니다. 기록된 폴더: " + (", ".join(known) or "(없음)"), flush=True)
+        for x in board["items"]:
             print(f"{x['rank']:>2}. {x['label']}  {x['score']}  ({x['sessions']}세션) {x['badge']}")
         return
     con.close()
     print(f"인박스 {pathlib.Path(a.inbox).expanduser()} 을 뒤에서 색인합니다", flush=True)
-    st = State(a.db, a.inbox, roles, a.web)
+    st = State(a.db, a.inbox, roles, a.web, project)
+    if project:
+        print(f"폴더 {project} 의 대화를 먼저 보여 줍니다 (화면에서 바꿀 수 있음)", flush=True)
     threading.Thread(target=tail_loop, args=(st,), daemon=True).start()
     searx = None if a.searx.lower() == "off" else a.searx
     threading.Thread(target=note_loop, args=(st, lambda t, al=(), ctx=(): fetch_note(t, al, searx, ctx)), daemon=True).start()

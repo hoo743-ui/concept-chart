@@ -117,8 +117,8 @@ def main():
         real_card = serve.concept_card
         race_id = serve.norm_key("컨테이너")
 
-        def card_then_save(c, concept, cursor=None, k=3):
-            out = real_card(c, concept, cursor, k)
+        def card_then_save(c, concept, cursor=None, k=3, project=None):
+            out = real_card(c, concept, cursor, k, project)
             serve.save_note(c, concept, "컨테이너는 격리된 실행 환경이다.", [])
             return out
         serve.concept_card = card_then_save
@@ -165,6 +165,52 @@ def main():
             ok("쓰는 중에도 DB를 열어 조회 가능", False, str(e))
         oc.rollback()
         oc.close()
+
+        # 작업 폴더로 좁히기
+        def prec(ts, sess, text, project):
+            return json.dumps({"v": 1, "source": "claude-code", "ts": ts, "role": "assistant", "session_id": sess, "project": project,
+                               "text": text, "truncated": False}, ensure_ascii=False) + "\n"
+        pinbox, pdb = tmp / "p.jsonl", tmp / "p.sqlite"
+        pinbox.write_text(
+            prec("2026-11-07T09:00:00+09:00", "a1", "양자화는 값을 근사한다.", "C:\\work\\app")
+            + prec("2026-11-07T09:30:00+09:00", "a2", "어텐션은 문맥을 본다.", "c:/work/app/sub/")
+            + prec("2026-11-07T10:00:00+09:00", "b1", "컨테이너는 격리 환경이다. 양자화 이야기.", "C:/work/app2")
+            + rec("2026-11-07T11:00:00+09:00", "n1", "가중치는 학습된다."),      # 폴더 정보 없는 예전 기록
+            encoding="utf-8")
+        pc = serve.open_db(pdb)
+        serve.ingest(pc, pinbox, ROLES)
+        ok("경로 표기 통일 (역슬래시·드라이브·끝 슬래시)", serve.norm_project("c:\\work\\app\\") == "C:/work/app" and serve.norm_project("") is None)
+        ok("폴더 목록은 폴더 없는 세션을 따로 셈",
+           {x["path"] for x in serve.projects(pc)["items"]} == {"C:/work/app", "C:/work/app/sub", "C:/work/app2"} and serve.projects(pc)["no_project_sessions"] == 1)
+        board = serve.leaderboard(pc, now=NOW, project="C:/work/app")
+        got = {x["label"] for x in board["items"]}
+        ok("폴더 + 하위 폴더만, 이름이 비슷한 옆 폴더는 제외", board["n_sessions"] == 2 and {"양자화", "어텐션"} <= got and not ({"컨테이너", "가중치"} & got), ", ".join(sorted(got)))
+        ok("전체 순위는 그대로", serve.leaderboard(pc, now=NOW)["n_sessions"] == 4)
+        only = next(x for x in board["items"] if x["label"] == "양자화")
+        ok("세션·턴 수도 폴더 안에서만 셈", only["sessions"] == 1 and only["turns"] == 1, f"{only['sessions']}세션 {only['turns']}턴")
+        all_q = serve.concept_card(pc, serve.norm_key("양자화"))
+        app_q = serve.concept_card(pc, serve.norm_key("양자화"), project="C:/work/app")
+        ok("카드 기록도 폴더로 좁힘", len(all_q["records"]) == 2 and len(app_q["records"]) == 1 and app_q["chat_line"]["text"].startswith("양자화는"))
+        pc.close()
+        pst = serve.State(str(pdb), str(pinbox), ROLES, None, "C:\\work\\app")
+        psrv = serve.make_server(pst, port=0)
+        pport = psrv.server_address[1]
+        threading.Thread(target=psrv.serve_forever, daemon=True).start()
+        try:
+            _, d = get(pport, "/api/projects")
+            ok("GET /api/projects: 기본 폴더와 목록", d["default"] == "C:/work/app" and len(d["items"]) == 3)
+            _, d = get(pport, "/api/leaderboard")
+            ok("--project면 처음부터 그 폴더", d["project"] == "C:/work/app" and d["n_sessions"] == 2)
+            _, d = get(pport, "/api/leaderboard?project=")
+            ok("project= 빈 값은 전체", d["project"] is None and d["n_sessions"] == 4)
+            _, d = get(pport, "/api/leaderboard?project=" + urllib.request.quote("C:\\work\\app2"))
+            ok("다른 폴더로 바꾸기 (캐시가 섞이지 않음)", d["n_sessions"] == 1 and d["items"][0]["label"] in ("컨테이너", "양자화", "이야기", "환경", "격리"))
+            with urllib.request.urlopen(f"http://127.0.0.1:{pport}/", timeout=10) as r:
+                ok("내장 화면에 폴더 고르기", 'id="pj"' in r.read().decode("utf-8"))
+        finally:
+            pst.stop.set()
+            psrv.shutdown()
+            psrv.server_close()
 
         # 서버 본체는 Kiwi를 불러오지 않고, 분석 프로세스는 쉬면 끝난다
         winbox, wdb = tmp / "w.jsonl", tmp / "w.sqlite"

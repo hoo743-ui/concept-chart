@@ -134,6 +134,7 @@ python kit/install_concept_hook.py --test    # '결과: 정상'
 ```bash
 python dev.py serve          # http://localhost:8765 — 인박스를 1초마다 읽어 순위·클릭 카드를 보여 준다 (Ctrl+C로 끝)
 python dev.py serve --once   # 순위만 터미널에 출력
+python dev.py serve --project C:/work/app   # 이 폴더(하위 포함)의 대화만. 화면에서 다른 폴더로 바꿀 수 있고, --once와 함께 써도 된다
 ```
 
 색인 DB는 `~/.claude/concept-chart.sqlite` (git 제외, 인박스에서 다시 만들 수 있음).

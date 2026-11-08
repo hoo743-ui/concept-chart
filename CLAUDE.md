@@ -40,6 +40,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - 훅 어댑터 정리(형식이 다르면 원문을 `raw`에 보존) + fixture 테스트, CI(Windows + Ubuntu)
 - 구조 정리(0.2.0): 결과 페이지 `web/` 분리, `dev.py`, `docs/ARCHITECTURE.md`, `CHANGELOG.md`, 형태소 분석기 지연 로딩
 - 로컬 서버 `serve`(0.3.0): 인박스 1초 이어 읽기 → SQLite → `/api/leaderboard`·`/api/concept/{id}`·`/api/events`(SSE)·`/api/status`, `localhost:8765`. 사용자 결정(11-08): 개념 = 명사+코드 용어(사전 없음), IDF 배경 = 내 세션
+- serve 확장(0.3.1~0.3.6): 정의 수집(위키백과 → SearXNG, `kit/searxng/`), 화면은 한 줄 + "더 알아보기", 근거가 없으면 내 대화 문장, 질문 원문 저장·개념 연결(질문은 분석 안 함), 답변당 개념 1행, Kiwi 자식 프로세스 분리, 숫자·단위·주소 조각 제외, 작업 폴더별 보기(`--project`)
 - 사용자 흐름 데모 디자인(캔버스, 비공개): https://claude.ai/artifact/MrXdwFhQjyFokNCraw1Uz4
 
 다음 할 일 (합의된 순서)
