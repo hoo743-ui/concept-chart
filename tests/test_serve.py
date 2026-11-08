@@ -303,7 +303,8 @@ st.stop.set()
                     time.sleep(0.1)
                 return card
             d = wait_note(cid, "ready")
-            ok("수집 후 카드에 정의·출처가 채워짐", d["definition"].startswith("양자화는") and d["sources"][0]["url"].startswith("https://"), d["note_status"])
+            diag = f"상태={d['note_status']} 호출={note_calls} 실패={list(st.note_failed)} 대기={list(st.note_pending)} 오류={st.note_error} 정의={d['definition']}"
+            ok("수집 후 카드에 정의·출처가 채워짐", (d["definition"] or "").startswith("양자화는") and d["sources"] and d["sources"][0]["url"].startswith("https://"), diag)
             ok("카드에 한 줄 요약", d["summary"] == d["definition"], d["summary"])
             n_calls = len(note_calls)
             get(port, cid)

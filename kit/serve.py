@@ -462,6 +462,7 @@ class State:
         self.note_lock = threading.Lock()
         self.note_pending = set()
         self.note_failed = {}      # 개념 → 실패 시각 (NOTE_RETRY 동안 다시 시도하지 않음)
+        self.note_error = None     # 마지막 수집 오류 (진단용)
         self.worker_starts = self.worker_closes = 0
         self.lb_cache = {}         # k → (version, 계산 시각, 결과)
         self.lb_lock = threading.Lock()
@@ -522,6 +523,7 @@ def note_loop(st, fetcher=None):
                 st.note_failed.pop(c, None)
         except Exception as e:  # noqa: BLE001 — 네트워크가 끊겨도 서버는 계속 돈다. 저장하지 않으므로 나중에 다시 시도
             print(f"[경고] 정의 수집 실패: {type(e).__name__}: {e}", flush=True)
+            st.note_error = f"{type(e).__name__}: {e}"
             with st.note_lock:
                 st.note_failed[c] = time.time()
             if isinstance(e, urllib.error.HTTPError) and e.code == 429:   # 요청이 많다는 응답: 대기열 전체를 쉰다
