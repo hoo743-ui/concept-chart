@@ -355,7 +355,7 @@ device = "mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.i
 ## 6. 파이프라인에 붙이는 규칙 (구조를 깨지 않게)
 
 - 새 모델은 **기존 방식을 지우지 않고 비교 행으로 추가**한다 (기준선과 같은 지표 함수를 쓰는 실험 스크립트).
-- 실제 사용 경로(`kit/`)에 넣을 때는 같은 모양의 함수로 감싼다: B는 `same_concept(a, b) -> 확률`, C는 `definition_score(term, sentence) -> 점수`. `kit/`는 다른 폴더를 import하지 않는다는 규칙(`docs/ARCHITECTURE.md`)을 지킨다.
+- 실제 사용 경로에는 `docs/ARCHITECTURE.md`의 **모델 경계**를 통해서만 붙인다: B는 `kit/serve.py`의 `ModelSlot`(`--model 모듈:함수`, `canonical(표기) -> 개념 이름 또는 None`), 모델 코드는 `kit/` 밖. 고장 나면 규칙으로 계속되어야 하고, `tests/test_boundary.py`가 이를 강제한다. C용 자리는 아직 없으며 C 실험이 채택 후보가 될 때 같은 방식으로 만든다.
 - 무료·경량 원칙: 추론은 CPU 또는 Mac GPU에서 돈다. 크면 int8 양자화(ONNX)를 검토한다.
 - 바꿀 때마다 `python dev.py check` 통과 → 브랜치 → CI → main, `CHANGELOG.md`에 한 줄.
 

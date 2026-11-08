@@ -88,10 +88,35 @@ def main():
                 errs += check_record(json.loads(lines[0]), case["expect"])
             print(("[OK]   " if not errs else "[FAIL] ") + case["name"] + ("" if not errs else " — " + "; ".join(errs)))
             failed += bool(errs)
+        # 여러 세션이 동시에 끝나도 줄이 사라지거나 섞이지 않는다 (잠금 전 Windows에서 긴 답변 12개 중 평균 3줄이 사라졌다)
+        inbox = tmp / "concurrent.jsonl"
+        env = dict(os.environ, CONCEPT_INBOX=str(inbox))
+        total = 0
+        for _ in range(4):
+            procs = []
+            for i in range(10):
+                body = json.dumps({"hook_event_name": "Stop", "session_id": f"s{i}", "last_assistant_message": "나" * (8000 + i * 700)}, ensure_ascii=False).encode("utf-8")
+                p = subprocess.Popen([sys.executable, str(hook)], stdin=subprocess.PIPE, env=env)
+                p.stdin.write(body)
+                p.stdin.close()
+                procs.append(p)
+            for p in procs:
+                p.wait()
+            total += len(procs)
+        raw = [l for l in inbox.read_bytes().split(b"\n") if l.strip()]
+        bad = 0
+        for l in raw:
+            try:
+                json.loads(l)
+            except ValueError:
+                bad += 1
+        conc_ok = len(raw) == total and bad == 0
+        print(("[OK]   " if conc_ok else "[FAIL] ") + f"동시 실행: {total}번 → {len(raw)}줄, 깨진 줄 {bad}")
+        failed += not conc_ok
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print()
-    print(f"훅 어댑터 테스트: {len(cases) - failed}/{len(cases)} 통과")
+    print(f"훅 어댑터 테스트: {len(cases) + 1 - failed}/{len(cases) + 1} 통과")
     sys.exit(1 if failed else 0)
 
 

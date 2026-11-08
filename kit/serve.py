@@ -24,6 +24,9 @@
 - 색인 DB는 인박스에서 언제든 다시 만들 수 있다. git에 올리지 않는다.
 """
 import argparse
+import hashlib
+import importlib
+import importlib.util
 import json
 import math
 import os
@@ -38,6 +41,7 @@ import time
 import urllib.error
 import urllib.parse
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -50,6 +54,7 @@ DEFAULT_INBOX = os.environ.get("CONCEPT_INBOX") or "~/.claude/concept-inbox.json
 DEFAULT_DB = "~/.claude/concept-chart.sqlite"
 HALF_LIFE_DAYS = 7.0           # 제안 C(안정성 균형): H=7, β=0, γ=0, 단위=세션
 BADGE_Z, BADGE_MIN_SESS = 1.64, 2
+WEEKS = 8                      # 순위 표의 주별 막대 개수
 SNIPPET = 160
 NOTE_TTL = 30 * 86400          # 정의 유효 기간 (fetch_sources.py 캐시와 같은 30일)
 NOTE_RETRY = 60                # 수집 실패 후 다시 시도하기까지 (초)
@@ -61,6 +66,10 @@ QUESTION_MAX = 200             # 카드에 보여 줄 질문 길이 (글자). �
 WORKER_IDLE = 600              # 새 답변이 이만큼(초) 없으면 분석 프로세스를 끝내 메모리를 돌려준다
 WORKER_BACKOFF = 30            # 분석 프로세스가 실패하면 다시 시도하기까지 (초)
 LB_TTL = 60                    # 새 기록이 없어도 순위를 다시 계산하는 주기 (초, 경과일 반영)
+HEAD_BYTES = 256               # 인박스가 다른 파일로 바뀌었는지 볼 앞부분 길이
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
+MODEL_LOAD_TIMEOUT = 300       # 모델 불러오기 제한 (초). 넘으면 규칙으로 계속
+MODEL_CALL_TIMEOUT = 5         # 표기 하나 판단 제한 (초). 넘으면 규칙으로 계속
 
 # ---------------- 정제 (kit/loader_cell.py와 같은 규칙) ----------------
 FENCE  = re.compile(r"```[^\n]*\n(.*?)```", re.S)
@@ -93,6 +102,53 @@ def get_kiwi():
 
 def norm_key(s):
     return re.sub(r"[\s\-_/]+", "", s.lower())
+
+
+class ModelSlot:
+    """학습 모델을 끼우는 유일한 자리. 없거나 고장 나면 규칙(norm_key)으로 돌아가고 색인은 계속된다.
+
+    --model 모듈:함수 로 켠다 (기본은 끔). 함수가 돌려주는 객체는 canonical(표기) -> 개념 이름 또는 None 을 가진다.
+    분석 프로세스 안에서만 불러오므로 서버 본체의 메모리·응답에 영향을 주지 않는다. 계약은 docs/ARCHITECTURE.md"""
+
+    def __init__(self, spec=None):
+        self.spec, self.impl, self.pool = spec or None, None, None
+
+    def _off(self, why):
+        print(f"[경고] 모델을 끄고 규칙으로 계속합니다 ({self.spec}): {why}", file=sys.stderr, flush=True)
+        self.spec = None
+        if self.pool:
+            self.pool.shutdown(wait=False, cancel_futures=True)
+
+    def _load(self):
+        module, _, factory = self.spec.partition(":")
+        return getattr(importlib.import_module(module), factory or "load")()
+
+    def key(self, form):
+        rule = norm_key(form)
+        if not self.spec:
+            return rule
+        try:
+            if self.impl is None:
+                self.pool = self.pool or ThreadPoolExecutor(max_workers=1)
+                self.impl = self.pool.submit(self._load).result(timeout=MODEL_LOAD_TIMEOUT)
+            name = self.pool.submit(self.impl.canonical, form).result(timeout=MODEL_CALL_TIMEOUT)
+        except FutureTimeout:
+            self._off("응답 시간 초과")
+            return rule
+        except Exception as e:  # noqa: BLE001 — 모델 문제로 색인을 멈추지 않는다
+            self._off(f"{type(e).__name__}: {e}")
+            return rule
+        if name is None:
+            return rule
+        return (norm_key(name) or rule) if isinstance(name, str) else rule
+
+
+_model = ModelSlot()
+
+
+def set_model(spec):
+    global _model
+    _model = ModelSlot(spec)
 
 
 def number_fragment(t, toks, i):
@@ -151,10 +207,10 @@ def extract(text):
         cs = {}
         for f in noun_groups(s):
             if len(f) >= 2 and f not in STOP and f not in STOP_LOWER and f.lower() not in STOP_EN:
-                cs.setdefault(norm_key(f), f)
+                cs.setdefault(_model.key(f), f)
         if cs:
             out.append((s, cs))
-    code_cs = {norm_key(c): c for c in code_terms if len(c) >= 2 and c.lower() not in STOP_EN}
+    code_cs = {_model.key(c): c for c in code_terms if len(c) >= 2 and c.lower() not in STOP_EN}
     if code_cs:
         snip = out[0][0] if out else re.sub(r"\s+", " ", prose).strip() or "(코드)"
         out.append((snip, code_cs))
@@ -220,30 +276,39 @@ def parse_ts(ts):
         return None
 
 
-def index_record(con, r, roles):
-    if not r.get("text"):
-        return False
+def prepare_record(r, roles):
+    """DB를 건드리지 않는 준비 단계 (형태소 분석 포함, 쓰기 잠금 밖에서 돈다). 쓸 수 없는 기록이면 None"""
+    text, role = r.get("text"), r.get("role")
+    if not isinstance(text, str) or not text or not isinstance(role, str):
+        return None
     t = parse_ts(r.get("ts")) or time.time()
     ts = datetime.fromtimestamp(t, timezone.utc).isoformat()
-    sess = r.get("session_id") or "day:" + ts[:10]
-    if r.get("role") == "user":                           # 질문은 분석하지 않고 원문 그대로 저장 → 뒤따르는 답변의 개념과 연결
-        con.execute("INSERT INTO questions (session, ts, text) VALUES (?,?,?)", (sess, ts, r["text"]))
-    if r.get("role") not in roles:
-        return False
-    sc = extract(r["text"])
-    if not sc:
+    sess = r.get("session_id")
+    sess = sess if isinstance(sess, str) and sess else "day:" + ts[:10]
+    project = r.get("project")
+    return {"t": t, "ts": ts, "sess": sess, "role": role, "text": text,
+            "project": project if isinstance(project, str) else None,
+            "sc": extract(text) if role in roles else None}
+
+
+def apply_record(con, p):
+    """준비한 기록을 DB에 넣는다 (쓰기 잠금 안). → 새로 색인한 턴이면 True"""
+    t, ts, sess = p["t"], p["ts"], p["sess"]
+    if p["role"] == "user":                               # 질문은 분석하지 않고 원문 그대로 저장 → 뒤따르는 답변의 개념과 연결
+        con.execute("INSERT INTO questions (session, ts, text) VALUES (?,?,?)", (sess, ts, p["text"]))
+    if not p["sc"]:
         return False
     q = con.execute("SELECT MAX(id) FROM questions WHERE session=?", (sess,)).fetchone()[0]
     seen = set()
-    for s, cs in sc:
+    for s, cs in p["sc"]:
         for k, form in cs.items():
             if k not in seen:                             # 답변 하나에 개념 1행 (처음 나온 문장만). 순위는 freq·term_sess로 계산해 영향 없음
-                con.execute("INSERT INTO mentions VALUES (?,?,?,?,?,?)", (k, ts, sess, r["role"], s[:SNIPPET], q))
+                con.execute("INSERT INTO mentions VALUES (?,?,?,?,?,?)", (k, ts, sess, p["role"], s[:SNIPPET], q))
             con.execute("INSERT INTO forms VALUES (?,?,1) ON CONFLICT(concept, form) DO UPDATE SET n=n+1", (k, form))
         seen |= set(cs)
     con.execute("""INSERT INTO sessions VALUES (?,?,?) ON CONFLICT(id) DO UPDATE
                    SET last_ts=max(last_ts, excluded.last_ts), project=COALESCE(project, excluded.project)""",
-                (sess, t, norm_project(r.get("project"))))
+                (sess, t, norm_project(p["project"])))
     for c in seen:
         con.execute("INSERT INTO freq VALUES (?,1) ON CONFLICT(concept) DO UPDATE SET n=n+1", (c,))
         con.execute("INSERT OR IGNORE INTO term_sess VALUES (?,?)", (c, sess))
@@ -253,17 +318,41 @@ def index_record(con, r, roles):
     return True
 
 
+def head_print(path, n):
+    with open(path, "rb") as f:
+        return hashlib.sha1(f.read(n)).hexdigest()
+
+
+def inbox_replaced(con, path, size, off):
+    """다른 파일로 바뀌었는지: 파일이 읽은 위치보다 작거나, 앞부분 지문이 다르다 (인박스는 뒤에만 붙으므로 앞부분은 그대로여야 한다)"""
+    if size < off:
+        return True
+    n, saved = int(meta_get(con, "head_len", 0)), meta_get(con, "head")
+    return bool(n and saved) and head_print(path, n) != saved
+
+
+def remember_head(con, path, off):
+    n = min(HEAD_BYTES, off)
+    if n and int(meta_get(con, "head_len", 0)) != n:
+        meta_set(con, "head", head_print(path, n))
+        meta_set(con, "head_len", n)
+        con.commit()
+
+
 def ingest(con, inbox, roles):
-    """인박스에서 아직 안 읽은 완성된 줄만 색인한다. 파일이 줄었으면(새로 만듦) 처음부터 다시. → 새로 색인한 턴 수"""
+    """인박스에서 아직 안 읽은 완성된 줄만 색인한다. 다른 파일로 바뀌었으면 처음부터 다시. → 새로 색인한 턴 수
+    줄마다 쓰기 잠금 안에서 읽은 위치를 다시 확인한다: 같은 DB를 쓰는 다른 프로세스가 있어도 한 줄을 두 번 세지 않는다.
+    쓸 수 없는 줄은 건너뛰고, DB 잠금 같은 일시 오류와 패키지 없음은 위치를 옮기지 않고 올린다 (고친 뒤 이어서 읽는다)."""
     p = pathlib.Path(inbox).expanduser()
     if not p.exists():
         return 0
     size = p.stat().st_size
     off = int(meta_get(con, "offset", 0))
-    if size < off:
+    if inbox_replaced(con, p, size, off):
         reset(con)
         off = 0
     if size == off:
+        remember_head(con, p, off)
         return 0
     with open(p, "rb") as f:
         f.seek(off)
@@ -273,20 +362,37 @@ def ingest(con, inbox, roles):
         return 0
     n, pos = 0, off
     for line in chunk[:end].split(b"\n"):
-        pos += len(line) + 1
+        before, pos = pos, pos + len(line) + 1
+        prepared = None
         try:
             r = json.loads(line.decode("utf-8"))
+            prepared = prepare_record(r, roles) if isinstance(r, dict) else None
         except (ValueError, UnicodeDecodeError):
-            r = None
-        try:                                      # 줄마다 커밋: 쓰기 잠금을 짧게 쥐어 정의 저장·조회를 막지 않는다
-            if isinstance(r, dict) and index_record(con, r, roles):
+            pass
+        except (ImportError, MemoryError):
+            raise
+        except Exception as e:  # noqa: BLE001 — 이 줄만 건너뛴다
+            print(f"[경고] 인박스 줄 건너뜀 (위치 {before}): {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+        con.execute("BEGIN IMMEDIATE")            # 줄마다 커밋: 쓰기 잠금을 짧게 쥐어 정의 저장·조회를 막지 않는다
+        try:
+            if int(meta_get(con, "offset", 0)) != before:   # 다른 프로세스가 먼저 읽었다
+                con.rollback()
+                return n
+            if prepared and apply_record(con, prepared):
                 n += 1
                 meta_set(con, "turns", int(meta_get(con, "turns", 0)) + 1)
             meta_set(con, "offset", pos)
             con.commit()
-        except Exception:
+        except sqlite3.OperationalError:
             con.rollback()
             raise
+        except Exception as e:  # noqa: BLE001 — 이 줄만 건너뛴다
+            con.rollback()
+            print(f"[경고] 인박스 줄 건너뜀 (위치 {before}): {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+            con.execute("BEGIN IMMEDIATE")
+            meta_set(con, "offset", pos)
+            con.commit()
+    remember_head(con, p, pos)
     return n
 
 
@@ -358,17 +464,21 @@ def leaderboard(con, k=10, now=None, project=None):
         x0 = sum(1 for s in ss if s in pri and s in age)
         z = two_prop_z(x1, len(rec), x0, len(pri))
         badge = "up" if z > BADGE_Z and x1 >= BADGE_MIN_SESS else "down" if z < -BADGE_Z and x0 >= BADGE_MIN_SESS else ""
-        items.append((math.log1p(dsf) * idf, c, len(ss), badge, max(sess[s] for s in ss if s in sess)))
+        weekly = [0] * WEEKS                      # 오래된 주 → 이번 주, 그 주에 이 개념이 나온 세션 수
+        for s in ss:
+            if age[s] < WEEKS * 7:
+                weekly[WEEKS - 1 - int(age[s] // 7)] += 1
+        items.append((math.log1p(dsf) * idf, c, len(ss), badge, max(sess[s] for s in ss if s in sess), x1, weekly))
     items.sort(key=lambda x: (-x[0], x[1]))
     out = []
-    for i, (score, c, nsess, badge, last) in enumerate(items[:k], 1):
+    for i, (score, c, nsess, badge, last, recent, weekly) in enumerate(items[:k], 1):
         if project:
             clause, cargs = in_project(project, "session")
             m = con.execute(f"SELECT COUNT(*) FROM mentions WHERE concept=? AND {clause}", [c] + cargs).fetchone()
         else:
             m = con.execute("SELECT n FROM freq WHERE concept=?", (c,)).fetchone()
         out.append({"rank": i, "id": c, "label": label_of(con, c), "score": round(score, 4), "sessions": nsess,
-                    "turns": m[0] if m else 0, "badge": badge,
+                    "turns": m[0] if m else 0, "badge": badge, "recent_sessions": recent, "weekly": weekly,
                     "last_seen": datetime.fromtimestamp(last, timezone.utc).isoformat()})
     return {"generated": datetime.fromtimestamp(now, timezone.utc).isoformat(), "project": project, "n_sessions": N,
             "n_concepts": len(by), "items": out}
@@ -507,8 +617,9 @@ projects().then(lb); new EventSource('/api/events').addEventListener('update',()
 
 
 class State:
-    def __init__(self, db, inbox, roles, web, project=None):
+    def __init__(self, db, inbox, roles, web, project=None, model=None, any_host=False):
         self.db, self.inbox, self.roles, self.web = db, inbox, roles, web
+        self.model, self.any_host = model, any_host
         self.project = norm_project(project)   # --project: 화면이 처음 보여 줄 폴더
         self.version = 0
         self.cond = threading.Condition()
@@ -614,7 +725,7 @@ def has_new_lines(con, inbox):
         return False
     size = p.stat().st_size
     off = int(meta_get(con, "offset", 0))
-    if size < off:
+    if inbox_replaced(con, p, size, off):
         return True
     with open(p, "rb") as f:
         f.seek(off)
@@ -630,9 +741,10 @@ class IndexWorker:
     """Kiwi(약 550MB)는 이 자식 프로세스에만 올린다. 서버 본체는 가볍게 두고, 오래 쉬면 프로세스째 끝낸다."""
 
     def __init__(self, st):
+        extra = ["--model", st.model] if st.model else []
         self.proc = subprocess.Popen(
             [sys.executable, str(pathlib.Path(__file__).resolve()), "--worker", "--inbox", str(st.inbox),
-             "--db", str(st.db), "--roles", ",".join(sorted(st.roles))],
+             "--db", str(st.db), "--roles", ",".join(sorted(st.roles))] + extra,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, encoding="utf-8")
 
     def ingest(self):
@@ -653,8 +765,12 @@ class IndexWorker:
         self.proc.stdout.close()
 
 
-def worker_main(inbox, db, roles):
+def worker_main(inbox, db, roles, model=None):
     """--worker: 부모가 'go'를 보낼 때마다 이어 읽기. 부모가 끝나 stdin이 닫히면 같이 끝난다"""
+    proto = os.fdopen(os.dup(1), "w", encoding="utf-8")   # 부모와 주고받는 통로. 모델·패키지가 stdout에 뭘 찍어도 섞이지 않게 분리
+    os.dup2(2, 1)
+    sys.stdout = sys.stderr
+    set_model(model)
     con = open_db(db)
     try:
         for _ in sys.stdin:
@@ -663,7 +779,7 @@ def worker_main(inbox, db, roles):
             except Exception as e:  # noqa: BLE001
                 print(f"[경고] 색인 실패: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
                 n = -1
-            print(n, flush=True)
+            print(n, file=proto, flush=True)
     except KeyboardInterrupt:
         pass
     con.close()
@@ -671,7 +787,7 @@ def worker_main(inbox, db, roles):
 
 def tail_loop(st, interval=1.0, idle=WORKER_IDLE):
     con = open_db(st.db)
-    worker, last_work, retry_at = None, 0.0, 0.0
+    worker, last_work, retry_at, fails = None, 0.0, 0.0, 0
     while not st.stop.is_set():
         try:
             now = time.time()
@@ -680,7 +796,7 @@ def tail_loop(st, interval=1.0, idle=WORKER_IDLE):
                     worker = IndexWorker(st)
                     st.worker_starts += 1
                 n = worker.ingest()
-                last_work = time.time()
+                last_work, fails = time.time(), 0
                 if n:
                     st.bump()
             if worker is not None and time.time() - last_work >= idle:
@@ -689,7 +805,8 @@ def tail_loop(st, interval=1.0, idle=WORKER_IDLE):
                 st.worker_closes += 1
         except Exception as e:  # noqa: BLE001 — 한 번 실패해도 서버는 계속 돈다
             print(f"[경고] 인박스 읽기 실패: {type(e).__name__}: {e}", flush=True)
-            retry_at = time.time() + WORKER_BACKOFF
+            fails += 1
+            retry_at = time.time() + min(WORKER_BACKOFF, 2 ** (fails - 1))   # 한 번 죽은 것은 바로 복구, 계속 실패하면 천천히
             if worker is not None:
                 worker.close()
                 worker = None
@@ -717,7 +834,17 @@ def make_handler(st):
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                 pass                                      # 브라우저가 먼저 닫은 경우
 
+        def host_ok(self):
+            """DNS 리바인딩 방어: 다른 사이트가 자기 주소를 127.0.0.1로 돌려 내 대화 개념을 읽지 못하게 한다"""
+            if st.any_host:
+                return True
+            host = (self.headers.get("Host") or "").strip().lower()
+            host = host[1:].split("]")[0] if host.startswith("[") else host.split(":")[0]
+            return host in LOCAL_HOSTS
+
         def do_GET(self):
+            if not self.host_ok():
+                return self.send(403, {"error": "이 PC 안에서만 접속할 수 있습니다"})
             u = urllib.parse.urlparse(self.path)
             q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query, keep_blank_values=True).items()}
             path = u.path
@@ -787,10 +914,13 @@ def make_handler(st):
     return H
 
 
+class LocalServer(ThreadingHTTPServer):
+    daemon_threads = True
+    allow_reuse_address = os.name != "nt"   # Windows에서 켜 두면 같은 포트에 서버 두 개가 조용히 함께 뜬다
+
+
 def make_server(st, host="127.0.0.1", port=8765):
-    srv = ThreadingHTTPServer((host, port), make_handler(st))
-    srv.daemon_threads = True
-    return srv
+    return LocalServer((host, port), make_handler(st))
 
 
 def main():
@@ -803,18 +933,25 @@ def main():
     ap.add_argument("--web", default=None, help="화면 폴더 (index.html). 없으면 내장 간이 화면")
     ap.add_argument("--searx", default=DEFAULT_SEARX, help="위키백과에 없는 개념을 찾을 SearXNG 주소. 안 쓰려면 off")
     ap.add_argument("--project", default=None, help="이 폴더(하위 포함)의 대화만 보기. 화면에서 다른 폴더로 바꿀 수 있다")
+    ap.add_argument("--model", default=None, help="개념 묶기에 쓸 모델 (모듈:함수). 기본은 끔, 고장 나면 규칙으로 계속")
     ap.add_argument("--once", action="store_true", help="한 번 색인하고 순위를 출력한 뒤 끝")
     ap.add_argument("--rebuild", action="store_true", help="색인을 지우고 처음부터 다시")
     ap.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)   # 서버가 띄우는 분석 프로세스
     a = ap.parse_args()
     roles = {r.strip() for r in a.roles.split(",") if r.strip()}
     if a.worker:
-        return worker_main(a.inbox, a.db, roles)
+        return worker_main(a.inbox, a.db, roles, a.model)
+    if not importlib.util.find_spec("kiwipiepy"):
+        sys.exit(f"kiwipiepy가 없습니다 (지금 Python: {sys.executable}).\n"
+                 "개발 환경을 켠 뒤 다시 실행하세요. Windows: .venv\\Scripts\\activate / Mac: source .venv/bin/activate (SETUP.md)")
     project = norm_project(pathlib.Path(a.project).expanduser().resolve()) if a.project else None
     con = open_db(a.db)
-    if a.rebuild:
+    if a.rebuild or (meta_get(con, "model") or "") != (a.model or ""):   # 모델을 바꾸면 개념 묶음이 달라지므로 색인을 다시 만든다 (정의는 남김)
         reset(con)
+    meta_set(con, "model", a.model or "")
+    con.commit()
     if a.once:
+        set_model(a.model)
         t0 = time.time()
         n = ingest(con, a.inbox, roles)
         print(f"색인: 새 턴 {n}개 ({time.time() - t0:.1f}초) · 인박스 {pathlib.Path(a.inbox).expanduser()}", flush=True)
@@ -829,13 +966,17 @@ def main():
         return
     con.close()
     print(f"인박스 {pathlib.Path(a.inbox).expanduser()} 을 뒤에서 색인합니다", flush=True)
-    st = State(a.db, a.inbox, roles, a.web, project)
+    st = State(a.db, a.inbox, roles, a.web, project, a.model, any_host=a.host not in LOCAL_HOSTS)
+    try:
+        srv = make_server(st, a.host, a.port)
+    except OSError:
+        sys.exit(f"포트 {a.port}을 이미 쓰고 있습니다. 서버가 켜져 있다면 그대로 http://localhost:{a.port} 를 여세요. "
+                 "다른 포트로 켜려면 --port 8766")
     if project:
         print(f"폴더 {project} 의 대화를 먼저 보여 줍니다 (화면에서 바꿀 수 있음)", flush=True)
     threading.Thread(target=tail_loop, args=(st,), daemon=True).start()
     searx = None if a.searx.lower() == "off" else a.searx
     threading.Thread(target=note_loop, args=(st, lambda t, al=(), ctx=(): fetch_note(t, al, searx, ctx)), daemon=True).start()
-    srv = make_server(st, a.host, a.port)
     print(f"열림: http://localhost:{srv.server_address[1]}  (끝내려면 Ctrl+C)", flush=True)
     try:
         srv.serve_forever()

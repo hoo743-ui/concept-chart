@@ -7,6 +7,7 @@ import json
 import os
 import pathlib
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -65,6 +66,9 @@ def main():
         ok("사용자 글은 세지 않음", "파이프라인" not in labels)
         ok("붙은 명사·접미사 합치기 + 코드 용어", {"가중치", "시각화", "torch", "KeyError"} <= set(labels), ", ".join(labels))
         ok("세션 수 = 3", lb["n_sessions"] == 3)
+        # NOW = 11-08 12:00. 어텐션 세션: 11-01 10:00(7.1일 전), 11-06(2.1일 전), 11-07(1일 전)
+        ok("최근 2주 세션 수", top["recent_sessions"] == 3, str(top["recent_sessions"]))
+        ok("주별 막대: 오래된 주 → 이번 주", top["weekly"] == [0, 0, 0, 0, 0, 0, 1, 2], str(top["weekly"]))
 
         with open(inbox, "a", encoding="utf-8") as f:            # 쓰다 만 줄: 아직 안 읽어야 함
             f.write(rec("2026-11-08T09:00:00+09:00", "s4", "트랜스포머 구조").rstrip("\n"))
@@ -211,6 +215,81 @@ def main():
             pst.stop.set()
             psrv.shutdown()
             psrv.server_close()
+
+        # 백본 점검에서 찾은 문제들 (11-09)
+        def fresh(name, text):
+            p, d = tmp / f"{name}.jsonl", tmp / f"{name}.sqlite"
+            p.write_text(text, encoding="utf-8")
+            return p, d, serve.open_db(d)
+        bad_lines = [{"role": "assistant", "text": 123, "session_id": "x"}, {"role": "assistant", "text": ["a"], "session_id": "x"},
+                     {"role": ["assistant"], "text": "양자화"}, {"role": "assistant", "text": "양자화 설명입니다.", "session_id": ["a"]},
+                     {"role": "assistant", "text": "양자화 설명입니다.", "session_id": "y", "project": {"a": 1}}, {"role": "user", "text": 5, "session_id": "z"}]
+        bp, _, bc = fresh("bad", "".join(json.dumps(x, ensure_ascii=False) + "\n" for x in bad_lines) + rec("2026-11-08T10:00:00+09:00", "ok", "트랜스포머 정상 답변입니다."))
+        serve.ingest(bc, bp, ROLES)
+        ok("이상한 줄을 건너뛰고 뒤의 기록까지 색인", bc.execute("SELECT 1 FROM freq WHERE concept=?", ("트랜스포머",)).fetchone() is not None
+           and int(serve.meta_get(bc, "offset")) == bp.stat().st_size)
+        bc.close()
+        rp, _, rc = fresh("retry", rec("2026-11-08T10:00:00+09:00", "ok", "양자화 설명입니다."))
+        real_extract = serve.extract
+
+        def no_pkg(text):
+            raise ImportError("kiwipiepy 없음")
+        serve.extract = no_pkg
+        try:
+            serve.ingest(rc, rp, ROLES)
+            ok("패키지 없음은 건너뛰지 않음", False)
+        except ImportError:
+            ok("패키지 없음은 건너뛰지 않음 (고친 뒤 이어서 읽음)", int(serve.meta_get(rc, "offset", 0)) == 0)
+        finally:
+            serve.extract = real_extract
+        ok("패키지가 돌아오면 그 줄부터 색인", serve.ingest(rc, rp, ROLES) == 1)
+        rc.close()
+        sp, _, sc = fresh("same", rec("2026-11-08T10:00:00+09:00", "a", "양자화 설명입니다."))
+        serve.ingest(sc, sp, ROLES)
+        sp.write_text(rec("2026-11-08T10:00:00+09:00", "b", "컨테이너 설명입니다. 트랜스포머 설명입니다."), encoding="utf-8")
+        ok("새 줄 확인이 파일 교체를 알아챔", serve.has_new_lines(sc, sp))
+        serve.ingest(sc, sp, ROLES)
+        got = {x["label"] for x in serve.leaderboard(sc, now=NOW)["items"]}
+        ok("더 큰 다른 파일로 바뀌어도 처음부터 다시", "컨테이너" in got and "양자화" not in got, ", ".join(sorted(got)))
+        with open(sp, "a", encoding="utf-8") as f:
+            f.write(rec("2026-11-08T11:00:00+09:00", "b", "드롭아웃 설명입니다."))
+        before = int(serve.meta_get(sc, "turns"))
+        serve.ingest(sc, sp, ROLES)
+        ok("뒤에 붙는 기록은 교체로 보지 않음", int(serve.meta_get(sc, "turns")) == before + 1)
+        sc.close()
+        dp, dd, dc = fresh("dbl", "".join(rec("2026-11-08T10:00:00+09:00", "s", f"양자화 설명 {i}번입니다.") for i in range(40)))
+        dc.close()
+        env_once = dict(os.environ, PYTHONUTF8="1")
+        ps = [subprocess.Popen([sys.executable, str(ROOT / "kit" / "serve.py"), "--once", "--inbox", str(dp), "--db", str(dd)],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=env_once) for _ in range(2)]
+        for p_ in ps:
+            p_.wait()
+        dc = serve.open_db(dd)
+        n_turns, n_men = int(serve.meta_get(dc, "turns")), dc.execute("SELECT COUNT(*) FROM mentions WHERE concept=?", ("양자화",)).fetchone()[0]
+        ok("같은 DB를 두 프로세스가 읽어도 중복으로 세지 않음", n_turns == 40 and n_men == 40, f"턴 {n_turns}, 언급 {n_men} (정답 40)")
+        dc.close()
+        hst = serve.State(str(pdb), str(pinbox), ROLES, None)
+        hsrv = serve.make_server(hst, port=0)
+        hport = hsrv.server_address[1]
+        threading.Thread(target=hsrv.serve_forever, daemon=True).start()
+        try:
+            def with_host(host):
+                c = socket.create_connection(("127.0.0.1", hport), timeout=5)
+                c.sendall(f"GET /api/status HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n".encode())
+                data = c.recv(200)
+                c.close()
+                return data.split(b"\r\n")[0]
+            ok("다른 Host 요청은 거부", b"403" in with_host("evil.example.com"))
+            ok("localhost·127.0.0.1은 허용", all(b"200" in with_host(h) for h in (f"localhost:{hport}", f"127.0.0.1:{hport}", f"[::1]:{hport}")))
+            try:
+                serve.make_server(hst, port=hport)
+                ok("쓰고 있는 포트는 시작 전에 알아챔", False)
+            except OSError:
+                ok("쓰고 있는 포트는 시작 전에 알아챔", True)
+        finally:
+            hst.stop.set()
+            hsrv.shutdown()
+            hsrv.server_close()
 
         # 서버 본체는 Kiwi를 불러오지 않고, 분석 프로세스는 쉬면 끝난다
         winbox, wdb = tmp / "w.jsonl", tmp / "w.sqlite"

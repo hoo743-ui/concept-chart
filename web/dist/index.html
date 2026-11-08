@@ -759,7 +759,7 @@ MIN_CLAUDE = (2, 1, 47)   # Stop 훅의 last_assistant_message 필드가 들어�
 
 HOOK_TEMPLATE = r'''# concept_hook.py : Claude Code 훅 → 내 질문과 AI 최종 답변을 개념 차트 인박스(JSONL)에 한 줄씩 저장
 # install_concept_hook.py가 생성. 아무것도 출력하지 않고 항상 0으로 끝난다.
-import sys, os, re, json, datetime, pathlib
+import sys, os, re, json, time, datetime, pathlib
 
 INBOX = pathlib.Path(os.environ.get("CONCEPT_INBOX") or "@@INBOX@@").expanduser()
 MASK = @@MASK@@
@@ -814,6 +814,33 @@ def normalize(data, ts):
         rec["agent_type"] = data.get("agent_type")
     return rec
 
+LOCK_AT = 1 << 40    # 파일 끝 훨씬 뒤의 1바이트만 잠근다: 인박스를 읽는 서버는 막지 않는다
+
+def lock(f, unlock=False):
+    if os.name == "nt":
+        import msvcrt
+        f.seek(LOCK_AT)
+        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK if unlock else msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+        fcntl.lockf(f, fcntl.LOCK_UN if unlock else fcntl.LOCK_EX | fcntl.LOCK_NB, 1, LOCK_AT, 0)
+
+def append_line(data):
+    """여러 세션이 동시에 끝나도 줄이 사라지지 않게 잠그고 쓴다. 3초 안에 못 잠그면 그냥 쓴다 (기록을 버리지 않는다)"""
+    with INBOX.open("ab", buffering=0) as f:
+        locked = False
+        for _ in range(150):
+            try:
+                lock(f)
+                locked = True
+                break
+            except OSError:
+                time.sleep(0.02)
+        f.seek(0, 2)
+        f.write(data)
+        if locked:
+            lock(f, unlock=True)
+
 def main():
     body = sys.stdin.buffer.read().decode("utf-8", errors="replace")
     ts = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
@@ -825,8 +852,7 @@ def main():
     if rec is None:
         return
     INBOX.parent.mkdir(parents=True, exist_ok=True)
-    with INBOX.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    append_line((json.dumps(rec, ensure_ascii=False) + "\n").encode("utf-8"))
 
 if __name__ == "__main__":
     try:

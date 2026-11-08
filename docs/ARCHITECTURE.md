@@ -57,7 +57,7 @@
 
 | 경로 | 돌려주는 것 |
 |---|---|
-| `GET /api/leaderboard?k=10` | `{generated, n_sessions, n_concepts, items:[{rank, id, label, score, sessions, turns, badge, last_seen}]}` |
+| `GET /api/leaderboard?k=10` | `{generated, project, n_sessions, n_concepts, items:[{rank, id, label, score, sessions, turns, badge, recent_sessions, weekly, last_seen}]}` · `recent_sessions` = 최근 14일 세션 수, `weekly` = 최근 8주 주별 세션 수(오래된 주 → 이번 주) |
 | `GET /api/concept/{id}?cursor=` | `{concept, label, summary, definition, chat_line:{ts, text, question}, sources:[{text, url}], note_status, related:[{id, label}], records:[{ts, role, snippet, question}] ×3, next_cursor}` · 없으면 404. `question` = 그 답변을 끌어낸 내 질문(최대 200자), 없으면 null |
 | `GET /api/events` | SSE. 연결할 때 1번, 새 턴을 색인하거나 정의 수집이 끝날 때마다 `event: update` / `data: {"version": n}`. 15초마다 `: ping` |
 | `GET /api/projects` | `{default, items:[{path, name, sessions, last_seen}], no_project_sessions}` 최근에 쓴 폴더부터. `default` = `--project` |
@@ -71,7 +71,10 @@
 - 정의(`note_status`: `ready`·`none`·`pending`·`failed`): 카드를 열 때 정의가 없으면 응답은 바로 주고, 일꾼 스레드 1개가 뒤에서 `kit/fetch_sources.py`로 위키백과(한국어 → 영어) → SearXNG(`kit/searxng/`, `python dev.py searx up`, `--searx off`로 끔) 순서로 찾아 `notes`에 저장한 뒤 `update`를 보낸다. 출처 문장을 그대로 쓰고 LLM은 쓰지 않는다. 밖으로 나가는 건 개념 이름뿐. 30일 유효. 동음이의 안내 문서와 이름이 다른 위키백과 문서, `http(s)`가 아닌 링크는 받지 않는다. 실패(SearXNG 꺼짐 포함)는 저장하지 않고 60초 뒤 다시 시도, 429는 대기열 전체를 `Retry-After`(없으면 60초)만큼 쉰다.
 - 폴더: 인박스의 `project`(훅이 기록하는 `cwd`)를 `sessions.project`에 저장한다. 세션 하나 = 폴더 하나(처음 기록된 값). `/api/leaderboard`·`/api/concept/{id}`의 `?project=경로`는 그 폴더와 하위 폴더로 좁히고, 빈 값은 전체, 없으면 `--project` 값을 쓴다. 순위의 N·df·세션·턴 수와 카드의 내 기록·대화 문장이 좁혀진다. 정의와 관련 개념은 폴더와 무관하다. 폴더 정보가 없는 세션은 전체에서만 보인다.
 - 검색 결과 고르기(`fetch_sources.definition_sents`): "개념 + 은/는/이란"으로 시작하는 완결된 문장만 받는다(띄어쓰기 차이는 허용). 검색어는 내 대화에서 함께 나온 개념 2개 → 1개 → 이름만 순서로 넓히되, 어느 단계든 그 개념들이 하나도 없는 결과는 다른 뜻으로 보고 버린다. 맞는 문장이 없으면 `none`.
-- 색인은 줄마다 커밋한다. 쓰기 잠금을 짧게 쥐어 정의 저장·조회를 막지 않고, 도중에 끊겨도 이어서 읽는다.
+- 색인은 줄마다 커밋한다. 쓰기 잠금을 짧게 쥐어 정의 저장·조회를 막지 않고, 도중에 끊겨도 이어서 읽는다. 쓰기 잠금 안에서 읽은 위치를 다시 확인해 같은 DB를 두 프로세스가 읽어도 중복으로 세지 않는다. 쓸 수 없는 줄은 경고만 남기고 건너뛰고, DB 잠금과 패키지 없음은 위치를 옮기지 않고 다시 시도한다.
+- 인박스 교체 감지: 파일이 읽은 위치보다 작거나, 앞 256바이트의 지문이 다르면 색인을 처음부터 다시 만든다.
+- 훅은 인박스에 쓸 때 파일 끝 뒤쪽 1바이트를 잠근다(읽기를 막지 않음). 여러 세션이 동시에 끝나도 줄이 사라지지 않게 하고, 3초 안에 못 잠그면 기록을 버리지 않고 그냥 쓴다.
+- 접속: `Host`가 `localhost`·`127.0.0.1`·`::1`이 아니면 403(DNS 리바인딩 방어). `--host`로 다른 주소를 지정하면 이 검사를 끈다. 같은 포트가 쓰이고 있으면 시작 때 안내하고 끝난다.
 - 정의를 못 찾으면(`none`·`failed`) `chat_line`을 "내 대화에서 (출처 확인 전)"으로 구분해 보여 준다: 개념 이름이 실제로 든 AI 답변 문장 중 "개념 + 은/는/이란"으로 시작하는 문장, 없으면 최근 문장. 그런 문장도 없으면 `null`. 정의가 있으면 항상 `null`.
 - 화면 표시: 기본은 `summary` 한 줄(`definition`에서 괄호 설명을 걷어 내고 최대 90자, 새 낱말을 만들지 않음). "더 알아보기"를 누르면 근거 문장·출처·관련 개념·내 기록을 펼친다.
 - 기본으로 `assistant`·`subagent` 글만 분석한다 (`--roles`). CORS 헤더는 붙이지 않는다 (다른 사이트가 읽지 못하게).
@@ -79,6 +82,17 @@
 - `mentions`는 답변 하나에 개념 1행(처음 나온 문장). 순위는 `freq`·`term_sess`로 계산하므로 영향 없다. 표 구조가 바뀌면 `SCHEMA_VERSION`을 올린다 → 색인을 지우고 다시 만든다(`notes`는 남김).
 - 메모리: Kiwi는 자식 프로세스(`--worker`)에만 올린다. 서버 본체는 1초마다 파일 크기만 보고, 완성된 새 줄이 있을 때 자식을 깨운다. 10분(`WORKER_IDLE`) 쉬면 자식을 끝내고, 다음 기록은 Kiwi 로딩 약 2.5초 뒤에 반영된다. 순위는 새 기록이 있거나 60초가 지났을 때만 다시 계산한다.
 - 점검: `tests/test_serve.py` (check_env에 포함).
+
+### 모델 경계 (백본을 지키는 규칙, `tests/test_boundary.py`가 `dev.py check`에서 강제)
+
+학습 모델이나 파인튜닝이 들어와도 백본은 그대로여야 한다. 사용자 결정(11-09).
+
+- **끼우는 자리는 하나:** `kit/serve.py`의 `ModelSlot`. `--model 모듈:함수`로 켜고 기본은 끔이다. 함수가 돌려주는 객체는 `canonical(표기) -> 개념 이름 또는 None`을 가진다. 그 외 방식으로 백본에 모델을 넣지 않는다.
+- **없어도 동작:** 끄면 규칙(`norm_key`)만 쓰고 결과가 같다. 기본 설치(`requirements.txt`, `environment.yml`)에 학습 패키지를 넣지 않는다. 학습 패키지는 `requirements-ml.txt`로 따로 둔다.
+- **고장 나도 계속:** 불러오기 실패, 예외, 이상한 값, 제한 시간 초과(표기당 5초)면 그 프로세스에서 모델을 끄고 규칙으로 색인을 계속한다.
+- **격리:** 모델은 분석 프로세스에만 올린다. 서버 본체는 불러오지 않는다. 분석 프로세스의 부모 통신은 stdout과 분리돼 있어 모델 출력이 섞여도 깨지지 않는다.
+- **의존 방향:** `kit/`는 학습 패키지와 `experiments/`·`sim/`·`web/`을 불러오지 않는다. 아무것도 `experiments/`를 불러오지 않는다. 모델 코드는 `kit/` 밖에 두고 `PYTHONPATH`로 지정한다.
+- **결과 교체는 명시적으로:** 모델을 바꾸면(`--model` 값 변경) 색인을 인박스에서 다시 만든다. 인박스와 저장된 정의는 그대로다. 기본값을 바꾸는 채택은 `docs/TRAINING.md` 8절 기준과 사용자 결정으로만 한다.
 
 ## 3. 품질 특성별 설계 결정 (ISO/IEC 25010 8가지 특성 기준)
 
