@@ -1,0 +1,19 @@
+# 정의 검색용 SearXNG (위키백과에 근거가 없을 때만 쓴다). 켜기·끄기: python dev.py searx up / down
+# - 이 PC에서만 접속 (127.0.0.1). 포트·마운트 경로는 공식 문서 기준: https://docs.searxng.org/admin/installation-docker.html
+# - 버전은 태그와 digest로 고정. 올릴 때는 브랜치 → 실제 검색 확인 → main
+# - PC를 켤 때 저절로 뜨지 않게 restart는 "no" (필요할 때만 켠다)
+services:
+  searxng:
+    image: docker.io/searxng/searxng:2026.10.24-ef0ec03da@sha256:7c7cbe509429e82755104b2a95f52085a98633c95d53f44e4e905fa3a59f08c8
+    container_name: concept-chart-searxng
+    restart: "no"
+    ports:
+      - "127.0.0.1:8888:8080"
+    environment:
+      SEARXNG_SECRET: ${SEARXNG_SECRET:?python dev.py searx up 으로 실행하세요 (.env를 만들어 줍니다)}
+    volumes:
+      - ./config/:/etc/searxng/
+      - searxng-data:/var/cache/searxng/
+
+volumes:
+  searxng-data:

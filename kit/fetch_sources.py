@@ -46,8 +46,10 @@ def wikipedia(term, lang="ko"):
         return []
     title = urllib.parse.quote(hits[1][0].replace(" ", "_"))
     j = json.loads(_get(f"https://{lang}.wikipedia.org/api/rest_v1/page/summary/{title}"))
+    if j.get("type") == "disambiguation":                 # 동음이의 안내 문서는 정의가 아니다
+        return []
     url = j.get("content_urls", {}).get("desktop", {}).get("page") or hits[3][0]
-    return [{"url": url, "text": j.get("extract", ""), "src": "wikipedia"}] if j.get("extract") else []
+    return [{"url": url, "text": j.get("extract", ""), "src": "wikipedia", "title": j.get("title", hits[1][0])}] if j.get("extract") else []
 
 
 def searxng(term, base="http://localhost:8888", n=3):

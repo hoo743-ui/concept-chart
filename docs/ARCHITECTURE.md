@@ -58,8 +58,8 @@
 | 경로 | 돌려주는 것 |
 |---|---|
 | `GET /api/leaderboard?k=10` | `{generated, n_sessions, n_concepts, items:[{rank, id, label, score, sessions, turns, badge, last_seen}]}` |
-| `GET /api/concept/{id}?cursor=` | `{concept, label, definition, sources, related:[{id, label}], records:[{ts, role, snippet}] ×3, next_cursor}` · 없으면 404 |
-| `GET /api/events` | SSE. 연결할 때 1번, 새 턴을 색인할 때마다 `event: update` / `data: {"version": n}`. 15초마다 `: ping` |
+| `GET /api/concept/{id}?cursor=` | `{concept, label, summary, definition, sources:[{text, url}], note_status, related:[{id, label}], records:[{ts, role, snippet}] ×3, next_cursor}` · 없으면 404 |
+| `GET /api/events` | SSE. 연결할 때 1번, 새 턴을 색인하거나 정의 수집이 끝날 때마다 `event: update` / `data: {"version": n}`. 15초마다 `: ping` |
 | `GET /api/status` | `{inbox, offset, turns, sessions, version}` |
 | `GET /` | `--web` 폴더의 파일, 없으면 내장 간이 화면 |
 
@@ -67,6 +67,8 @@
 - 개념 추출: Kiwi 명사(붙어 쓴 명사·명사 파생 접미사는 한 덩어리, 영문·한자 포함) + 코드 속 import·pip·에러 이름. 개념 사전 없음, 일반 명사 불용어 목록(`STOP`)만.
 - 점수 = 제안 C(안정성 균형, `sim/results/A.json`의 `balanced` = H 7일·β 0·γ 0·세션 단위)를 사전 없이 적용: `log1p(Σ 개념이 나온 세션의 2^(-경과일/7)) × (log((N+1)/(df+1))+1)`, N·df는 내 세션 기준.
 - 배지: 최근 14일 vs 그 전 28일 세션 비율 z-검정 (`sim_A.py`와 같은 기준 1.64, 최소 2세션).
+- 정의(`note_status`: `ready`·`none`·`pending`·`failed`): 카드를 열 때 정의가 없으면 응답은 바로 주고, 일꾼 스레드 1개가 뒤에서 `kit/fetch_sources.py`로 위키백과(한국어 → 영어) → SearXNG(`kit/searxng/`, `python dev.py searx up`, `--searx off`로 끔) 순서로 찾아 `notes`에 저장한 뒤 `update`를 보낸다. 출처 문장을 그대로 쓰고 LLM은 쓰지 않는다. 밖으로 나가는 건 개념 이름뿐. 30일 유효. 동음이의 안내 문서와 이름이 다른 위키백과 문서, `http(s)`가 아닌 링크는 받지 않는다. 실패(SearXNG 꺼짐 포함)는 저장하지 않고 60초 뒤 다시 시도, 429는 대기열 전체를 `Retry-After`(없으면 60초)만큼 쉰다.
+- 화면 표시: 기본은 `summary` 한 줄(`definition`에서 괄호 설명을 걷어 내고 최대 90자, 새 낱말을 만들지 않음). "더 알아보기"를 누르면 근거 문장·출처·관련 개념·내 기록을 펼친다.
 - 기본으로 `assistant`·`subagent` 글만 센다 (`--roles`). CORS 헤더는 붙이지 않는다 (다른 사이트가 읽지 못하게).
 - 점검: `tests/test_serve.py` (check_env에 포함).
 

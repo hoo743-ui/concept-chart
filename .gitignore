@@ -15,6 +15,7 @@ node_modules/
 *.sqlite-shm
 concept-inbox.jsonl
 *.bak-*
+kit/searxng/.env
 
 # 에디터·OS
 .vscode/

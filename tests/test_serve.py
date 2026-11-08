@@ -77,6 +77,64 @@ def main():
         ok("더 보기: 남은 기록", len(more["records"]) == 0 or more["records"][0] != card["records"][0])
         ok("카드 크기 2KB 이하", len(json.dumps(card, ensure_ascii=False).encode("utf-8")) <= 2048)
 
+        # 위키백과 응답 흉내: 동음이의 문서 제외, 띄어쓰기만 다른 제목 허용, 다른 제목 거부 (네트워크 없음)
+        import fetch_sources as fs
+        real_wiki = fs.wikipedia
+        pages = {"파인튜닝": [{"url": "https://example.org/f", "text": "딥 러닝에서 파인 튜닝은 모델을 새로운 작업에 특화시키는 과정이다.", "title": "파인 튜닝", "src": "wikipedia"}],
+                 "에이피": [{"url": "https://example.org/a", "text": "AP 통신은 미국의 통신사이다.", "title": "AP 통신", "src": "wikipedia"}]}
+        fs.wikipedia = lambda term, lang="ko": pages.get(term, []) if lang == "ko" else []
+        try:
+            d, s = serve.fetch_note("파인튜닝")
+            ok("띄어쓰기만 다른 문서 제목은 받음", "파인 튜닝" in d and len(s) == 1, d)
+            d, s = serve.fetch_note("에이피")
+            ok("이름이 다른 문서는 받지 않음", d == "" and s == [], d)
+            d, s = serve.fetch_note("없는말")
+            ok("문서가 없으면 빈 값", d == "" and s == [])
+        finally:
+            fs.wikipedia = real_wiki
+
+        # 위키백과에 없으면 SearXNG, 위험한 링크 거르기, SearXNG가 꺼져 있으면 예외 (저장 안 하고 재시도)
+        real_wiki, real_searx = fs.wikipedia, fs.searxng
+        fs.wikipedia = lambda term, lang="ko": []
+        try:
+            fs.searxng = lambda term, base: [{"url": "https://example.org/e", "text": "임베딩은 단어를 벡터로 바꾸는 방법이다.", "src": "searxng"}]
+            d, s = serve.fetch_note("임베딩", searx="http://localhost:8888")
+            ok("위키백과에 없으면 SearXNG로 채움", d.startswith("임베딩은") and s[0]["url"] == "https://example.org/e", d)
+            d, s = serve.fetch_note("임베딩")
+            ok("--searx off면 검색하지 않음", d == "" and s == [])
+            fs.searxng = lambda term, base: [{"url": "javascript:alert(1)", "text": "임베딩은 단어를 벡터로 바꾸는 방법이다.", "src": "searxng"}]
+            d, s = serve.fetch_note("임베딩", searx="http://localhost:8888")
+            ok("http(s)가 아닌 링크는 버림", d == "" and s == [])
+
+            def down(term, base):
+                raise OSError("연결 거부")
+            fs.searxng = down
+            try:
+                serve.fetch_note("임베딩", searx="http://localhost:8888")
+                ok("SearXNG가 꺼져 있으면 예외", False)
+            except OSError:
+                ok("SearXNG가 꺼져 있으면 예외", True)
+        finally:
+            fs.wikipedia, fs.searxng = real_wiki, real_searx
+
+        # 한 줄 요약: 실제 위키백과 문장 (2026-11-08 응답)
+        line = serve.one_line("딥 러닝에서 파인 튜닝(fine-tuning)은 하나의 작업을 위해 설계된 모델(상위 작업)을 새로운 작업(하위 작업)에 특화시키는 과정이다.")
+        ok("한 줄 요약: 괄호 설명 제거", line == "딥 러닝에서 파인 튜닝은 하나의 작업을 위해 설계된 모델을 새로운 작업에 특화시키는 과정이다.", line)
+        line = serve.one_line("API(application programming interface 애플리케이션 프로그래밍 인터페이스[*], 응용 프로그램 프로그래밍 인터페이스)는 컴퓨터 사이의 연결이다.")
+        ok("한 줄 요약: 괄호 안 괄호", line == "API는 컴퓨터 사이의 연결이다.", line)
+        line = serve.one_line("가나다 " * 50)
+        ok("한 줄 요약: 길면 낱말 경계에서 자름", len(line) <= serve.SUMMARY_MAX + 1 and line.endswith("다…"), line)
+        ok("한 줄 요약: 없으면 None", serve.one_line("") is None)
+
+        real_get = fs._get
+        fs._get = lambda url, **k: (json.dumps(["임베딩", ["임베딩"], [""], ["https://ko.wikipedia.org/wiki/x"]])
+                                    if "opensearch" in url else
+                                    json.dumps({"type": "disambiguation", "extract": "임베딩은 아래 항목을 함의한다.", "title": "임베딩"}))
+        try:
+            ok("동음이의 안내 문서는 정의로 쓰지 않음", fs.wikipedia("임베딩") == [])
+        finally:
+            fs._get = real_get
+
         inbox.write_text(rec("2026-11-08T10:00:00+09:00", "n1", "새 파일의 양자화 이야기."), encoding="utf-8")
         serve.ingest(con, inbox, ROLES)
         labels = [x["label"] for x in serve.leaderboard(con, now=NOW)["items"]]
@@ -89,11 +147,61 @@ def main():
         port = srv.server_address[1]
         threading.Thread(target=srv.serve_forever, daemon=True).start()
         threading.Thread(target=serve.tail_loop, args=(st, 0.2), daemon=True).start()
+        note_calls = []
+
+        def fake_note(term, aliases=()):                         # 네트워크 없이 정의 수집 흉내
+            note_calls.append(term)
+            if term == "양자화":
+                return "양자화는 연속적인 값을 띄엄띄엄한 값으로 근사하는 과정이다.", [{"text": "근거 문장", "url": "https://example.org/q"}]
+            if term == "파일":
+                raise OSError("네트워크 끊김")
+            return "", []
+        threading.Thread(target=serve.note_loop, args=(st, fake_note), daemon=True).start()
         try:
             code, d = get(port, "/api/leaderboard?k=5")
             ok("GET /api/leaderboard", code == 200 and d["items"], d["items"][0]["label"])
             code, d = get(port, "/api/concept/" + urllib.request.quote(serve.norm_key("양자화")))
             ok("GET /api/concept/{id}", code == 200 and d["label"] == "양자화")
+            cid = "/api/concept/" + urllib.request.quote(serve.norm_key("양자화"))
+            ok("처음 누르면 기다리지 않고 수집 예약", d["note_status"] in ("pending", "ready"), d["note_status"])
+
+            def wait_note(path, want):
+                for _ in range(50):
+                    _, card = get(port, path)
+                    if card["note_status"] == want:
+                        return card
+                    time.sleep(0.1)
+                return card
+            d = wait_note(cid, "ready")
+            ok("수집 후 카드에 정의·출처가 채워짐", d["definition"].startswith("양자화는") and d["sources"][0]["url"].startswith("https://"), d["note_status"])
+            ok("카드에 한 줄 요약", d["summary"] == d["definition"], d["summary"])
+            n_calls = len(note_calls)
+            get(port, cid)
+            ok("저장된 정의는 다시 수집하지 않음", len(note_calls) == n_calls)
+
+            # 근거 없음·실패 ('이야기'·'파일'은 위 인박스에 이미 색인된 개념)
+            none_path = "/api/concept/" + urllib.request.quote("이야기")
+            d = wait_note(none_path, "none")
+            ok("근거가 없으면 none", d["note_status"] == "none" and d["definition"] is None and d["sources"] == [], d["note_status"])
+            fail_term = "파일"
+            fail_path = "/api/concept/" + urllib.request.quote(fail_term)
+            d = wait_note(fail_path, "failed")
+            ok("수집 실패는 failed", d["note_status"] == "failed", d["note_status"])
+            n_fail = note_calls.count(fail_term)
+            get(port, fail_path)
+            time.sleep(0.4)
+            ok("실패 직후 다시 눌러도 재시도하지 않음", note_calls.count(fail_term) == n_fail == 1, f"{n_fail}번")
+            con = serve.open_db(db)
+            ok("실패는 저장하지 않음 (나중에 다시 시도)",
+               not con.execute("SELECT 1 FROM notes WHERE concept=?", (fail_term,)).fetchone())
+            serve.reset(con)
+            ok("--rebuild 해도 정의는 남음", con.execute("SELECT COUNT(*) FROM notes").fetchone()[0] >= 1)
+            con.close()
+            for _ in range(50):                                  # 지운 색인을 서버가 처음부터 다시 읽을 때까지 기다림
+                _, s = get(port, "/api/status")
+                if s["turns"] >= 1:
+                    break
+                time.sleep(0.1)
             try:
                 get(port, "/api/concept/" + urllib.request.quote("없는개념"))
                 ok("없는 개념은 404", False)

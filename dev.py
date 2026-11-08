@@ -8,6 +8,7 @@
     python dev.py build          결과 → 페이지 데이터 → 결과 페이지 다시 만들기
     python dev.py sim            시뮬레이터 A·B·C 다시 실행 → build
     python dev.py serve          로컬 서버 http://localhost:8765 (인박스 → 순위·클릭 카드, kit/serve.py)
+    python dev.py searx up       정의 검색용 SearXNG 켜기 (Docker 필요, http://localhost:8888). 끄기: searx down
 
 check·build·sim·serve는 concept-chart 환경을 켠 상태에서 실행한다.
 """
@@ -16,6 +17,7 @@ import json
 import os
 import pathlib
 import platform
+import secrets
 import shutil
 import subprocess
 import sys
@@ -137,6 +139,18 @@ def serve(extra):
         return 0
 
 
+def searx(action):
+    folder = ROOT / "kit" / "searxng"
+    docker = shutil.which("docker")
+    if not docker:
+        sys.exit("docker를 찾지 못했다. Docker Desktop을 설치하고 켠 뒤 다시 실행 (SETUP.md '정의 검색')")
+    env = folder / ".env"
+    if not env.exists():                    # 비밀 키는 PC마다 새로 만들고 git에 올리지 않는다
+        env.write_text("SEARXNG_SECRET=" + secrets.token_hex(32) + "\n", encoding="utf-8", newline="\n")
+    args = ["up", "-d"] if action == "up" else ["down"]
+    return run([docker, "compose", "-f", folder / "compose.yml", *args])
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -146,6 +160,8 @@ def main():
     sub.add_parser("build", help="페이지 데이터·결과 페이지 다시 만들기")
     sub.add_parser("sim", help="시뮬레이터 다시 실행 + build")
     sub.add_parser("serve", help="로컬 서버 (뒤에 붙인 옵션은 kit/serve.py로 전달: --port, --once, --rebuild ...)")
+    s = sub.add_parser("searx", help="정의 검색용 SearXNG 켜기·끄기 (Docker 필요)")
+    s.add_argument("action", choices=["up", "down"])
     a, extra = ap.parse_known_args()
     if extra and a.cmd != "serve":
         ap.error("알 수 없는 옵션: " + " ".join(extra))
@@ -153,6 +169,8 @@ def main():
         rc = setup_venv() if a.venv else setup_conda()
     elif a.cmd == "serve":
         rc = serve(extra)
+    elif a.cmd == "searx":
+        rc = searx(a.action)
     else:
         rc = {"check": check, "build": build, "sim": sim}[a.cmd]()
     sys.exit(rc)

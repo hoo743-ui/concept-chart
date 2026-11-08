@@ -13,7 +13,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 
 자세한 구성·데이터 계약·품질 특성별 설계·변경 절차는 `docs/ARCHITECTURE.md`. 사용자가 쓰는 명령 모음은 `docs/COMMANDS.md`.
 
-- `dev.py`: 작업 진입점 (`setup` · `check` · `build` · `sim` · `serve`), 표준 라이브러리만.
+- `dev.py`: 작업 진입점 (`setup` · `check` · `build` · `sim` · `serve` · `searx`), 표준 라이브러리만.
 - `sim/`: 시뮬레이터 A(중요도)·B(용어 정규화)·C(근거 문장) → `results/A·B·C.json`
   → `make_page_data.py`(+ `results/badge_eval.json` 기록값, `concepts.py`) → `results/page_data.json`
 - `web/`: `build_page.py`(+ `page_template.html`, `kit/*.py`, `sim/results/page_data.json`) → `dist/index.html`
@@ -53,6 +53,8 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 ## 알려진 제약
 
 - serve 개념 추출은 띄어 쓴 복합어(`조기 종료`)를 두 개로 센다. 인박스를 같은 크기 이상의 다른 파일로 바꾸면 자동으로 감지하지 못한다 → `--rebuild`.
+- `kit/searxng/` 설정은 공식 문서 기준이고 실제 컨테이너로 확인하지 못했다 (Windows 개발 PC에 Docker 없음, 테스트는 가짜 응답). 첫 실행 때 `/search?format=json` 응답과 근거 문장 품질을 확인한다.
+- 사용자 결정(11-08): 정의는 위키백과 → SearXNG(Docker), 화면은 한 줄 + "더 알아보기". 한 줄은 출처 문장을 다듬은 것이고 LLM 요약이 아니다.
 
 - `badge_eval.json`은 다시 계산할 수 없는 기록값. `NEW_TERM_MIN_IDF = 3.6`은 저장 결과와 맞춰 찾은 값(3.56~3.66 구간).
 - 훅 fixture는 공식 문서 필드로 만든 예시이고 실제 캡처가 아니다. Claude Code 입력이 바뀌면 실제 입력을 케이스로 추가한다.

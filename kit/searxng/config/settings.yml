@@ -1,0 +1,10 @@
+# 기본 설정 위에 필요한 것만 덮어쓴다. secret_key는 환경 변수 SEARXNG_SECRET로 준다 (kit/searxng/.env, git 제외)
+use_default_settings: true
+
+server:
+  limiter: false      # 이 PC에서만 접속하는 1인용. limiter를 켜면 Valkey가 더 필요하다
+
+search:
+  formats:
+    - html
+    - json            # kit/fetch_sources.py가 /search?format=json 으로 읽는다

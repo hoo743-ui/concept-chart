@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""serve.py : 개념 차트 로컬 서버 (파일 하나로 완결, 표준 라이브러리 + kiwipiepy)
+"""serve.py : 개념 차트 로컬 서버 (표준 라이브러리 + kiwipiepy, 정의 수집만 같은 폴더의 fetch_sources.py를 쓴다)
 
     python kit/serve.py                      # http://localhost:8765
     python kit/serve.py --port 8765 --inbox ~/.claude/concept-inbox.jsonl --db ~/.claude/concept-chart.sqlite
@@ -8,8 +8,9 @@
 
 인박스를 1초마다 이어 읽기 → SQLite 색인 → API
     GET /api/leaderboard?k=10      중요도 순위 (제안 C: 세션 빈도 반감기 7일 × 세션 IDF)
-    GET /api/concept/{id}?cursor=  클릭 카드 (정의·출처·관련 개념 3개·기록 3개, LLM 없음)
-    GET /api/events                새 기록이 색인되면 'update' 이벤트 (SSE)
+    GET /api/concept/{id}?cursor=  클릭 카드 (정의·출처·관련 개념 3개·기록 3개, LLM 없음).
+                                   정의가 없으면 뒤에서 위키백과를 찾아 notes에 저장 (30일 유효)
+    GET /api/events                새 기록을 색인하거나 정의를 저장하면 'update' 이벤트 (SSE)
     GET /api/status                인박스 위치·읽은 위치·세션·턴 수
     GET /                          --web 폴더의 index.html, 없으면 내장 간이 화면
 
@@ -24,11 +25,13 @@ import json
 import math
 import os
 import pathlib
+import queue
 import re
 import sqlite3
 import sys
 import threading
 import time
+import urllib.error
 import urllib.parse
 from collections import Counter
 from datetime import datetime, timezone
@@ -44,6 +47,11 @@ DEFAULT_DB = "~/.claude/concept-chart.sqlite"
 HALF_LIFE_DAYS = 7.0           # 제안 C(안정성 균형): H=7, β=0, γ=0, 단위=세션
 BADGE_Z, BADGE_MIN_SESS = 1.64, 2
 SNIPPET = 160
+NOTE_TTL = 30 * 86400          # 정의 유효 기간 (fetch_sources.py 캐시와 같은 30일)
+NOTE_RETRY = 60                # 수집 실패 후 다시 시도하기까지 (초)
+NOTE_LANGS = ("ko", "en")      # 한국어 위키백과에 근거가 없을 때만 영어
+DEFAULT_SEARX = "http://localhost:8888"   # python dev.py searx up
+SUMMARY_MAX = 90               # 화면 한 줄 길이 (글자)
 
 # ---------------- 정제 (kit/loader_cell.py와 같은 규칙) ----------------
 FENCE  = re.compile(r"```[^\n]*\n(.*?)```", re.S)
@@ -281,8 +289,52 @@ def leaderboard(con, k=10, now=None):
             "n_concepts": len(by), "items": out}
 
 
+def fetch_note(term, aliases=(), searx=None):
+    """개념 이름 → (정의 문장, [{text, url}]). 위키백과(ko → en) → 그래도 없으면 SearXNG.
+    근거가 없으면 ("", []), 네트워크 오류·SearXNG 꺼짐은 예외로 올린다 (저장하지 않고 나중에 다시 시도).
+    출처 문장을 그대로 쓴다 (LLM이 만든 문장 없음). 밖으로 나가는 건 개념 이름뿐."""
+    import fetch_sources as fs                            # 클릭할 때만 필요
+
+    def result(ev):
+        ev = [e for e in ev if str(e["url"]).startswith(("http://", "https://"))]   # 외부에서 온 링크: 화면에 넣기 전에 거른다
+        return (ev[0]["text"], [{"text": e["text"], "url": e["url"]} for e in ev]) if ev else None
+    for lang in NOTE_LANGS:
+        srcs = fs.wikipedia(term, lang)
+        # 띄어쓰기만 다른 문서 제목(파인튜닝 → 파인 튜닝)은 같은 개념의 표기로 본다. 다른 제목은 받지 않는다 (AP → AP 통신)
+        titles = [s["title"] for s in srcs if norm_key(s.get("title", "")) == norm_key(term)]
+        got = result(fs.pick(term, list(aliases) + titles, srcs))
+        if got:
+            return got
+    if searx:
+        got = result(fs.pick(term, aliases, fs.searxng(term, searx)))
+        if got:
+            return got
+    return "", []
+
+
+def one_line(text, limit=SUMMARY_MAX):
+    """출처 문장 → 화면용 한 줄: 괄호 설명을 걷어 내고 첫 줄만, 길면 낱말 경계에서 자른다. 새 낱말을 만들지 않는다 (LLM 없음)"""
+    if not text:
+        return None
+    first = text.strip().split("\n")[0].strip()
+    s = first
+    for _ in range(3):                                    # 괄호 안 괄호까지
+        s = re.sub(r"\s*(\([^()]*\)|\[[^\[\]]*\])", "", s)
+    s = re.sub(r"\s+", " ", s).strip() or first
+    if len(s) <= limit:
+        return s
+    cut = s[:limit].rsplit(" ", 1)[0] or s[:limit]
+    return cut.rstrip(" ,·") + "…"
+
+
+def save_note(con, concept, definition, sources):
+    con.execute("REPLACE INTO notes VALUES (?,?,?,?)",
+                (concept, definition, json.dumps(sources, ensure_ascii=False), datetime.now(timezone.utc).isoformat()))
+    con.commit()
+
+
 def concept_card(con, concept, cursor=None, k=3):
-    """클릭 응답 (kit/concept_store.py와 같은 형식 + label): LLM 호출 없이 1~2KB"""
+    """클릭 응답 (kit/concept_store.py와 같은 형식 + label): LLM 호출 없이. 근거 문장까지 채워지면 최대 약 4KB"""
     note = con.execute("SELECT definition, sources FROM notes WHERE concept=?", (concept,)).fetchone()
     related = con.execute(
         """SELECT b, c.n * 1.0 / ((SELECT n FROM freq WHERE concept=?) * (SELECT n FROM freq WHERE concept=b)) AS s
@@ -295,8 +347,9 @@ def concept_card(con, concept, cursor=None, k=3):
         args += [ts, ts, int(rid)]
     rows = con.execute(q + " ORDER BY ts DESC, rowid DESC LIMIT ?", args + [k]).fetchall()
     return {"concept": concept, "label": label_of(con, concept),
-            "definition": note[0] if note else None,
-            "sources": json.loads(note[1]) if note and note[1] and note[1][:1] in "[{" else (note[1] if note else None),
+            "summary": one_line(note[0]) if note else None,
+            "definition": (note[0] or None) if note else None,
+            "sources": json.loads(note[1]) if note and note[1] and note[1][:1] in "[{" else [],
             "related": [{"id": r[0], "label": label_of(con, r[0])} for r in related],
             "records": [{"ts": r[0], "role": r[1], "snippet": r[2]} for r in rows],
             "next_cursor": "%s|%d" % (rows[-1][0], rows[-1][3]) if len(rows) == k else None}
@@ -312,11 +365,16 @@ const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"]/g,c=>
 async function lb(){const d=await (await fetch('/api/leaderboard?k=10')).json();
  $('#st').textContent=`세션 ${d.n_sessions} · 개념 ${d.n_concepts}`;
  $('#lb').innerHTML=d.items.map(x=>`<li data-id="${esc(x.id)}"><b>${esc(x.label)}</b> ${x.badge=='up'?'▲':x.badge=='down'?'▼':''} <small>${x.score} · ${x.sessions}세션</small></li>`).join('')||'<small>아직 기록이 없어요. Claude Code를 쓰면 여기에 쌓여요.</small>';}
-$('#lb').onclick=async e=>{const li=e.target.closest('li');if(!li)return;
- const c=await (await fetch('/api/concept/'+encodeURIComponent(li.dataset.id))).json();
- $('#card').innerHTML=`<h2>${esc(c.label)}</h2><p>${esc(c.definition||'정의 없음 (근거 수집 전)')}</p>
- <p>관련: ${c.related.map(r=>esc(r.label)).join(', ')||'-'}</p><ul>${c.records.map(r=>`<li><small>${esc(r.ts.slice(0,16))}</small> ${esc(r.snippet)}</li>`).join('')}</ul>`;};
-lb(); new EventSource('/api/events').addEventListener('update',lb);
+let cur=null,open=false;const NOTE={pending:'정의를 찾는 중이에요…',none:'위키백과와 검색에서 근거를 찾지 못했어요.',failed:'정의를 가져오지 못했어요. 인터넷이나 SearXNG(python dev.py searx up)를 확인해 주세요.'};
+async function card(){if(!cur)return;
+ const c=await (await fetch('/api/concept/'+encodeURIComponent(cur))).json();
+ const more=open?`<ol>${c.sources.map(s=>`<li style="cursor:auto">${esc(s.text)} <a href="${esc(s.url)}" target="_blank" rel="noopener">출처</a></li>`).join('')}</ol>
+ <p>관련: ${c.related.map(r=>esc(r.label)).join(', ')||'-'}</p><ul>${c.records.map(r=>`<li style="cursor:auto"><small>${esc(r.ts.slice(0,16))}</small> ${esc(r.snippet)}</li>`).join('')}</ul>`:'';
+ $('#card').innerHTML=`<h2>${esc(c.label)}</h2><p>${esc(c.summary||NOTE[c.note_status]||'')}</p>
+ <button type="button" id="more" aria-expanded="${open}">${open?'접기':'더 알아보기'}</button>${more}`;}
+$('#lb').onclick=e=>{const li=e.target.closest('li');if(!li)return;cur=li.dataset.id;open=false;card();};
+$('#card').onclick=e=>{if(e.target.id==='more'){open=!open;card();}};
+lb(); new EventSource('/api/events').addEventListener('update',()=>{lb();card();});
 </script>"""
 
 
@@ -326,11 +384,69 @@ class State:
         self.version = 0
         self.cond = threading.Condition()
         self.stop = threading.Event()
+        self.note_q = queue.Queue()
+        self.note_lock = threading.Lock()
+        self.note_pending = set()
+        self.note_failed = {}      # 개념 → 실패 시각 (NOTE_RETRY 동안 다시 시도하지 않음)
 
     def bump(self):
         with self.cond:
             self.version += 1
             self.cond.notify_all()
+
+
+def note_status(st, con, concept):
+    """ready·none·pending·failed. 노트가 없거나 오래됐으면 수집을 예약한다 (응답은 기다리지 않음)"""
+    row = con.execute("SELECT definition, updated FROM notes WHERE concept=?", (concept,)).fetchone()
+    t = parse_ts(row[1]) if row else None
+    fresh = t is not None and time.time() - t < NOTE_TTL
+    has_def = bool(row and row[0])
+    status = "ready" if has_def else "none"
+    with st.note_lock:
+        if not fresh and concept not in st.note_pending:
+            failed_at = st.note_failed.get(concept)
+            if failed_at is None or time.time() - failed_at >= NOTE_RETRY:
+                st.note_pending.add(concept)
+                st.note_q.put(concept)
+        if has_def:
+            return status
+        if concept in st.note_pending:
+            return "pending"
+        if concept in st.note_failed:
+            return "failed"
+    return status
+
+
+def note_loop(st, fetcher=None):
+    """노트 수집 일꾼 1개 (같은 사이트 1초 1번 규칙을 지키려고 한 번에 하나씩). 끝나면 update 이벤트로 알린다"""
+    fetcher = fetcher or fetch_note
+    con = open_db(st.db)
+    while not st.stop.is_set():
+        try:
+            c = st.note_q.get(timeout=0.2)
+        except queue.Empty:
+            continue
+        try:
+            forms = [r[0] for r in con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form", (c,))]
+            definition, sources = fetcher(forms[0] if forms else c, forms[1:])
+            save_note(con, c, definition, sources)
+            with st.note_lock:
+                st.note_failed.pop(c, None)
+        except Exception as e:  # noqa: BLE001 — 네트워크가 끊겨도 서버는 계속 돈다. 저장하지 않으므로 나중에 다시 시도
+            print(f"[경고] 정의 수집 실패: {type(e).__name__}: {e}", flush=True)
+            with st.note_lock:
+                st.note_failed[c] = time.time()
+            if isinstance(e, urllib.error.HTTPError) and e.code == 429:   # 요청이 많다는 응답: 대기열 전체를 쉰다
+                try:
+                    pause = int(e.headers.get("Retry-After", NOTE_RETRY))
+                except (TypeError, ValueError):
+                    pause = NOTE_RETRY
+                st.stop.wait(pause)
+        finally:
+            with st.note_lock:
+                st.note_pending.discard(c)
+            st.bump()
+    con.close()
 
 
 def tail_loop(st, interval=1.0):
@@ -375,7 +491,8 @@ def make_handler(st):
                         cid = urllib.parse.unquote(path[len("/api/concept/"):])
                         if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
                             return self.send(404, {"error": "없는 개념", "id": cid})
-                        return self.send(200, concept_card(con, cid, q.get("cursor")))
+                        return self.send(200, dict(concept_card(con, cid, q.get("cursor")),
+                                                   note_status=note_status(st, con, cid)))
                     if path == "/api/status":
                         return self.send(200, {"inbox": str(pathlib.Path(st.inbox).expanduser()),
                                                "offset": int(meta_get(con, "offset", 0)),
@@ -442,6 +559,7 @@ def main():
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--roles", default="assistant,subagent", help="색인할 역할 (쉼표로)")
     ap.add_argument("--web", default=None, help="화면 폴더 (index.html). 없으면 내장 간이 화면")
+    ap.add_argument("--searx", default=DEFAULT_SEARX, help="위키백과에 없는 개념을 찾을 SearXNG 주소. 안 쓰려면 off")
     ap.add_argument("--once", action="store_true", help="한 번 색인하고 순위를 출력한 뒤 끝")
     ap.add_argument("--rebuild", action="store_true", help="색인을 지우고 처음부터 다시")
     a = ap.parse_args()
@@ -459,6 +577,8 @@ def main():
     con.close()
     st = State(a.db, a.inbox, roles, a.web)
     threading.Thread(target=tail_loop, args=(st,), daemon=True).start()
+    searx = None if a.searx.lower() == "off" else a.searx
+    threading.Thread(target=note_loop, args=(st, lambda t, al=(): fetch_note(t, al, searx)), daemon=True).start()
     srv = make_server(st, a.host, a.port)
     print(f"열림: http://localhost:{srv.server_address[1]}  (끝내려면 Ctrl+C)", flush=True)
     try:

@@ -2,6 +2,13 @@
 
 날짜는 한국 시간. 페이지에 보이는 숫자가 바뀐 변경은 따로 표시한다.
 
+## 0.3.1 — 2026-11-08
+
+- serve: 개념 카드를 열면 뒤에서 위키백과 근거를 찾아 `notes`에 저장(`note_status`, 30일 유효, 출처 문장 그대로). `fetch_sources.wikipedia`는 동음이의 안내 문서를 제외하고 문서 제목을 함께 돌려준다
+- 위키백과에 없는 개념은 SearXNG로 찾기: `kit/searxng/`(compose·settings, 버전 고정), `python dev.py searx up|down`, `serve --searx`. 실제 컨테이너 확인 전 (개발 PC에 Docker 없음)
+- 카드에 `summary`(출처 문장을 다듬은 한 줄), 내장 화면은 한 줄 + "더 알아보기"
+- 페이지 숫자 변경 없음 (코드 상자의 `fetch_sources.py`만 바뀜)
+
 ## 0.3.0 — 2026-11-08
 
 - 로컬 서버 `kit/serve.py` + `python dev.py serve`: 인박스 1초 이어 읽기 → SQLite → `/api/leaderboard`·`/api/concept/{id}`·`/api/events`(SSE)·`/api/status`, 내장 간이 화면. 개념 = 명사+코드 용어, 점수 = 제안 C(H 7·세션 단위)를 내 세션 IDF로 적용

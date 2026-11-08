@@ -138,6 +138,18 @@ python dev.py serve --once   # 순위만 터미널에 출력
 
 색인 DB는 `~/.claude/concept-chart.sqlite` (git 제외, 인박스에서 다시 만들 수 있음).
 
+### 정의 검색 (SearXNG, Docker 필요)
+
+개념 정의는 위키백과에서 먼저 찾고, 없으면 이 PC에 띄운 SearXNG로 찾는다. Docker Desktop을 설치하고 켠 뒤:
+
+```bash
+python dev.py searx up       # http://localhost:8888 (이 PC에서만 접속, PC를 켤 때 저절로 뜨지 않음)
+python dev.py searx down     # 끄기
+python dev.py serve --searx off   # Docker 없이 위키백과만 쓰기
+```
+
+처음 켤 때 비밀 키를 `kit/searxng/.env`에 만든다 (git 제외).
+
 ## 7. 작업 흐름
 
 | 바꾼 것 | 다음에 할 일 |
