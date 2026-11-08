@@ -34,3 +34,4 @@ models/
 *.safetensors
 *.onnx
 *.gguf
+.venv-ml/
