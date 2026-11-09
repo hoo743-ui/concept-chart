@@ -12,7 +12,7 @@ const API = (() => {
   async function get(path) {
     if (demo) {
       const d = await loadDemo();
-      const key = path.split('?')[0];
+      const key = decodeURIComponent(path.split('?')[0]);
       if (d[key] === undefined) throw new Error('데모에 없는 화면입니다');
       return d[key];
     }
