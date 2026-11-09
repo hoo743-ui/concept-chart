@@ -1,0 +1,12623 @@
+# 기술 용어 목록. experiments/build_terms.py가 만든다. 직접 고치지 않는다.
+# 출처: 위키백과 제목(CC BY-SA), 위키데이터(CC0), MDN 용어집(CC BY-SA), Kubernetes 용어집(CC BY 4.0)
+.hack
+.htaccess
+.htpasswd
+.run
+/dev/full
+15.ai
+1종 오류와 2종 오류
+2010 Flash Crash
+2010 flash crash
+2014 celebrity nude photo leak
+2014 Sony Pictures hack
+2020 Twitter account hijacking
+2025 RAM shortage
+24-bit color
+2D computer graphics
+2단계 로킹
+2단계 커밋 프로토콜
+2차원 컴퓨터 그래픽스
+3D computer graphics
+3D display
+3D film
+3D modeling
+3D scanning
+3단계 커밋 프로토콜
+3차원 디스플레이
+3차원 모델링
+3차원 스캐닝
+3차원 영화
+3차원 컴퓨터 그래픽스
+4DX
+5D Glass disk
+5D optical data storage
+5가지 요약 수치
+68-95-99.7 규칙
+68–95–99.7 rule
+99 Bottles of Beer
+99병의 맥주
+A Mathematical Theory of Communication
+A* search algorithm
+A* 알고리즘
+A+
+A-0 System
+A-0 시스템
+A/B testing
+A/B 테스트
+AAA protocol
+AAI Labs
+AAI 랩스
+abandonware
+Abandonware
+ABAP
+ABBYY FineReader
+ABBYY 파인리더
+ABC
+ABC analysis
+ABC 분석
+ABC@Home
+Abstraction
+ACARS
+Accelerated Linear Algebra
+Accent
+acceptance testing
+Acceptance testing
+access control
+Access control
+Access Database Engine
+access-control list
+Access-control list
+Accessibility
+Accessibility tree
+Accessible name
+Accuracy and precision
+accuracy and precision
+AccuWeather
+Ace
+ACID
+ACM Software System Award
+ACM 소프트웨어 시스템 상
+ACM 인간-컴퓨터 상호작용 학회
+ACT-R
+ActionScript
+Activation function
+activation function
+Active appearance model
+active learning
+Active learning
+Active shape model
+active shutter 3D system
+Active shutter 3D system
+Activity recognition
+activity recognition
+actuarial science
+Actuarial science
+actuator
+Actuator
+Acxiom
+Ad hoc network
+ad hoc network
+Ada
+AdaBoost
+Adaptive filter
+Add-ons
+Address geocoding
+address geocoding
+Address space layout randomization
+address space layout randomization
+ADHD 진단 시스템
+admissible heuristic
+Admissible heuristic
+Admission Controller
+ADO.NET
+Adobe Animate
+Adobe ColdFusion
+Adobe Dreamweaver
+Adobe Edge
+Adobe Edge Animate
+Adobe Experience Cloud
+Adobe Firefly
+Adobe Flash
+Adobe for Business
+Adobe Muse
+Adobe Prelude
+Adobe XD
+ADOdb
+Advance measure
+Advanced Data Analytics Professional
+Advanced maternal age
+advanced maternal age
+Advanced process control
+Adversarial machine learning
+adversarial machine learning
+Aerial manned-unmanned teaming
+affective computing
+Affective computing
+Affinity
+Agbogbloshie
+Agda
+AgensGraph
+Agent
+Agent harness
+agent harness
+Agent Smith
+Agent-based model
+agent-based model
+Agent2Agent
+Aggregation Layer
+aging of China
+Aging of China
+Aging of Japan
+aging of Japan
+AgMES
+Agricultural Ontology Service
+Agricultural robot
+agricultural robot
+AGROVOC
+Aheui
+AI accelerator
+AI aftermath scenarios
+AI agent
+AI alignment
+AI art
+AI Basic Act
+AI browser
+AI data center
+AI diagnostics
+AI Dungeon
+AI effect
+AI literacy
+AI Mode
+AI no Idenshi
+AI safety
+AI safety institute
+AI slop
+AI takeover
+AI washing
+AI 가속기
+AI 던전
+AI 데이터 센터
+AI 리터러시
+AI 모드
+AI 브라우저
+AI 슬롭
+AI 안전
+AI 안전 연구소
+AI 에이전트
+AI 영향 시나리오
+AI 오물
+AI 워싱
+AI 위험에 관한 성명
+AI 정렬
+AI 지원 소프트웨어 개발
+AI 효과
+AI-assisted software development
+AI-complete
+AI-induced psychosis
+AI-완전
+AIOps
+air gap
+Air gap
+Aircrack-ng
+airliners.net
+Airliners.net
+Airtable
+AI에 의한 탈취
+AI의 유전자
+AJAX
+Ajax
+Akamai Technologies
+Akinator
+Albert-László Barabási
+AlexNet
+AlgaeBase
+ALGOL
+ALGOL 60
+Algorism
+algorithm
+Algorithm
+Algorithm design
+algorithm design
+algorithmic bias
+Algorithmic bias
+algorithmic composition
+Algorithmic composition
+algorithmic efficiency
+Algorithmic efficiency
+Algorithmic information theory
+algorithmic information theory
+Algorithmic probability
+algorithmic probability
+algorithmic trading
+Algorithmic trading
+Aliasing
+aliasing
+Alibaba Cloud
+Alice
+Alice AI
+Alignment Container
+Alignment container
+Alignment Research Center
+Alignment Subject
+Alignment subject
+AliOS
+Alisa
+All Media Network
+All-pass filter
+all-pass filter
+Almost periodic function
+almost periodic function
+Almquist shell
+ALPAC
+Alpha
+Alpha mapping
+AlphaFold
+AlphaGo
+AlphaGo Master
+AlphaGo versus Ke Jie
+AlphaGo versus Lee Sedol
+AlphaGo Zero
+alphanumeric
+Alphanumericals
+AlphaZero
+alpha–beta pruning
+Alpha–beta pruning
+ALPN
+Alt attribute
+alt attribute
+Alt 속성
+alt 속성
+Altair BASIC
+Altered Carbon
+Alternative hypothesis
+alternative hypothesis
+Altibase
+ALYac
+Amaya
+Amazon Alexa
+Amazon Aurora
+Amazon Bedrock
+Amazon Cloud Drive
+Amazon Drive
+Amazon DynamoDB
+Amazon Elastic Block Store
+Amazon Elastic Compute Cloud
+Amazon Elastic File System
+Amazon Fire TV
+Amazon Machine Image
+Amazon Redshift
+Amazon Relational Database Service
+Amazon S3
+Amazon S3 Glacier
+Amazon SageMaker
+Amazon Simple Queue Service
+Amazon SimpleDB
+Amazon Standard Identification Number
+Amazon Web Services
+Ameca
+AmigaOS
+Ampere Computing
+An Essay on the Principle of Population
+Anaglyph 3D
+anaglyph imaging
+analog signal processing
+Analog signal processing
+analog-to-digital converter
+Analog-to-digital converter
+analytics
+Analytics
+Anchor text
+anchor text
+Ancient Egyptian multiplication
+Ancillary Mercy
+Ancillary Sword
+Andrew Ng
+Andrew Y. Ng
+Android
+Android 11
+Android 12
+Android Auto
+Android Developer Challenge
+Android Things
+Andy Hertzfeld
+anemic domain model
+Anemic domain model
+Angular
+AngularJS
+animation database
+Animation database
+animatronics
+Animatronics
+Anna Karenina principle
+Annotation
+anomaly detection
+Anomaly detection
+Anscombe's quartet
+ANSI C
+Ansible
+Answer engine optimization
+answer engine optimization
+answer set programming
+Answer set programming
+anti-aliasing
+Anti-aliasing filter
+Anti-Counterfeiting Trade Agreement
+Anti-keylogger
+anti-keylogger
+Anti-pattern
+anti-pattern
+Apache Accumulo
+Apache Beam
+Apache Brooklyn
+Apache CarbonData
+Apache Cassandra
+Apache Click
+Apache CloudStack
+Apache Cocoon
+Apache CouchDB
+Apache cTAKES
+Apache Drill
+Apache Druid
+Apache Flex
+Apache Giraph
+Apache Groovy
+Apache Hadoop
+Apache Hama
+Apache HBase
+Apache Hive
+Apache Iceberg
+Apache Impala
+Apache Kudu
+Apache Mahout
+Apache Mesos
+Apache MXNet
+Apache NetBeans
+Apache Nutch
+Apache Oozie
+Apache OpenNLP
+Apache ORC
+Apache Parquet
+Apache Pig
+Apache Pinot
+Apache Shale
+Apache SINGA
+Apache Singa
+Apache Sling
+Apache Solr
+Apache Spark
+Apache Storm
+Apache Struts
+Apache SystemDS
+Apache Tapestry
+Apache UIMA
+Apache Wicket
+Apache ZooKeeper
+Apertium
+API
+API Group
+API resource
+API server
+API 그룹
+API 리소스
+API 서버
+API-initiated eviction
+Apidog
+API를 이용한 축출
+APL
+Apodization
+App Container
+AppImage
+Apple Intelligence
+Apple Safari
+AppleScript
+Applesoft BASIC
+Application context
+application domain
+Application domain
+application firewall
+Application firewall
+Application security
+application security
+application server
+Application server
+Applications
+applications of artificial intelligence
+Applications of artificial intelligence
+applied statistics
+Apprenticeship learning
+Approver
+approximation
+Approximation
+approximation algorithm
+Approximation algorithm
+Approximation error
+approximation error
+Approximation theory
+approximation theory
+Aptana
+Aptana Studio
+arbitrary code execution
+Arbitrary code execution
+architecture description language
+Architecture description language
+Archival Disc
+Archival Resource Key
+ARCore
+Arduino
+ArduPilot
+Ardupilot
+Arena
+Arena.ai
+argument
+Argument
+ARIA
+Aria
+ARIES
+ARKAMYS
+Armstrong's axioms
+ARP spoofing
+ARP 스푸핑
+ARPA
+ARPANET
+Arpanet
+Array
+array programming
+Array programming
+Artificial brain
+artificial brain
+artificial consciousness
+Artificial consciousness
+Artificial general intelligence
+artificial general intelligence
+artificial intelligence
+Artificial intelligence
+artificial intelligence and copyright
+Artificial intelligence and copyright
+artificial intelligence arms race
+Artificial intelligence arms race
+Artificial intelligence controversies
+artificial intelligence controversies
+Artificial intelligence in fiction
+artificial intelligence in fiction
+Artificial intelligence in government
+artificial intelligence in government
+artificial intelligence in healthcare
+Artificial intelligence in healthcare
+Artificial intelligence in industry
+artificial intelligence in industry
+Artificial intelligence in marketing
+Artificial intelligence in music
+Artificial intelligence marketing
+Artificial intelligence safety institute
+artificial intelligence visual art
+artificial neural network
+artificial neuron
+Artificial neuron
+artificial reproduction
+Artificial reproduction
+As a service
+as a service
+ASCII
+Asia Tech Summit
+Asilomar Conference on Beneficial AI
+Ask.com
+Asm.js
+asm.js
+ASP.NET
+ASP.NET AJAX
+ASP.NET Core
+ASP.NET MVC
+ASP.NET MVC Framework
+ASP.NET Razor
+ASP.NET Web Forms
+ASP.NET 웹 폼
+AspectJ
+ASPLOS
+Assembly language
+assembly language
+Assertion
+assertion
+Assistive technology
+assistive technology
+Association for Information Systems
+association rule learning
+Association rule learning
+Astrophysics Data System
+Async/await
+async/await
+Asynchronous
+asynchronous I/O
+Asynchronous I/O
+asynchronous module definition
+Asynchronous module definition
+Asynchronous Transfer Mode
+ATAG
+Atkinson index
+Atom
+atomic commit
+Atomic commit
+atomicity
+Atomicity
+Attack surface
+attention
+Attention
+Attribute
+attribute-based access control
+Attribute-based access control
+audio
+Audio compression
+audio compression
+audio signal processing
+Audio signal processing
+Audio time stretching and pitch scaling
+audio time-scale/pitch modification
+Audio-visual presentation
+Augmented Analytics
+augmented cognition
+Augmented cognition
+Australian Women's Register
+Authentication
+authentication
+Authorization
+authorization
+Auto-GPT
+Autocorrelation
+autocorrelation
+autoencoder
+Autoencoder
+AutoGPT
+Automan
+automated decision-making
+Automated decision-making
+automated machine learning
+Automated machine learning
+automated reasoning
+Automated reasoning
+automated theorem proving
+Automated theorem proving
+Automatic differentiation
+automatic differentiation
+automatic number plate recognition
+Automatic number-plate recognition
+Automatic repeat request
+automatic repeat request
+Automatic summarization
+automatic summarization
+automaton
+Automaton
+AutoML
+automotive navigation system
+Automotive navigation system
+Autonomic computing
+autonomic computing
+Autonomous agent
+autonomous agent
+autonomous robot
+Autonomous robot
+Autonomy Corporation
+Autoregressive integrated moving average
+autoregressive integrated moving average
+Autoregressive model
+autoregressive model
+AUTOSAR
+autoscaling
+Autoscaling
+Autostereoscopy
+autostereoscopy
+availability
+Availability
+Avalanche effect
+avalanche effect
+Avast
+Avast Antivirus
+Average
+average
+average absolute deviation
+Average absolute deviation
+AVG AntiVirus
+AVG 안티바이러스
+Avira
+AWK
+AWS Elastic Beanstalk
+AWS Lambda
+AWS 람다
+AWS 일래스틱 빈스토크
+AWStats
+Azure
+B*
+B2B
+B2E
+Babel Fish
+BabelNet
+baby boom
+Baby boom
+Baby Boomers
+Baby boomers
+baby-step giant-step
+Baby-step giant-step
+Backblaze
+Backbone network
+Backdoor
+backdoor
+Backend as a service
+Background Intelligent Transfer Service
+Backlink
+backlinks
+backporting
+Backporting
+Backpropagation
+backpropagation
+BackTrack
+Backtracking
+backtracking
+backup
+Backup
+Backup site
+backup site
+Backward chaining
+backward chaining
+Bad Apple!!
+Bag-of-words model
+bag-of-words model
+Baidu Cloud
+Baidu Netdisk
+Bairstow's method
+Bandwidth
+bandwidth
+Banking as a service
+Barabási–Albert model
+Barcode
+barcode
+Bare machine
+bare machine
+Barry Boehm
+Base Léonore
+base rate
+Base rate
+Base64
+Baseband
+baseband
+Baseband processor
+baseband processor
+Baseline
+Bash
+BASIC
+basic access authentication
+Basic access authentication
+Basis function
+basis function
+batch normalization
+Batch normalization
+Bayes' theorem
+Bayesian inference
+Bayesian network
+Bayesian search theory
+BB84
+BCH code
+BCH 부호
+BCPL
+bcrypt
+Bcrypt
+Beacon
+Beam search
+beam search
+Befunge
+Behavior informatics
+behavior informatics
+behavior-driven development
+Behavior-driven development
+behaviorism
+Behaviorism
+Bekenstein bound
+belief propagation
+Belief propagation
+Belief revision
+belief revision
+Bell's theorem
+Bellingcat
+Bellman–Ford algorithm
+Bell–LaPadula model
+Benford's law
+Berkeley DB
+Berlekamp-Massey 알고리즘
+Berlekamp–Massey algorithm
+Berlekamp–Welch algorithm
+Bernoulli distribution
+Bernstein polynomial
+Bernstein's constant
+Berry paradox
+BERT
+Bertrand Meyer
+best-first search
+Best-first search
+Beta distribution
+beta distribution
+Bezier curve
+bias–variance tradeoff
+Bias–variance tradeoff
+bibcode
+Bibcode
+BIBO stability
+BIBO 안정성
+BIBSYS
+BiDi
+bidirectional search
+Bidirectional search
+big data
+Big data
+Big Data Analyst
+Big data ethics
+big data ethics
+BigDog
+BigInt
+Bigram
+bigram
+Bigtable
+Bilinear transform
+bilinear transform
+BIMI
+binary classification
+Binary classification
+Binary code
+binary code
+binary GCD algorithm
+Binary GCD algorithm
+Binary Golay code
+binary Golay code
+Binary image
+binary image
+binary large object
+Binary large object
+Binary search
+binary search algorithm
+Binding
+Binocular vision
+binocular vision
+BioAPI
+Biometric passport
+biometric passport
+Biometrics
+biometrics
+Biometrika
+biorobotics
+Biorobotics
+biostatistics
+Biostatistics
+BIRCH
+bisection method
+Bisection method
+Bitbucket
+Bitcoin Gold
+bitext
+Bitnami
+BitTorrent
+Bitwise flags
+Bixby
+Black hole
+black hole
+Black October
+black-box testing
+Black-box testing
+Blackboard system
+blackboard system
+blacklist
+Blacklist
+Blade Runner 2099
+BLAST
+Blazor
+Blink
+Blitz BASIC
+Blob detection
+blob detection
+Block
+block
+Block cipher mode of operation
+block cipher mode of operation
+Block nested loop
+Block-level content
+blockchain
+Blockchain
+Blockchain as a service
+blockchain as a service
+Blockhead
+Blockly
+BLOOM
+Bloom filter
+Bluefish
+BlueHat
+Bluemix
+Bluesnarfing
+BNC
+Bochner's theorem
+Bode plot
+Boltzmann machine
+Bombe
+Bonferroni correction
+Boo
+BookCorpus
+Bookmarklet
+bookmarklet
+Boolean
+Boolean attribute
+boosting
+Boosting
+Bootstrap
+bootstrap aggregating
+Bootstrap aggregating
+bootstrapping
+Bootstrapping
+Bosque
+Botnet
+botnet
+Bottom-up and top-down approaches
+Boundary element method
+boundary element method
+Bounding box
+Bourne shell
+Box–Jenkins
+Box–Jenkins method
+Boyce–Codd normal form
+BQP
+Brackets
+Bradford's law
+Brainfuck
+Brainiac
+Brain–computer interface
+brain–computer interface
+Branching
+brand page
+Brand page
+BraSCII
+Bra–ket notation
+bra–ket notation
+BREACH
+Breadcrumb
+Breadth-first search
+breadth-first search
+Brendan Eich
+Bresenham's line algorithm
+Brewster Kahle
+bricks and clicks
+Bright Computing
+BRMS
+broadcast engineering
+Broadcast engineering
+Brooks' law
+Brooks's law
+Brotli
+Brotli compression
+Browser
+browser exploit
+Browser exploit
+Browser security
+browser security
+Browsing context
+Bruce Tognazzini
+Brute-force attack
+brute-force attack
+Brute-force search
+brute-force search
+Buddy memory allocation
+Buffalo AirStation
+buffer
+Buffer
+Buffer analysis
+Buffer overflow
+buffer overflow
+buffer overflow protection
+Buffer overflow protection
+BUFR
+bug bounty program
+Bug bounty program
+Bully algorithm
+bully algorithm
+Bullying in information technology
+bullying in information technology
+Bun
+Burp Suite
+Business analytics
+business analytics
+business card
+Business card
+Business informatics
+business informatics
+business intelligence
+Business intelligence
+Business logic
+business logic
+Business performance management
+business performance management
+business process automation
+Business process automation
+Business Process Model and Notation
+business rule management system
+Business rule management system
+Business statistics
+business statistics
+Business-to-business
+business-to-business
+business-to-employee
+Bézier curve
+C preprocessor
+C Sharp
+C 샤프
+C 언어 전처리기
+C 전처리기
+C#
+C++
+C++03
+C++11
+C++14
+C++17
+C++20
+C++23
+C++26
+C/AL
+C11
+C17
+C23
+C4 model
+C4 모델
+C4.5 algorithm
+C4.5 알고리즘
+C99
+CA IDMS
+CAcert.org
+Cache
+cache algorithm
+Cache replacement policies
+Cacheable
+Caffe
+CakePHP
+CalDAV
+Call stack
+Callback function
+Caller ID
+calling convention
+Calling convention
+CALS
+Cambridge Analytica
+Cambridge Quantum Computing
+Camel case
+Caml
+Camping
+CAN bus
+CAN 버스
+Candidate key
+candidate key
+Canny edge detector
+Canonical order
+CANopen
+Canva
+Canvas
+Capability Maturity Model
+Capability Maturity Model Integration
+CAPTCHA
+Captive portal
+captive portal
+capture the flag
+Capture the flag
+Carbon
+Card sorting
+CardDAV
+Caret
+CarPlay
+carrying capacity
+Carrying capacity
+case-based reasoning
+Case-based reasoning
+Casting out nines
+Catalyst
+Catastrophic interference
+Catboost
+CatBoost
+categorization
+category 2 cable
+Category 2 cable
+causal inference
+Causal inference
+cause of death
+Cause of death
+cavity quantum electrodynamics
+Cavity quantum electrodynamics
+CCID
+CCNA
+CCNP
+CDN
+Cel shading
+cel shading
+censoring
+Censoring
+census
+Census
+Central limit theorem
+central limit theorem
+Central tendency
+central tendency
+centrality
+Centrality
+CERT Coding Standards
+CERT 코딩 표준
+Certificate
+Certificate authority
+Certified
+certified ethical hacker
+Certified ethical hacker
+Cg
+cgroup
+Cgroups
+cgroups
+Chainer
+Challenge
+change control
+Change control
+channel
+Channel
+channel capacity
+Channel capacity
+Chaos engineering
+chaos engineering
+Character
+Character encoding
+Character set
+Character.ai
+Chart.js
+chatbot psychosis
+ChatGPT
+check digit
+Check digit
+cheminformatics
+Cheminformatics
+Chemometrics
+chemometrics
+Chernoff face
+chgrp
+Chgrp
+chi-square test
+Chi-squared test
+Chief information officer
+chief information officer
+Child mortality
+child mortality
+Children's Online Privacy Protection Act
+Chimpui
+China brain
+Chinese BASIC
+Chinese room
+Chkrootkit
+chkrootkit
+Chmod
+chmod
+Chomsky hierarchy
+Chord
+chown
+Chown
+Christo Grozev
+Christofides algorithm
+Chroma key
+chroma key
+Chrome
+Chromebit
+Chromebook
+Chromebox
+Chromium
+chroot
+Chroot
+CI/CD
+CIA
+CICS
+CIDR
+Cipher
+cipher
+Cipher suite
+ciphertext
+Ciphertext
+Ciphertext indistinguishability
+Circuit
+circuit
+Circular reference
+circular reference
+CiteSeerX
+Citrix Virtual Apps
+Civic technology
+civic technology
+CLA
+Class
+Classic Visual Basic
+Classical definition of probability
+classical definition of probability
+Classical test theory
+Claude
+Claude Mythos
+Claw-free permutation
+Clean
+Clean Network Project
+clean-room design
+Clean-room design
+Clear channel assessment attack
+Cleverbot
+Client honeypot
+Climatic Research Unit email controversy
+clinical decision support system
+Clinical decision support system
+Clipper
+clipping
+Clipping
+CLIST
+Clojure
+Closed-world assumption
+closed-world assumption
+closing
+Closing
+Closure
+Cloud
+Cloud access security broker
+Cloud Bigtable
+cloud computing
+Cloud computing
+Cloud computing security
+Cloud Controller Manager
+Cloud database
+cloud database
+Cloud Foundry
+Cloud gaming
+cloud gaming
+cloud management
+Cloud management
+Cloud native computing
+Cloud Native Computing Foundation
+Cloud OS
+Cloud Provider
+Cloud robotics
+cloud robotics
+cloud security
+Cloud storage
+cloud storage
+Cloud-based integration
+cloud-based integration
+Cloud-native computing
+Cloud9 IDE
+Cloudbric
+Cloudera
+Cloudera Impala
+CloudMinds
+Clova
+CLU
+Cluster
+Cluster analysis
+cluster analysis
+Cluster Infrastructure
+Cluster Operations
+Cluster Operator
+cluster sampling
+Cluster sampling
+CMMI
+CMS
+CNTK
+CoAP
+COBOL
+COCOMO
+Codd's 12 rules
+code
+Code
+Code as speech
+code block
+Code Contributor
+code coverage
+Code coverage
+code injection
+Code injection
+Code point
+Code rate
+code rate
+code reuse
+Code reuse
+Code signing
+code signing
+Code splitting
+Code unit
+code word
+codebase
+Codebase
+Codeberg
+Codeberg e.V.
+Codec
+codec
+Codecademy
+CodeIgniter
+CODEN
+CodePen
+coding theory
+Coding theory
+Coefficient of determination
+coefficient of determination
+coefficient of skewness
+Coefficient of variation
+coefficient of variation
+CoffeeScript
+Cognitive architecture
+cognitive architecture
+Cognitive bias
+cognitive bias
+Cognitive categorization
+Cognitive computer
+Cognitive computing
+cognitive computing
+cognitive engineering
+Cognitive engineering
+cognitive ergonomics
+Cognitive ergonomics
+Cognitive philology
+cognitive philology
+Cognitive robotics
+Cohen's kappa
+Cohesion
+cohesion
+cointegration
+Cointegration
+collaborative filtering
+Collaborative filtering
+Collection #1
+Collection No. 1
+collision detection
+Collision detection
+collocation
+Collocation
+Colon classification
+Colon Classification
+color channel
+Color gradient
+color gradient
+Color management
+color management
+Color wheel
+colour banding
+Colour banding
+Column
+column
+column-oriented DBMS
+Comb filter
+combinatorial optimization
+Combinatorial optimization
+Comet
+ComfyUI
+Comma-separated values
+comma-separated values
+Command-line interface
+command-line interface
+command-line interpreter
+Comment
+commercial software
+Commercial software
+COMMIT
+Commodore BASIC
+Common Criteria
+Common Data Format
+Common Desktop Environment
+Common Gateway Interface
+Common Lisp
+Common Voice
+Common Vulnerabilities and Exposures
+Common Vulnerability Scoring System
+Common Weakness Enumeration
+CommonJS
+Commonsense knowledge
+commonsense knowledge base
+Commonsense reasoning
+commonsense reasoning
+Communication channel
+Communication protocol
+communication protocol
+Community cloud
+Community Notes
+Comodo Group
+Comparison of C# and Visual Basic .NET
+comparison of file archivers
+Comparison of file archivers
+Comparison of Java and C++
+comparison of Java and C++
+Comparison of JavaScript frameworks
+comparison of office suites
+Comparison of office suites
+Comparison of operating systems
+comparison of operating systems
+Comparison of programming languages
+comparison of programming languages
+comparison of shopping cart software
+Comparison of shopping cart software
+COMPAS
+Compatibility
+Compatibility testing
+compatibility testing
+Compile
+Compile time
+compiler-compiler
+Compiler-compiler
+Completely randomized design
+complex trait
+Complex traits
+Component Object Model
+component-based software engineering
+Component-based software engineering
+Composite operation
+Compressed sensing
+compressed sensing
+computational electromagnetics
+Computational electromagnetics
+Computational fluid dynamics
+computational fluid dynamics
+Computational geometry
+computational geometry
+Computational intelligence
+computational intelligence
+Computational journalism
+computational journalism
+Computational learning theory
+computational learning theory
+computational linguistics
+Computational linguistics
+Computational number theory
+computational number theory
+computational photography
+Computational photography
+Computational physics
+computational physics
+Computational theory of mind
+computational theory of mind
+Computer access control
+computer access control
+Computer algebra
+computer algebra
+computer animation
+Computer animation
+Computer appliance
+computer appliance
+computer art
+Computer art
+computer cluster
+Computer cluster
+Computer compatibility
+computer compatibility
+Computer engineering
+computer engineering
+Computer forensics
+computer forensics
+computer graphics
+Computer graphics
+Computer network
+computer network
+Computer network programming
+computer network programming
+Computer Pioneer Award
+computer program
+Computer program
+computer programming
+Computer Programming
+Computer programming
+computer repair technician
+Computer repair technician
+computer science
+Computer science
+Computer science and engineering
+computer science and engineering
+computer scientist
+Computer scientist
+computer security
+Computer security
+computer security software
+Computer security software
+Computer stereo vision
+computer stereo vision
+computer tape cartridge
+Computer vision
+computer vision
+Computer-aided software engineering
+computer-aided software engineering
+computer-assisted proof
+Computer-assisted proof
+computer-integrated manufacturing
+Computer-integrated manufacturing
+computer-mediated communication
+Computer-mediated communication
+computer-supported cooperative work
+Computer-supported cooperative work
+Computers and Intractability
+Computing Machinery and Intelligence
+computus
+COMSOL Multiphysics
+concatenated code
+Concatenated error correction code
+Concept map
+concept map
+conceptual model
+Conceptual model
+concern
+Concern
+concurrency control
+Concurrency control
+Concurrent Versions System
+condition number
+Condition number
+Conditional
+conditional entropy
+Conditional entropy
+Conditional independence
+conditional independence
+Conditional mutual information
+Conditional probability
+conditional probability
+conditional random field
+Conditional random field
+Confidence interval
+confidence interval
+ConfigMap
+Configuration management
+configuration management
+confusion matrix
+Confusion matrix
+Congeneric reliability
+conjoint analysis
+Conjoint analysis
+Connected toys
+connected toys
+connection pool
+Connection pool
+connection-oriented communication
+Connection-oriented communication
+connectionism
+Connectionism
+Connectionless communication
+connectionless communication
+Consistency
+consistency
+Consistency model
+consistency model
+const
+Const
+Constant
+Constrained Application Protocol
+Constraint satisfaction problem
+constraint satisfaction problem
+Constructor
+Container
+Container Environment Variables
+Container Lifecycle Hooks
+Container Linux
+Container network interface
+Container Runtime
+Container Runtime Interface
+Container Storage Interface
+containerization
+Content centric networking
+content delivery network
+Content delivery network
+content management system
+Content management system
+Content Security Policy
+Content-addressable memory
+content-addressable memory
+content-based image retrieval
+Content-based image retrieval
+Context window
+context window
+context-based access control
+Context-based access control
+Continuous delivery
+continuous delivery
+Continuous Media
+Contributor
+contributor license agreement
+Contributor license agreement
+Control flow
+Control Plane
+Control theory
+control theory
+Control variates
+controlled language
+Controlled natural language
+controlled vocabulary
+Controlled vocabulary
+Controller
+convention over configuration
+Convention over configuration
+Converged infrastructure
+convergence of random variables
+Convergence of random variables
+conversational user interface
+Conversational user interface
+convolution
+Convolution
+convolutional code
+Convolutional code
+convolutional neural network
+Convolutional neural network
+Cookie
+Cooperative MIMO
+Copy protection
+copy protection
+Copyleft
+Coq
+core network
+CoreWeave
+corpus linguistics
+Corpus linguistics
+correctness
+Correctness
+correlation
+Correlation
+Correlation does not imply causation
+correspondence analysis
+Correspondence analysis
+CORS
+CORS-safelisted request header
+CORS-safelisted response header
+Cortana
+Cosmoe
+Couchbase Server
+counterfeit consumer good
+Counterfeit consumer good
+Countersign
+countersign
+coupling
+Coupling
+covariance
+Covariance
+covariance matrix
+Covariance matrix
+CPL
+CPLINK
+CPU mode
+CPU modes
+CPU 모드
+Crawler
+Create, read, update and delete
+create, read, update and delete
+Creative Commons
+Creative Commons license
+Credential stuffing
+credential stuffing
+CRIME
+Crisis of the late Middle Ages
+crisis of the late Middle Ages
+Cristian Danescu-Niculescu-Mizil
+critical path method
+Critical path method
+Critical thinking
+critical thinking
+criticism of Facebook
+Criticism of Facebook
+CRLF
+Cronbach's alpha
+CronJob
+Cross Axis
+cross-correlation
+Cross-correlation
+Cross-origin resource sharing
+cross-origin resource sharing
+Cross-site request forgery
+cross-site request forgery
+Cross-site scripting
+cross-site scripting
+cross-validation
+Cross-validation
+CRUD
+cryptanalysis
+Cryptanalysis
+cryptanalysis of the Enigma
+Cryptanalysis of the Enigma
+crypto wars
+Crypto Wars
+crypto-anarchism
+Crypto-anarchy
+cryptographic hash function
+Cryptographic hash function
+Cryptographic nonce
+cryptography
+Cryptography
+Cryptovirology
+cryptovirology
+CSP
+CSRF
+CSS
+CSS Descriptor
+CSS framework
+CSS pixel
+CSS preprocessor
+CSS Selector
+CSS 객체 모델
+CSS 선택자 (Selector (CSS))
+CSS 전처리기
+CSS 프레임워크
+CSS 픽셀
+CSSOM
+CSV
+CTAKES
+Cuckoochess
+CuckooChess
+cum hoc ergo propter hoc
+CURE algorithm
+CURE data clustering algorithm
+CURE 알고리즘
+Curl
+Curriculum learning
+Curry
+curse of dimensionality
+Curse of dimensionality
+Cursor
+Customer support
+customer support
+CustomResourceDefinition
+CVE-2024-3094
+CVS
+CyanogenMod
+Cyber espionage
+cyber espionage
+Cyber operations command
+Cyber resilience
+cyber resilience
+Cyber Storm Exercise
+cyber-physical system
+Cyber-physical system
+Cyberwarfare
+cyberwarfare
+cyberwarfare and China
+Cyberwarfare and China
+cyborg
+Cyborg
+Cyc
+Cypher
+Cypher Query Language
+Cypherpunk
+Cω
+D-Wave Systems
+D-웨이브 시스템
+DABUS
+DaemonSet
+Dafny
+daily build
+Daily build
+DailyMed
+Daisy chain
+daisy chain
+DAL-e
+DALL-E
+Dangling pointer
+dangling pointer
+Daniel Glazman
+Daniela Amodei
+Dark data
+dark data
+Dark mode
+Darktrace
+DART
+Dart
+Dartmouth workshop
+Data access layer
+data access layer
+data acquisition
+Data acquisition
+data administration
+Data administration
+data analysis
+Data analysis
+Data annotation
+data annotation
+data anonymization
+Data anonymization
+Data as a service
+data as a service
+data augmentation
+Data augmentation
+Data bank
+data bank
+Data binning
+data binning
+Data breach
+data breach
+data center
+Data center
+Data center management
+data center management
+data cleansing
+Data cleansing
+data collection
+Data collection
+Data control language
+data control language
+data definition language
+Data definition language
+data dictionary
+Data dictionary
+Data dredging
+data dredging
+data hub
+Data hub
+Data integration
+data integration
+data integrity
+Data integrity
+Data lake
+data lake
+data loss prevention
+Data manipulation language
+data manipulation language
+data mart
+Data mart
+Data masking
+data masking
+Data mesh
+data mesh
+data mining
+Data mining
+Data orientation
+Data Plane
+Data Plane Development Kit
+data pre-processing
+Data preprocessing
+data preservation
+Data preservation
+Data Privacy Day
+data processing unit
+Data processing unit
+data profiling
+Data profiling
+data re-identification
+Data re-identification
+Data redundancy
+data redundancy
+Data security
+data security
+data storage
+Data storage
+Data store
+data store
+Data structure
+data structure
+Data theft
+data theft
+data validation
+Data validation
+Data visualization
+data visualization
+data warehouse
+Data warehouse
+data-flow diagram
+Data-flow diagram
+Database
+database
+database catalog
+Database catalog
+database cursor
+database design
+Database design
+database engine
+Database engine
+Database index
+database index
+database language
+Database language
+database machine
+Database machine
+Database management system
+database management system
+Database marketing
+database marketing
+Database model
+database model
+database normalisation
+Database normalization
+database schema
+Database schema
+Database security
+database system
+database table
+database transaction
+Database transaction
+Database transaction schedule
+database trigger
+Database trigger
+dataflow programming
+Dataflow programming
+Dataism
+dataism
+DataOps
+datasource
+Datasource
+Date of Easter
+Daum
+David Marr
+David Parnas
+Daya Guo
+dbm
+DBM
+DBRX
+DBSCAN
+dc
+Dc
+De-identification
+de-identification
+dead letter queue
+Dead letter queue
+Death
+death
+Debounce
+debugging pattern
+Debugging pattern
+DEC Prism
+DEC PRISM
+Decentralized autonomous organization
+decentralized autonomous organization
+Decentralized identifier
+decentralized identifier
+decision boundary
+Decision boundary
+decision support system
+Decision support system
+decision theory
+Decision theory
+decision tree
+Decision tree
+Decision tree learning
+decision tree learning
+declarative programming language
+Deconvolution
+deconvolution
+Decoy effect
+decoy effect
+Decryption
+deep belief network
+Deep belief network
+Deep copy
+deep learning
+Deep learning
+Deep Learning Anti-Aliasing
+deep learning super sampling
+Deep Learning Super Sampling
+deep packet inspection
+Deep packet inspection
+deep reinforcement learning
+Deep reinforcement learning
+DeepDream
+Deepfake
+deepfake
+deepfake pornography
+Deepfake pornography
+DeepL
+DeepL Translator
+DeepL 번역
+Deeplearning4j
+DeepRoute.ai
+DeepSeek
+default logic
+Default logic
+Degrees of freedom
+degrees of freedom
+Deinterlacing
+deinterlacing
+delivery robot
+Delivery robot
+Dell
+Dell Technologies
+Delphi
+Delta
+Delta modulation
+delta modulation
+Delta rule
+delta-sigma modulation
+Delta-sigma modulation
+Deltacloud
+Demographic economics
+demographic economics
+Demographics
+demographics
+demographics of sexual orientation
+Demographics of sexual orientation
+demographics of the Cayman Islands
+Demographics of the Cayman Islands
+demography
+Demography
+DENDRAL
+Dendral
+dendrogram
+Dendrogram
+Denial of Service
+denial-of-service attack
+Denial-of-service attack
+denormalization
+Denormalization
+density matrix
+Density matrix
+Denuvo
+Dependability
+dependability
+Dependency injection
+dependency injection
+dependent and independent variables
+Dependent and independent variables
+Deployment
+depth-first search
+Depth-first search
+DermAtlas
+description logic
+Description logic
+Descriptive statistics
+descriptive statistics
+Descriptor
+Deserialization
+Design by contract
+design by contract
+Design matrix
+design matrix
+design of experiments
+Design of experiments
+Design Patterns
+design requirement
+Desktop metaphor
+desktop metaphor
+desktop search
+Desktop search
+Desktop virtualization
+desktop virtualization
+Destiny
+detection theory
+Detection theory
+deterministic finite automata
+Deterministic finite automaton
+Deus Ex: Human Revolution
+Deutsch–Jozsa algorithm
+Developer
+Developer relations
+Developer Tools
+development and operations
+Deviation
+deviation
+Device
+Device configuration overlay
+device fingerprint
+Device fingerprint
+Device independent pixel
+Device Plugin
+Device-independent pixel
+DevOps
+DevOps toolchain
+Devpack
+Dew point depression
+Dexterity
+Diagnosis
+dictionary attack
+Dictionary attack
+Diella
+Difference in differences
+difference in differences
+Differential entropy
+differential entropy
+Differential evolution
+differential evolution
+diffusion model
+Diffusion model
+Digest
+Digest access authentication
+Digimon Universe: App Monsters
+Digital certificate
+Digital content
+digital content
+Digital curation
+digital curation
+digital dark age
+Digital dark age
+Digital distribution
+digital distribution
+Digital ecosystem
+digital ecosystem
+digital evidence
+Digital evidence
+Digital fashion
+digital fashion
+digital filter
+Digital filter
+Digital footprint
+digital footprint
+digital forensics
+Digital forensics
+digital identity
+Digital identity
+Digital image
+digital image
+Digital image processing
+digital image processing
+Digital Millennium Copyright Act
+Digital Nations
+Digital nervous system
+Digital object identifier
+digital object identifier
+digital on-screen graphic
+Digital on-screen graphic
+digital signal
+Digital signal
+digital signal processing
+Digital signal processing
+digital signal processor
+Digital signal processor
+Digital Signature Algorithm
+Digital sovereignty
+digital sovereignty
+digital storage oscilloscope
+Digital storage oscilloscope
+Digital subscriber line
+digital video
+Digital video
+digital watermark
+Digital watermarking
+digital-to-analog converter
+Digital-to-analog converter
+DigitalGlobe
+DigitalOcean
+Dijkstra's algorithm
+dilation
+Dilation
+dimensionality reduction
+Dimensionality reduction
+Dirac delta function
+direct digital synthesis
+Direct digital synthesis
+Directive
+directive
+Directory service
+directory service
+DirectPlay
+DIRKS
+DIRKS 매뉴얼
+Disabled parking permit
+disabled parking permit
+Discrete cosine transform
+discrete cosine transform
+Discrete Fourier transform
+discrete Fourier transform
+Discrete logarithm
+discrete logarithm
+discrete signal
+Discrete wavelet transform
+discrete wavelet transform
+Discrete-time Fourier transform
+discrete-time Fourier transform
+Discrete-time signal
+Discretionary access control
+discretionary access control
+discretization
+Discretization
+discriminative model
+Discriminative model
+disease
+Disease
+disjoint-set data structure
+Disjoint-set data structure
+Disney Digital 3-D
+Disputes on Wikipedia
+disputes on Wikipedia
+Disruption
+Distance-vector routing protocol
+distance-vector routing protocol
+distributed algorithm
+Distributed algorithm
+Distributed Component Object Model
+Distributed computing
+distributed computing
+distributed data storage
+Distributed data store
+distributed database
+Distributed database
+Distributed Denial of Service
+Distributed development
+Distributed hash table
+distributed hash table
+Distributed Management Task Force
+distributed operating system
+Distributed operating system
+distributed revision control system
+Distributed version control
+Distributional semantics
+distributional semantics
+Dither
+dither
+divide-and-conquer algorithm
+Divide-and-conquer algorithm
+DLL hell
+DLL 지옥
+DMZ
+DNS
+DNS hijacking
+DNS spoofing
+DNS 스푸핑
+DNS 하이재킹
+Do Not Track
+DO-178B
+Doas
+doas
+Docker
+Dockershim
+Doctest
+doctest
+Doctype
+Document classification
+document classification
+Document directive
+Document environment
+Document-oriented database
+Dojo
+Dojo Toolkit
+Doki Doki Literature Club!
+dokkaebi writing
+Dolby 3D
+Dolittle
+DOM
+DOM event
+DOM 이벤트
+Domain
+domain
+domain analysis
+Domain analysis
+domain driven design
+domain fronting
+Domain fronting
+domain knowledge
+Domain knowledge
+Domain model
+domain model
+Domain name
+Domain sharding
+Domain specific language
+Domain-driven design
+Domain-specific language
+domain-specific language
+domain-specific modeling
+Domain-specific modeling
+Domestic robot
+domestic robot
+Dominator
+Don Norman
+Donald Norman
+donationware
+Donationware
+DONET
+DONET2
+DoNotPay
+Doomsday rule
+double hashing
+Double hashing
+Double mass analysis
+Double Ratchet Algorithm
+Double-ended queue
+double-ended queue
+DoublePulsar
+Douglas Engelbart
+downgrade
+Downgrade
+downgrade attack
+Downgrade attack
+download
+Download
+downsampling
+Downsampling
+doxing
+Doxing
+DPDK
+Dr. Slump
+Dream Machine
+DreamBooth
+Dries Buytaert
+Drill down
+drill down
+drive-by download
+Drive-by download
+driver drowsiness detection
+Driver drowsiness detection
+Dropbox
+dropout
+Dropout
+DROWN 공격
+Drupal
+DSL
+DSL modem
+DSL 모뎀
+DTLS
+DTMF
+Dual SIM
+dual SIM
+DUAL table
+Dublin Core
+Dublin Core Metadata Element Set
+dummy variable
+Dummy variable
+duplicate code
+Duplicate code
+Dynamic Adaptive Streaming over HTTP
+dynamic linker
+Dynamic linker
+Dynamic program analysis
+dynamic program analysis
+Dynamic programming language
+dynamic programming language
+dynamic range
+Dynamic range
+Dynamic Resource Allocation
+dynamic time warping
+Dynamic time warping
+Dynamic typing
+Dynamic Volume Provisioning
+Dynamic web page
+dynamic web page
+dynamo theory
+Dynamo theory
+e-assessment
+E.164
+Earliest deadline first scheduling
+earliest deadline first scheduling
+early stopping
+Early stopping
+Earthquake Early Warning
+Easter egg
+easter egg
+EasyNumber
+Eb/N0
+ECHC 암호 스키마
+Echo
+echo state network
+Echo state network
+ECMA
+ECMAScript
+ECMA스크립트
+ECML PKDD
+ECMP
+Econometrics
+econometrics
+economic agent
+economic index
+economic statistics
+Economic statistics
+edge computing
+Edge computing
+edge detection
+Edge detection
+edit conflict
+Edit conflict
+eDonkey network
+EDonkey network
+Edsger W. Dijkstra
+Educational robotics
+Eduroam
+eduroam
+Edward Yourdon
+Edwin Jarvis
+effective accelerationism
+Effective accelerationism
+Effective connection type
+efficiently updatable neural network
+Efficiently updatable neural network
+Egress filtering
+EICAR
+EICAR test file
+EICAR 테스트 파일
+EIDAS
+eIDAS
+Eiffel
+Eigenface
+eigenface
+electrical engineering
+Electrical engineering
+Electronic assessment
+Electronic data processing
+electronic data processing
+Electronic human resources
+Electronic signature
+Electronic voting
+electronic voting
+Electronics engineering
+electronics engineering
+Element
+elementary function
+Elementary function
+ElGamal encryption
+Elimination theory
+elimination theory
+Elixir
+ELIZA
+ELIZA effect
+elliptic curve cryptography
+Elliptic-curve cryptography
+Elliptic-curve Diffie–Hellman
+Elm
+EM 알고리즘
+email encryption
+Email encryption
+Embedded SQL
+embedded SQL
+embedded system
+Embedded system
+Embedding
+embedding
+Ember.js
+Embodied cognition
+embodied cognition
+embodied cognitive science
+Embodied cognitive science
+EMedicine
+eMedicine
+Emergent algorithm
+Empirical distribution function
+empirical distribution function
+empirical risk minimization
+Empirical risk minimization
+Empirical software engineering
+Emporis
+EmuLab
+Enactivism
+enactivism
+Encapsulation
+Encryption
+encryption
+End-to-end encryption
+end-to-end encryption
+end-user development
+End-user development
+endgame tablebase
+Endgame tablebase
+Endianness
+endpoint detection and response
+Endpoint detection and response
+Endpoints
+EndpointSlice
+Engine
+engine
+ENQUIRE
+Ensemble learning
+ensemble learning
+entanglement spectrum
+Enterprise application integration
+enterprise application integration
+enterprise content management
+Enterprise content management
+enterprise engineering
+Enterprise engineering
+Enterprise Integration Patterns
+enterprise portal
+Enterprise portal
+Enterprise resource planning
+enterprise resource planning
+Enterprise service bus
+enterprise service bus
+Entity
+Entity header
+entity-relationship model
+Entity–relationship model
+entropic gravity
+Entropic gravity
+Entropy
+Entropy rate
+Entry
+Enumerated
+Environmental impact of AI
+environmental statistics
+Environmental statistics
+EPANET
+Ephemeral Container
+Epitech
+Equal-cost multi-path routing
+equalized odds
+Equalized odds
+equation solving
+Equation solving
+Eric Horvitz
+ERIL
+Erlang
+Ernie Bot
+Erosion
+erosion
+Error bar
+error bar
+Error correction code
+error correction code
+error detection and correction
+Error detection and correction
+error function
+Error function
+Errors and residuals
+errors and residuals
+ESET NOD32
+ESET NOD32 Antivirus
+eSIM
+ESIM
+Esoteric programming language
+esoteric programming language
+Essential systems analysis
+essential systems analysis
+Estab Life
+estimation theory
+Estimation theory
+etcd
+EternalBlue
+ETERNITY
+Eternity
+Ethernet hub
+ethernet hub
+Ethernet over USB
+ethics of artificial intelligence
+Ethics of artificial intelligence
+Etoys
+Euclidean algorithm
+Eugene Goostman
+Euler method
+Euphoria
+European Article Number
+Event
+event
+Event loop
+event loop
+Event-driven architecture
+event-driven architecture
+Event-driven programming
+event-driven programming
+EveR
+Evernote
+Everpure
+Eviction
+evil maid attack
+Evil maid attack
+Evil twin
+Evolutionary algorithm
+evolutionary algorithm
+evolutionary computation
+Evolutionary computation
+EXAONE
+Exaone
+Exception
+exception handling syntax
+Exception handling syntax
+exchangeable random variables
+Exchangeable random variables
+Exec Shield
+Executable-space protection
+executable-space protection
+EXIF
+Exobrain
+Exoskeleton
+Expando
+expectation–maximization algorithm
+Expectation–maximization algorithm
+Experimental software engineering
+expert system
+Expert system
+explainable AI
+Explainable artificial intelligence
+Explanatory gap
+explanatory gap
+explicit semantic analysis
+Explicit semantic analysis
+exploit
+Exploit
+exploit kit
+Exploit kit
+exploration–exploitation dilemma
+Exploration–exploitation dilemma
+Exploratory data analysis
+exploratory data analysis
+Exponential family
+exponential family
+Express.js
+EXpressDSP
+eXpressDSP
+Expressive power
+expressive power
+ExpressVPN
+Ext JS
+extensibility
+Extensibility
+Extensible Application Markup Language
+Extensible Resource Identifier
+Extensible Storage Engine
+Extensions
+extranet
+Extranet
+ExtraTorrent
+Extreme learning machine
+extreme learning machine
+eyeOS
+EyeOS
+E호조
+F Sharp
+F 샤프
+F 스코어
+F#
+F*
+F-score
+F-test
+F-검정
+F1 score
+Face detection
+face detection
+Face ID
+FaceApp
+Facebook
+Facebook Query Language
+facial recognition system
+Facial recognition system
+Factor
+Factor analysis
+factor analysis
+Fail2ban
+Fairness
+fairness in machine learning
+Falcon
+Fallback Alignment
+false positives and false negatives
+False positives and false negatives
+False precision
+false precision
+Falsy
+Fano's inequality
+Fashion Model Directory
+Fast Fourier transform
+fast Fourier transform
+fast inverse square root
+Fast inverse square root
+FastCGI
+Fastly
+fastText
+FastText
+fat client
+Fault tolerance
+fault tolerance
+Favicon
+FDOA
+Feature
+feature
+Feature creep
+feature creep
+Feature engineering
+feature engineering
+feature integration theory
+Feature integration theory
+feature learning
+Feature scaling
+Feature selection
+feature selection
+feature toggle
+Feature toggle
+features new to Windows 10
+Features new to Windows 10
+features new to Windows 7
+Features new to Windows 7
+Features new to Windows 8
+features new to Windows 8
+fec
+Federated learning
+federated learning
+FEDOR
+FeedBurner
+Feedforward neural network
+feedforward neural network
+Fei-Fei Li
+feminist HCI
+Feminist HCI
+FemiSapien
+FERET database
+FERET 데이터베이스
+fertility
+Fertility
+fertility factor
+Fertility factor
+Fetch directive
+Fetch metadata request header
+Fetch 지시어
+Few-shot learning
+few-shot learning
+Feynman–Kac formula
+Fibre Channel
+FIDO Alliance
+FIDO 얼라이언스
+FIFO
+Figma
+Figure AI
+FileMaker
+FileMaker Pro
+Fillrate
+fillrate
+Film stock
+film stock
+filter
+Filter
+Finalizer
+Financial Crimes Enforcement Network
+Find a Grave
+Find New Zealand Artists
+findability
+Findability
+fine-tuning
+Fine-tuning
+FineReader PDF
+fingerprint
+Fingerprint
+Fingerprinting
+Finite difference
+finite difference
+Finite impulse response
+Finite Impulse Response filter
+Finite volume method
+finite-state machine
+Finite-state machine
+finite-volume method
+FINO
+Fire OS
+Firebase
+Firebird
+FireEye
+Firefox OS
+Firefox Sync
+Firefox 운영체제
+firewall
+Firewall
+First contentful paint
+First CPU idle
+First Draft of a Report on the EDVAC
+First input delay
+First meaningful paint
+first normal form
+First normal form
+First paint
+First-class Function
+Fisher information
+Fitts's law
+five-number summary
+Five-number summary
+Fixed point
+fixed point
+fixed-mobile convergence
+Fixed-point logic
+Fixed–mobile convergence
+FKT algorithm
+Flags of the World
+flat file database
+Flat-file database
+Flatpak
+flex
+Flex
+Flex Container
+Flex Item
+Flexbox
+Flow network
+flow network
+Flow-based generative model
+flow-based generative model
+FLOW-MATIC
+flowchart
+Flowchart
+Floyd's triangle
+Floyd–Warshall algorithm
+Fluentd
+Flux
+focus group
+Focus group
+Folding@home
+Folksonomy
+folksonomy
+Footprinting
+Forbidden request header
+Forbidden response header name
+Ford Sync
+foreign key
+Foreign key
+forensic dentistry
+Forensic dentistry
+fork
+Fork
+Formal equivalence checking
+Formal methods
+formal methods
+Formal system
+formal system
+Formal verification
+formal verification
+format string attack
+Forth
+Fortran
+forward chaining
+Forward chaining
+Forward compatibility
+forward compatibility
+Fossilworks
+Foundation model
+foundation model
+FoundationDB
+Fourier analysis
+Fourier series
+FPS
+FRACTRAN
+Fragmentainer
+frame
+Frame
+Frame injection
+Frame problem
+frame problem
+framebuffer
+Framebuffer
+Framing
+framing
+Fred Brooks
+free and bound variables
+free license
+Free license
+Free Pascal
+Free variables and bound variables
+FreeBASIC
+freeCodeCamp
+FreeCodeCamp
+Freedb
+FreeLang v11
+FreeMat
+FreeOTP
+Freeware
+freeware
+frequency analysis
+Frequency analysis
+Frequency distribution
+frequency distribution
+Frequency domain
+frequency domain
+Frequency response
+frequency response
+frequentist probability
+Frequentist probability
+Friday
+Friedman test
+Friend-to-friend
+friend-to-friend
+friendly artificial intelligence
+Friendly artificial intelligence
+Front end and back end
+frontend and backend
+FTC Fair Information Practice
+FTC fair information practice
+FTP
+FTU
+FuelPHP
+Fugue
+Full width at half maximum
+full width at half maximum
+Full-text database
+full-text database
+Function
+Function as a service
+function as a service
+Function model
+function model
+function point
+Function point
+Function prototype
+function prototype
+functional requirement
+Functional requirement
+functional specification
+Functional specification
+Functional testing
+functional testing
+functionalism
+Functionalism
+Funshion
+Future of Go Summit
+Future of Life Institute
+fuzzing
+Fuzzing
+Fuzzy clustering
+fuzzy clustering
+Fuzzy control system
+Fuzzy logic
+fuzzy logic
+Fuzzy set
+fuzzy set
+F값
+F테스트
+G-Book
+G-code
+Gabia Inc.
+Gabor filter
+gadget
+Gadget
+Galaxy AI
+Gambas
+game theory
+Game theory
+games as a service
+Gamma distribution
+gamma distribution
+Gamut
+garbage
+Garbage
+Garbage can model
+Garbage Collection
+Garbage collection
+Gated recurrent unit
+gated recurrent unit
+Gateway
+gateway
+Gaussian process
+Gauss–Markov theorem
+Gauss–Seidel method
+Gecko
+Gemini
+Gemini Notebook
+Gemma
+General Data Protection Regulation
+General header
+General 헤더
+General-purpose programming language
+general-purpose programming language
+generalization error
+Generalization error
+Generalized distributive law
+generalized linear model
+Generalized linear model
+Generalized processor sharing
+Generation X
+Generation Z
+Generations and Gender Survey
+generative adversarial network
+Generative adversarial network
+Generative AI
+Generative AI pornography
+generative AI pornography
+Generative art
+generative art
+generative artificial intelligence
+Generative engine optimization
+generative engine optimization
+generative model
+Generative model
+generative pre-trained transformer
+Generative pre-trained transformer
+Generative Pretrained Recommender
+Genesis Mission
+Genetic algorithm
+genetic algorithm
+Genetic programming
+genetic programming
+Genode
+Genode OS Framework
+GeoEye
+Geographic information system
+geographic information system
+Geography
+GeoJSON
+George Pólya Prize
+GeoServer
+Gerald Weinberg
+Gerontology
+gerontology
+Gerrit
+Gestational age
+gestational age
+Ghost in the Shell
+GhostNet
+Gibbs' inequality
+GIF
+GigaChat
+Girsanov theorem
+Git
+Gitea
+Gitee
+GitHub
+GitHub Copilot
+GitLab
+GlassFish
+Glitch token
+GLM
+Global Data Synchronization Network
+global Internet usage
+Global Internet usage
+Global object
+Global scope
+Global variable
+Globally unique identifier
+globally unique identifier
+GlobalTrade.net
+Glossary of artificial intelligence
+glossary of artificial intelligence
+GloVe
+GLSL
+GlTF
+glTF
+GlusterFS
+Glyph
+GN
+GNU Bash
+GNU LibreJS
+GNU Octave
+GNU Pascal
+GNU 옥타브
+GNU 파스칼
+Gnutella
+Gnutella2
+Go
+GOFAI
+golden section search
+Golden-section search
+Gollum browser
+Gompertz distribution
+Gompertz function
+Google
+Google AI Studio
+Google Analytics
+Google App Engine
+Google Apps Script
+Google Assistant
+Google Authenticator
+Google Base
+Google Books Ngram Viewer
+Google Brain
+Google Chrome
+Google Closure Tools
+Google Cloud Connect
+Google Cloud Platform
+Google Cloud Storage
+Google Colab
+Google Compute Engine
+Google DeepMind
+Google Docs
+Google Drawings
+Google Drive
+Google Family Link
+Google Fusion Tables
+Google Gemini
+Google Guice
+Google hacking
+Google Maps
+Google Marketing Platform
+Google matrix
+Google Native Client
+Google Nest
+Google Neural Machine Translation
+Google Ngram Viewer
+Google Now
+Google One
+Google Optimize
+Google OTP
+Google Public Data Explorer
+Google Public DNS
+Google Scholar
+Google Street View
+Google Street View privacy concerns
+Google Translate
+Google Wavenet
+Google Web Designer
+Google Web Toolkit
+Google Workspace
+Gopher
+Gordon Bell Prize
+gOS
+GOS
+government by algorithm
+Government by algorithm
+GPL
+GPS Exchange Format
+GPS 교환 포맷
+GPT
+GPT Image
+GPT 이미지
+GPT-1
+GPT-2
+GPT-3
+GPT-4
+GPT-4.1
+GPT-4.5
+GPT-4Chan
+GPT-4o
+GPT-5.1
+GPT-5.2
+GPT-5.3-Codex
+GPT-5.4
+GPT-5.5
+GPT-5.6
+GPT-6
+GPT-6 Astra
+GPT-6 아스트라
+GPT-6.1
+GPT-J
+GPT4-Chan
+GPTeens
+GPTZero
+GPU
+GPX
+Graceful degradation
+Gradient boosting
+gradient boosting
+Grails
+Gram matrix
+Gramian matrix
+grammar induction
+Grammar induction
+Grammarly
+Graph
+graph data structure
+graph database
+Graph database
+Graph edit distance
+graph isomorphism
+Graph isomorphism
+Graph isomorphism problem
+graph isomorphism problem
+Graph neural network
+graph neural network
+Graph traversal
+graph traversal
+Graph-based access control
+GrapheneOS
+Graphical Kernel System
+graphical model
+Graphical model
+Graphical user interface
+graphical user interface
+graphics
+Graphics
+Graphics processing unit
+graphics processing unit
+graphics software
+Graphics software
+GraphQL
+GRASP
+GrassBase
+gray-box testing
+Gray-box testing
+Great Cannon
+Gremlin
+Grid
+Grid Areas
+Grid Axis
+Grid Cell
+Grid Column
+Grid computing
+grid computing
+Grid Container
+Grid Lines
+Grid Row
+Grid Tracks
+Grok
+Group delay and phase delay
+Grover's algorithm
+grsecurity
+Grsecurity
+Gröbner basis
+Gröbner fan
+Guardian
+guidance, navigation and control
+Guidance, navigation, and control
+Gutters
+GvSIG
+gvSIG
+GW 베이직
+GW-BASIC
+gynoid
+Gynoid
+gzip compression
+GZip 압축
+Gödel machine
+Gödel Prize
+H Company
+H. G. Wells
+H. G. 웰스
+H2D2
+Hack
+Hackathon
+hackathon
+hacker
+Hacker
+Hacker Manifesto
+hacking
+Hacking Team
+Hacking tool
+hacking tool
+HackingTeam
+hacktivism
+Hacktivism
+Hadamard transform
+HAL
+hallucination
+Hallucination
+Hamming code
+Hampton Lintorn-Catlin
+Handle System
+Handwriting recognition
+handwriting recognition
+hangul search engine
+hapax legomenon
+Hapax legomenon
+Hard copy
+hard copy
+Hard problem of consciousness
+hard problem of consciousness
+HardenedBSD
+hardening
+Hardening
+hardware programmer
+hardware random number generator
+Hardware random number generator
+hardware security bug
+Hardware security bug
+hardware security module
+Hardware security module
+Hartree–Fock method
+Harvest now, decrypt later
+harvest now, decrypt later
+Hash function
+hash function
+Hash join
+hash join
+hash table
+Hash table
+hash tree
+Hashtag
+hashtag
+hashtag activism
+Hashtag activism
+Haskell
+Hasse diagram
+Haxe
+Hazard analysis
+hazard analysis
+Hazelcast
+HCL Domino
+HCL Notes
+HCL 노츠
+HDF
+HEAAN
+Head
+head-related transfer function
+Head-related transfer function
+Healthy Life Years
+Heap overflow
+heap overflow
+Heap spraying
+Heaviside step function
+Hebbian rule
+Hebbian theory
+heisenbug
+Heisenbug
+Helm Chart
+Here
+Here Technologies
+Heroku
+Heron's method
+heterodyne
+Heterodyne
+heteroscedasticity
+heuristic evaluation
+Heuristic evaluation
+Heuristic function
+heuristic function
+Hewlett-Packard
+Hick's law
+Hidden Markov model
+hidden Markov model
+hierarchical classification
+Hierarchical classification
+hierarchical clustering
+Hierarchical clustering
+Hierarchical control system
+Hierarchical Data Format
+Hierarchical database model
+hierarchical database model
+Hierarchical model–view–controller
+hierarchical model–view–controller
+high availability
+High availability
+High color
+High Color
+High Level Shader Language
+High-frequency trading
+high-frequency trading
+High-level programming language
+high-level programming language
+High-Level Shader Language
+high-pass filter
+High-pass filter
+Highest response ratio next
+Hilbert transform
+Hill climbing
+hill climbing
+Hinge loss
+hinge loss
+Hirotugu Akaike
+Histogram
+histogram
+Histogram of oriented gradients
+Historical demography
+historical demography
+history of Microsoft SQL Server
+History of Microsoft SQL Server
+history of operating systems
+History of operating systems
+Hit-or-miss transform
+hitchBOT
+HitchBOT
+HMA
+HMAC
+HMAC 기반 일회용 비밀번호
+HMAC-based one-time password
+HMAC-based One-time Password Algorithm
+HN2 PROJECT
+Hoisting
+Holographic display
+holographic display
+holographic principle
+Holographic principle
+holography
+Holography
+Home network
+home network
+homoiconicity
+Homoiconicity
+homomorphic encryption
+Homomorphic encryption
+homoscedasticity
+Homoscedasticity
+Homoscedasticity and heteroscedasticity
+honeypot
+Honeypot
+Honglak Lee
+Hooking
+hooking
+Hop
+hop
+Hopfield network
+Horizontal Pod Autoscaler
+Horner's method
+Hospital information system
+hospital management information system
+Host
+host-based intrusion detection system
+Host-based intrusion detection system
+HostAliases
+Hotfix
+hotfix
+Hotlink
+Houdini
+HP Cloud
+HP Cloud Service Automation Software
+HP Helion
+HP 오토노미
+HP 클라우드
+HP 클라우드 서비스 오토메이션
+HPE Helion
+HPE 힐리온
+HPKP
+HPL
+HQ9+
+HRRN 스케줄링
+HSTS
+HTML
+HTML audio
+HTML 오디오
+HTML5
+HTML5 오디오
+HTTP
+HTTP 2
+HTTP 3
+HTTP compression
+HTTP cookie
+HTTP ETag
+HTTP header
+HTTP Live Streaming
+HTTP persistent connection
+HTTP pipelining
+HTTP POST
+HTTP Strict Transport Security
+HTTP 공개 키 고정
+HTTP 동적 적응 스트리밍
+HTTP 라이브 스트리밍
+HTTP 스트릭트 트랜스포트 시큐리티
+HTTP 압축
+HTTP 지속적 연결 상태
+HTTP 쿠키
+HTTP 파이프라이닝
+HTTP/1.1
+HTTP/2
+HTTP/3
+HTTPS
+HTTPS RR
+Huawei Cloud
+Huaya
+huaya
+Huber loss
+Huber loss function
+Hubert Dreyfus
+Hugging Face
+human interface device
+Human interface device
+Human processor model
+human-centered computing
+Human-centered computing
+Human-in-the-loop
+human-in-the-loop
+human-readable medium
+Human-readable medium and data
+Humanist Society
+Humanist Society of Singapore
+Humanity's Last Exam
+Humanoid
+humanoid
+Humans
+human–computer interaction
+Human–computer interaction
+Human–machine system
+human–machine system
+Human–robot interaction
+human–robot interaction
+Hybrid automatic repeat request
+hybrid intelligent system
+Hybrid intelligent system
+Hyper-converged infrastructure
+HyperCard
+Hyperdata
+hyperdimensional computing
+Hyperdimensional computing
+Hyperlink
+hypermedia
+Hypermedia
+hyperparameter
+Hyperparameter
+Hypertext
+hypertext
+hypertext fiction
+Hypertext fiction
+Hypertext Transfer Protocol
+Hypertext Transfer Protocol Secure
+Hyphanet
+I-name
+i-name
+I/O Acceleration Technology
+I/O 가속 기술
+I2P
+IaaS
+IANA
+IBM
+IBM 270x
+IBM AMOS
+IBM BASIC
+IBM Bluemix
+IBM Cloud
+IBM Granite
+IBM Information Management System
+IBM Research
+IBM Watson
+IBM WebSphere Application Server
+IBM 그래닛
+IBM 노트
+IBM 리서치
+IBM 베이직
+IBM 왓슨
+IBM 웹스피어 애플리케이션 서버
+IBM 웹스피어 애플리케이션 서버 커뮤니티 에디션
+IBM 정보 관리 시스템
+IBM 클라우드
+ICANN
+ICE
+ICloud
+Icon
+ICT Development Index
+ID-based cryptography
+ID3 algorithm
+ID3 알고리즘
+IDE
+IDEA 알고리즘
+Idempotent
+Idempotent matrix
+idempotent matrix
+identifier
+Identifier
+Identity and access management
+Identity column
+identity management
+Identity provider
+identity provider
+Identity-based cryptography
+IDL
+IDMS
+Idris
+IEEE 1012
+IEEE 802.10
+IEEE 802.1X
+IEEE 829
+IEEE John von Neumann Medal
+IEEE Richard W. Hamming Medal
+IEEE 리처드 W. 해밍 메달
+IEEE 존 폰 노이만 메달
+IEEE 존 폰 노이먼 메달
+IETF
+IIFE
+ill-posed problem
+Ill-posed problem
+Image
+image
+Image analysis
+image analysis
+image compression
+Image compression
+Image registration
+image registration
+Image resolution
+image resolution
+image scanner
+Image scanner
+Imagen
+ImageNet
+IMAP
+IMAX
+IMAX Corporation
+IMAX 코퍼레이션
+IMDb
+immediately invoked function expression
+Immediately invoked function expression
+immigration policy of South Korea
+Immigration policy of South Korea
+Immutable
+Imperva
+implementation
+Implementation
+implementation of a programming language
+Improper input validation
+improper input validation
+imputation
+Imputation
+IMU Abacus Medal
+IMU 아바쿠스 메달
+In-memory database
+in-memory database system
+In-memory processing
+in-memory processing
+in-phase and quadrature components
+In-phase and quadrature components
+in-place algorithm
+In-place algorithm
+iNaturalist
+INaturalist
+Incremental build model
+incremental build model
+incremental learning
+Incremental learning
+Indeed
+Independent component analysis
+independent component analysis
+independent software vendor
+Independent software vendor
+Index
+Index Translationum
+Indexed Database API
+IndexedDB
+Indexer
+indexer
+India Stack
+inductive bias
+Inductive bias
+Inductive programming
+inductive programming
+inference engine
+Inference engine
+Infinite impulse response
+infinite impulse response filter
+Informatics
+informatics
+Information
+information
+Information architecture
+information architecture
+information behavior
+Information behavior
+information entropy
+Information exchange
+information exchange
+information extraction
+Information extraction
+Information filtering system
+information filtering system
+Information gain
+Information gain in decision trees
+Information industry
+information industry
+information infrastructure
+Information infrastructure
+Information management
+information management
+information model
+Information model
+Information privacy
+information privacy
+Information processing
+information processing
+Information Processing Language
+information retrieval
+Information retrieval
+information revolution
+Information revolution
+Information security
+information security
+Information security management
+information security management system
+Information silo
+information silo
+information system
+Information system
+information systems technician
+Information systems technician
+information technology
+Information technology
+Information technology law
+information technology law
+Information technology management
+information technology management
+Information theory
+information theory
+Information theory and measure theory
+information-centric networking
+Information-centric networking
+informatization
+Informatization
+infranet
+Infranet
+infrastructure as a service
+Infrastructure as a service
+infrastructure as code
+Infrastructure as code
+Ingress
+ingress filtering
+Ingress filtering
+Inheritance
+Init Container
+Initialization vector
+Ink overflow
+inline linking
+Inline linking
+Inline-level content
+InnoDB
+Input method editor
+Inside Outside Beginning
+Instance
+Instrumental convergence
+instrumental convergence
+Instrumental variables
+instrumental variables estimation
+integer factorization
+Integer factorization
+Integer overflow
+integer overflow
+Integrated Authority File
+Integrated circuit card interface device
+Integrated development environment
+integrated development environment
+Integrated information theory
+integrated information theory
+Integration testing
+integration testing
+Intel Data Plane Development Kit
+Intel Management Engine
+Intel RealSense
+Intelligence assessment
+intelligence assessment
+intelligent agent
+Intelligent agent
+Intelligent control
+intelligent control
+Intelligent word recognition
+intelligent word recognition
+intentionality
+Intentionality
+inter frame
+Inter frame
+Interaction design
+interaction design
+Interactive Data Language
+Interactivity
+interactivity
+INTERCAL
+Interface Message Processor
+Interface segregation principle
+interface segregation principle
+interlaced video
+Interlaced video
+interlingual machine translation
+Interlingual machine translation
+Internal and external links
+internal link
+International Article Number
+International Chemical Identifier
+International Classification of Diseases
+International Color Consortium
+International Data Encryption Algorithm
+International Designator
+International mobile subscriber identity
+International Olympiad in Informatics
+International Standard Book Number
+International Standard Music Number
+International Standard Musical Work Code
+International Standard Name Identifier
+International Standard Recording Code
+International Standard Serial Number
+Internationalization
+Internet
+Internet addiction disorder
+internet backbone
+Internet backbone
+Internet Broadway Database
+Internet censorship circumvention
+Internet checksum
+Internet Crime Complaint Center
+Internet eXchange
+Internet exchange point
+Internet Explorer
+Internet Off-Broadway Database
+Internet police
+Internet privacy
+Internet protocol suite
+Internet security
+internet security
+Internet Speculative Fiction Database
+Internet tax
+Internet taxes
+internet use disorder
+Internet Watch Foundation
+InterPlanetary File System
+Interplanetary Internet
+interplanetary Internet
+Interpolation
+Interpress
+interval
+interval arithmetic
+Interval arithmetic
+Intrinsic Size
+Introduction to Algorithms
+intrusion detection system
+Intrusion detection system
+Intrusion prevention system
+intrusion prevention system
+inversion of control
+Inversion of control
+Inverted index
+inverted index
+Io
+IOB tagging
+Ionic
+IOS 18
+IOS 26
+iOS 26
+IOS 27
+iOS 27
+IOS jailbreaking
+iOS jailbreaking
+iOS 탈옥
+IOS 탈옥
+IP Address
+IP Connectivity Access Network
+IP connectivity access network
+IP-CAN
+IPv4
+IPv6
+IRC
+IRC bouncer
+Iris flower data set
+IronPython
+IronRuby
+Is This What We Want?
+is-a
+Is-a
+ISACA
+ISBN
+Ishikawa diagram
+ISO
+ISO 15765-2
+ISO 15926
+ISO 639
+ISO/IEC 27000 family
+ISO/IEC 27000 시리즈
+ISO/IEC 27000-series
+ISO/IEC 27002
+ISO/IEC 29119
+ISO/IEC 42010
+ISO/IEC 7812
+ISO/IEC 9126
+ISO/IEC JTC 1/SC 22
+ISO/IEC/IEEE 42010
+Isolation
+isolation
+Isolation forest
+Isometric projection
+isometric projection
+ISP
+ISSN
+Istio
+ISWIM
+IT disaster recovery
+IT infrastructure
+IT service management
+IT 서비스 관리
+IT 인프라스트럭처
+Italian brainrot
+Item response theory
+item response theory
+Iterative deepening depth-first search
+iterative deepening depth-first search
+Iterative method
+iterative numerical method
+Iterator
+iterator
+ITIL
+ITU
+Itô calculus
+Itō calculus
+Ivar Jacobson
+iWeb
+IWeb
+J 샤프
+J#
+J.A.R.V.I.S.
+JAAS
+Jabberwacky
+Jakarta EE
+Jakarta Faces
+Jakob Nielsen
+James Rumbaugh
+Jan Leike
+Janes
+Janes Information Services
+Jank
+Jargon File
+Jarque–Bera test
+Jasmin
+JASP
+Java
+Java Database Connectivity
+JavaScript
+JavaScript engine
+JavaScript framework
+JavaScript Gateway Interface
+JavaScript library
+JavaScript Style Sheets
+JavaScriptMVC
+JAX
+JDBC
+Jean Bartik
+Jeff Atwood
+Jefferson disk
+Jensen Huang
+Jess
+Jigdo
+JMP
+Job
+Joconde
+Johann Peter Süssmilch
+John Resig
+Joint application design
+Joli OS
+Joomla
+JOSS
+José Eisenberg
+Journal of Machine Learning Research
+JOVIAL
+Joyent
+JPEG
+jQuery
+JQuery
+jQuery Mobile
+JQuery Mobile
+jQuery UI
+JQuery UI
+JRuby
+JS++
+JScript
+JScript .NET
+JSFuck
+JSGI
+JSON
+JSON Web Token
+JSON 웹 토큰
+JSONP
+JSP model 1 architecture
+JSP model 2 architecture
+JSP 모델 1 아키텍처
+JSP 모델 2 아키텍처
+JSTOR
+JSX
+Julia
+Julian day
+Jump Flooding Algorithm
+jump flooding algorithm
+Jump flooding algorithm
+Jump server
+jump server
+JXTA
+J스크립트
+K 근접 이웃
+k-d tree
+K-d tree
+K-d 트리
+k-means clustering
+K-means clustering
+k-nearest neighbors algorithm
+K-nearest neighbors algorithm
+K-T 추정량
+K-최근접 이웃 알고리즘
+k-평균 알고리즘
+K-평균 알고리즘
+Kademlia
+Kaggle
+Kaguya Luna
+Kaiser window
+Kali Linux
+Kalman filter
+Kaplan–Meier estimator
+Karakuri puppet
+karakuri puppet
+Karel
+Kaspersky Anti-Virus
+KataGo
+Katie Bouman
+Kdb+
+kdb+
+Kebab case
+keepalive
+Keepalive
+Kelly criterion
+Kensington Security Slot
+Kent Recursive Calculator
+Keras
+Kerberos
+Kerckhoffs's principle
+Kerckhoffs’s principle
+kernel density estimation
+Kernel density estimation
+Kernel method
+kernel method
+Kernel Transaction Manager
+Kevin Warwick
+Key
+Key clustering
+key frame
+Key frame
+Key management
+key management
+key size
+Key size
+Key Wrap
+Key wrap
+Keycloak
+Keying
+Keyword
+Key–value database
+key–value database system
+KHR-1
+Khronos
+Kia Connect
+Kia Uvo
+Kill chain
+kill chain
+Kimi
+Kinect
+kinsmod
+Kinsmod
+Kioxia
+Kiwix
+Kleene star
+KMbase
+knapsack problem
+Knapsack problem
+knight's tour
+Knight's tour
+KNIME
+Knowledge base
+knowledge base
+knowledge cutoff
+Knowledge cutoff
+Knowledge distillation
+knowledge distillation
+Knowledge engineering
+knowledge engineering
+Knowledge level
+Knowledge management
+knowledge management
+knowledge organization
+Knowledge organization
+Knowledge representation and reasoning
+knowledge representation and reasoning
+knowledge-based system
+Knowledge-based systems
+Knuth Prize
+Kojo
+Kolmogorov complexity
+Komodo
+Kor-seek
+Korea Association of AI Robot Industry
+Korea Citation Index
+Korea Data Agency
+Korea Internet Neutral Exchange
+Korean Decimal Classification
+Korean decimal classification
+Kosaraju's algorithm
+Kotlin
+KRACK
+Krichevsky–Trofimov estimator
+Kronecoder
+Kruskal's algorithm
+Kruskal–Wallis test
+KT
+KT Cloud
+KT Corporation
+Kuaishou
+kube-controller-manager
+kube-proxy
+kube-scheduler
+Kubeadm
+Kubectl
+Kubeflow
+Kubelet
+Kubernetes
+Kubernetes API
+Kullback–Leibler divergence
+KulturNav
+Kurtosis
+kurtosis
+Kvikkalkul
+L-reduction
+L-환산
+L0pht
+Label
+Labeled data
+labeled data
+Laboratory information management system
+laboratory information management system
+LabVIEW
+Ladder logic
+ladder logic
+Lady tasting tea
+LAION
+Lambda architecture
+Lambda calculus
+lambda calculus
+Lambertian reflectance
+LaMDA
+Laminas
+LAMP
+Landauer's principle
+LangChain
+Language code
+Language engineering
+language engineering
+Language identification
+language identification
+language identifier
+Language Integrated Query
+Language model
+language model
+language resource
+Language resource
+Language technology
+language technology
+Laplace transform
+Laravel
+large language model
+Large language model
+Largest contentful paint
+lasso
+Lasso
+Last.fm
+last.fm
+Latency
+Latent and observable variables
+latent class model
+Latent class model
+Latent Dirichlet allocation
+latent Dirichlet allocation
+Latent semantic analysis
+latent semantic analysis
+latent space
+Latent space
+latent variable
+Latin square
+lattice graph
+Lattice graph
+Lattice path
+lattice path
+law of large numbers
+Law of large numbers
+Law of the iterated logarithm
+law of the iterated logarithm
+Law of total probability
+law of total probability
+Laws of Form
+Layer
+Layered Service Provider
+Layout mode
+Layout viewport
+Lazy load
+LCP
+Lean
+Learning curve
+learning curve in machine learning
+Learning object metadata
+learning rate
+Learning rate
+learning to rank
+Learning to rank
+Least mean squares filter
+least mean squares filter
+Least Recently Used
+Least squares
+least squares method
+Least-squares spectral analysis
+least-squares spectral analysis
+Lee Luda
+Leela Chess Zero
+Leela Zero
+legal tech
+Legal technology
+lemmatisation
+Lemmatization
+LeNet
+LeNet-5
+lenticular printing
+Lenticular printing
+letter frequency
+Letter frequency
+LevelDB
+Levenshtein automaton
+Levenshtein distance
+Levinson recursion
+Lex
+lex
+Lexical Markup Framework
+LexisNexis
+LG CNS
+LG Uplus
+LGPL
+LG유플러스
+Liar's dividend
+Library classification
+library classification scheme
+Library Genesis
+Library of Congress Control Number
+LibreJS
+Life expectancy
+life expectancy
+Life extension
+life extension
+Life table
+life table
+life-critical system
+LIFO
+Lift
+Ligature
+light-on-dark color scheme
+LightGBM
+Lightweight Portable Security
+lightweight programming language
+Lightweight programming language
+Like button
+like button
+Limbo
+LimitRange
+Line spectral pairs
+linear algebra
+Linear algebra
+linear approximation
+Linear approximation
+Linear classifier
+Linear discriminant analysis
+linear discriminant analysis
+linear feedback shift register
+Linear least squares
+Linear predictive coding
+linear programming
+Linear programming
+Linear regression
+linear regression
+linear search
+Linear search
+linear time-invariant system
+Linear time-invariant system
+Linear-feedback shift register
+Linearizability
+linearizability
+Lingua Libre
+Linguee
+link building
+Link building
+Linked data
+linked data
+Linked list
+linked list
+Linode
+LINQ
+Linux
+Linux Security Modules
+Liouvillian function
+Liskov substitution principle
+Lisp
+list of 3D modeling software
+List of 3D modeling software
+list of Ajax frameworks
+List of Ajax frameworks
+list of algorithms
+List of algorithms
+List of artificial intelligence projects
+list of artificial intelligence projects
+List of chatbots
+list of chatbots
+list of computer scientists
+List of computer scientists
+List of countries by age structure
+list of countries by age structure
+List of countries by dependency ratio
+list of countries by dependency ratio
+List of countries by net migration rate
+List of countries by past fertility rate
+list of countries by past fertility rate
+list of features removed in Windows 7
+List of features removed in Windows 7
+List of features removed in Windows 8
+list of features removed in Windows 8
+list of features removed in Windows XP
+List of features removed in Windows XP
+list of formerly proprietary software
+List of formerly proprietary software
+list of large language models
+List of large language models
+List of online databases
+list of online databases
+list of operating systems
+List of operating systems
+List of population concern organizations
+list of population concern organizations
+list of programming languages
+List of programming languages
+List of programming languages by type
+list of programming languages by type
+List of software categories
+list of software categories
+list of statisticians
+List of statisticians
+Literal
+literal
+Literate programming
+literate programming
+Live service game
+LiveCode
+Lively Kernel
+living apart together
+Living apart together
+Llama
+LLaMA
+llama.cpp
+Llama.cpp
+LLM-as-a-Judge
+LMArena
+load balancing
+Load balancing
+Load testing
+load testing
+Local area network
+local area network
+Local binary patterns
+local descriptor
+Local outlier factor
+local outlier factor
+Local scope
+Local shared object
+local shared object
+Local ternary patterns
+local ternary patterns
+Local variable
+Locale
+Localization
+LocalTalk
+Lock screen
+lock screen
+Loebner Prize
+Log-normal distribution
+log-normal distribution
+Log4Shell
+Logging
+Logic in computer science
+logic in computer science
+logic programming
+Logic programming
+Logic synthesis
+logic synthesis
+Logical connective
+logical operator
+Login
+login
+logistic distribution
+Logistic distribution
+Logistic regression
+logistic regression model
+Logo
+long division
+Long division
+Long short-term memory
+long short-term memory
+Long task
+Long-term support
+long-term support release
+Longest common subsequence
+longest common subsequence problem
+longest increasing subsequence
+Longest increasing subsequence
+Loop
+loop invariant
+Loop invariant
+Loose coupling
+loose coupling
+LoRA
+loss function
+Loss function
+Lossless compression
+Lossy compression
+Low-code development platform
+low-code development platform
+Low-density parity-check code
+low-density parity-check code
+Low-discrepancy sequence
+low-discrepancy sequence
+Low-level programming language
+low-level programming language
+Low-pass filter
+low-pass filter
+Low-Rank Adaptation
+loyal wingman
+LPC
+LPIC
+LRU
+LS Marine Solution
+LS마린솔루션
+LTR
+LU reduction
+LU 감소
+Lua
+Luciano Floridi
+Lucid
+Luhn algorithm
+luma
+Luma
+Lustre
+LXC
+Léonore database
+M4
+m4
+MAC flooding
+MAC spoofing
+MAC 스푸핑
+MAC 플러딩
+Machine code
+machine code
+machine element
+Machine element
+Machine learning
+machine learning
+Machine Learning
+Machine perception
+machine perception
+machine translation
+Machine translation
+Machine unlearning
+machine unlearning
+machine vision
+Machine vision
+Made with Code
+Magma
+Magnetic ink character recognition
+magnetic storage
+Magnetic storage
+Magnifica humanitas
+Magnifica Humanitas
+Main Axis
+Main thread
+Malbolge
+Mamba
+MAMP
+man-in-the-middle attack
+Man-in-the-middle attack
+Managed security service
+managed security service
+Managed Service
+Management information system
+management information system
+Mandatory access control
+mandatory access control
+Manifest
+manifold hypothesis
+Manifold hypothesis
+Manipulator
+manipulator
+manual testing
+Manual testing
+Manufacturing execution system
+manufacturing execution system
+Manus
+Many-body problem
+many-body problem
+map database management
+Map database management
+Maple
+Mapnik
+MapR
+MapReduce
+Marconi Prize
+Margin of error
+margin of error
+Marginal distribution
+marginal probability distribution
+Maritime Mobile Service Identity
+Mark Abene
+marketing and artificial intelligence
+Markov blanket
+Markov chain
+Markov chain Monte Carlo
+Markov decision process
+Markov model
+Markov property
+Markov random field
+Markup
+Marriage leave
+marshalling
+Marshalling
+Marvin Minsky
+Masan Robot Land
+Mashup
+mashup
+Mass Effect
+Massive Online Analysis
+Master
+master theorem
+Master theorem
+Materialized view
+materialized view
+Maternal mortality ratio
+Maternal Mortality Ratio
+Mathcad
+Mathematica
+mathematical finance
+Mathematical finance
+Mathematical model
+mathematical model
+mathematical morphology
+Mathematical morphology
+Mathematical optimization
+mathematical optimization
+Mathematical statistics
+mathematical statistics
+MathML
+MATLAB
+Matrox
+Mauchly's sphericity test
+Max
+Maximum-entropy Markov model
+MAXST AR SDK
+MBASIC
+McEliece cryptosystem
+MDL
+Mealy machine
+MEAN
+Mean shift
+Mean-shift
+means–ends analysis
+Means–ends analysis
+measure-preserving dynamical system
+Measure-preserving dynamical system
+mechanistic interpretability
+Mechanistic interpretability
+Media
+Media access unit
+media access unit
+media facade
+media processor
+Media processor
+Median
+median
+median absolute deviation
+Median absolute deviation
+Median filter
+median filter
+mediation
+Mediation
+MediSafe controversy
+MEDLINE
+MEGA
+Mega
+Mega Man X
+Mega.io
+MegazoneCloud Corporation
+Meltdown
+Member
+Memetic algorithm
+memetic algorithm
+Memex
+Memory safety
+memory safety
+Memtransistor
+memtransistor
+Mendix
+Mental Images
+Mercury
+merge
+Merge
+Merkle tree
+Mesa
+meshfree method
+Meshfree methods
+Message authentication
+message authentication
+message authentication code
+Message authentication code
+Message loop in Microsoft Windows
+Message queue
+message queue
+message switching
+Message switching
+Meta AI
+meta-learning
+Meta-learning
+meta-modeling
+Meta-Object Facility
+Metacharacter
+metacharacter
+Metacritic
+metadata
+Metadata
+Metafont
+Metal Gear Solid 2: Sons of Liberty
+Metamodeling
+MetaPost
+Metasploit
+Metatron discovery
+Metatron Discovery
+Metcalfe's law
+Method
+method stub
+Method stub
+Metropolitan area network
+metropolitan area network
+Metropolitan Seismic Observation Network
+Metulji botnet
+Michael A. Jackson
+MICR
+Microbotics
+microbotics
+MicroData Integrated Service
+Microform
+microform
+Microformat
+microformats
+microframework
+Microframework
+microprinting
+Microprinting
+Microprocessor
+microprocessor
+Microsoft
+Microsoft 365 Copilot
+Microsoft Access
+Microsoft Azure
+Microsoft BASIC
+Microsoft Certified Professional
+Microsoft Cognitive Toolkit
+Microsoft Copilot
+Microsoft Copilot for Microsoft 365
+Microsoft Customer Care Framework
+Microsoft Dynamics 365
+Microsoft Edge
+Microsoft Expression Web
+Microsoft Forefront
+Microsoft Internet Explorer
+Microsoft OneDrive
+Microsoft Power BI
+Microsoft Power Fx
+Microsoft Security Development Lifecycle
+Microsoft SharePoint
+Microsoft Small Basic
+Microsoft Speech API
+Microsoft SQL Server
+Microsoft Teams
+Microsoft Transaction Server
+Microsoft Translator
+Microsoft Visual Programming Language
+Microsoft WebMatrix
+Microsoft Windows
+Microtargeting
+microtargeting
+Middleware
+Midjourney
+Military intelligence
+military intelligence
+Military robot
+military robot
+Millennials
+Miller's law
+MIME
+MIME type
+MIMO
+Mind
+mind
+mind map
+Mind map
+Minds
+Mind–body problem
+mind–body problem
+Mini PC
+mini PC
+Minification
+Minikube
+MiniMax
+Minimax
+MiniMax Group
+Minimum description length
+minimum description length
+MinIO
+Minitab
+Minkowski addition
+Mirai Akari
+Miranda
+Mirror Pod
+Mistral AI
+MIT App Inventor
+MIT 앱 인벤터
+Mitchell-Netravali filter
+Mitchell–Netravali filters
+MitM
+Mittens
+MIUI
+Mixin
+mixin
+Mixture model
+mixture model
+mixture of experts
+Mixture of experts
+ML
+MLab
+mLab
+MLOps
+MMIX
+MNIST database
+MNIST 데이터베이스
+mobile backend as a service
+Mobile business intelligence
+mobile cloud computing
+Mobile cloud computing
+mobile device management
+Mobile device management
+Mobile fence
+Mobile First
+Mobile robot
+mobile robot
+Mobile security
+mobile security
+MobileMe
+Mobileye
+mobility as a service
+Mobility as a service
+MobyGames
+Mock object
+mock object
+Mode
+mode
+Model 1
+Model 2
+model collapse
+Model collapse
+Model compression
+model compression
+Model Context Protocol
+Model inversion attack
+Model selection
+model selection
+Model-based testing
+model-based testing
+Modelica
+modeling language
+Modeling language
+Model–view–controller
+model–view–controller
+Modem
+Moderation
+moderation
+Modula
+Modula-2
+Modula-3
+Modular Audio Recognition Framework
+Modular connector
+modular connector
+Modularity
+Modularity of mind
+modularity of mind
+MODX
+Mojo
+Molecular dynamics
+molecular dynamics simulation
+Molecule mining
+Moltbook
+MongoDB
+Mongoose
+Monochrome monitor
+monochrome monitor
+Monolithic system
+monolithic system
+Monte Carlo method
+Monte Carlo tree search
+Montgomery modular multiplication
+Montgomery reduction
+Moore machine
+MooTools
+Moravec's paradox
+Morgan
+Morphing
+morphing
+Morphological gradient
+Morphological skeleton
+MorphOS
+Mozilla Firefox
+Mozilla Persona
+MSISDN
+MsQuic
+MSX BASIC
+MSX 베이직
+MU-MIMO
+Mullvad
+Multi-agent reinforcement learning
+multi-agent system
+Multi-agent system
+Multi-armed bandit
+multi-armed bandit
+multi-core processor
+Multi-core processor
+Multi-exposure HDR capture
+multi-exposure HDR capture
+Multi-factor authentication
+multi-factor authentication
+Multi-label classification
+multi-label classification
+Multi-paradigm programming language
+multi-paradigm programming language
+Multi-task learning
+multi-task learning
+Multi-user MIMO
+multi-user MIMO
+Multiclass classification
+multiclass classification
+Multicloud
+multicollinearity
+Multicollinearity
+multidimensional scaling
+Multidimensional scaling
+multidimensional signal processing
+Multidimensional signal processing
+multilayer perceptron
+Multilayer perceptron
+Multilevel feedback queue
+multilevel feedback queue
+multilevel model
+Multilevel model
+Multimedia database
+multimedia database
+Multimodal distribution
+multimodal distribution
+multimodal interaction
+Multimodal interaction
+Multimodal learning
+multimodal learning
+multinomial distribution
+Multinomial distribution
+multipartite entanglement
+Multipartite entanglement
+multiphysics simulation
+Multiphysics simulation
+Multiple comparisons problem
+multiple comparisons problem
+multiple dispatch
+Multiple dispatch
+Multiple encryption
+Multiple regression
+multiple regression
+multiple sequence alignment
+Multiple sequence alignment
+multiple signal classification
+Multiply–accumulate operation
+Multisite Cloud
+Multisite cloud
+Multitenancy
+multitenancy
+multitier architecture
+Multitier architecture
+multiversion concurrency control
+Multiversion concurrency control
+Multiview Video Coding
+Muse
+Muse Spark
+MUSIC
+music and artificial intelligence
+Musio
+Mutable
+mutual exclusion
+Mutual exclusion
+mutual information
+Mutual information
+MuZero
+MVC
+MXML
+Mycin
+MyISAM
+MySQL Federated
+MZ generation
+MZ세대
+n-gram
+N-gram
+n-그램
+N-그램
+Nagios
+Nagle's algorithm
+Naive Bayes classifier
+naive Bayes classifier
+Name
+named-entity recognition
+Named-entity recognition
+Namespace
+NaN
+Nanonetwork
+NanoQplus
+NAO
+Nao
+Napster
+Nassi–Shneiderman diagram
+NAT
+NAT traversal
+NAT 트래버설
+Natalya Kaspersky
+National Education Information System
+National Geospatial-Intelligence Agency
+Native
+NATS
+NATS Messaging
+NATS 메시징
+Natural language
+natural language
+natural language generation
+Natural language generation
+Natural language processing
+natural language processing
+natural language understanding
+Natural language understanding
+Naturalistic decision-making
+naturalistic decision-making
+NAT용 세션 탐색 유틸리티
+Naver
+Naver Clova
+Naver MYBOX
+Naver Papago
+Navicat
+Navigation directive
+NE1000
+Nearest neighbor search
+nearest neighbor search
+negation as failure
+Negation as failure
+negative feedback
+Negative feedback
+Nemerle
+Neo4j
+Neocognitron
+Nessus
+nested loop join
+Nested loop join
+nesting
+Nesting
+NetBeans
+Netbook
+netbook
+netCDF
+NetCDF
+Netfilter
+Netflix
+Netgear
+Netman
+NetMiner
+NetPC
+Netscape Navigator
+NETVIBES
+Netvibes
+network as a service
+Network as a service
+network block device
+Network block device
+network bridge
+Network bridge
+Network delay
+network delay
+Network Driver Interface Specification
+network host
+network interface controller
+Network interface controller
+Network intrusion detection system
+network intrusion detection system
+Network management system
+network model
+Network model
+network performance
+Network performance
+Network Policy
+Network processor
+network processor
+Network security
+network security
+network switch
+Network switch
+Network throttling
+networking
+Networking hardware
+networking hardware
+Neural architecture search
+neural architecture search
+neural correlates of consciousness
+Neural correlates of consciousness
+Neural Designer
+Neural field
+neural field
+neural machine translation
+Neural machine translation
+neural network
+Neural network
+Neural Network Exchange Format
+Neural pathway
+neural pathway
+Neural processing unit
+Neural radiance field
+Neural scaling law
+Neural style transfer
+neural style transfer
+Neuro-sama
+neuro-symbolic AI
+Neuro-symbolic AI
+Neuromancer
+Neuromorphic computing
+neuromorphic computing
+neuroplasticity
+Neuroplasticity
+Neurorobotics
+neurorobotics
+Never-Ending Language Learning
+New Interfaces for Musical Expression
+News International phone hacking scandal
+NewSQL
+NewSQL DBMS
+Newton's method
+Next-Generation Secure Computing Base
+Nextcloud
+Nexus Q
+Neyman–Pearson lemma
+NGSI-LD
+NHN
+Nijisanji
+Nikto
+Nim
+NIME
+NIPRNet
+NIST Cybersecurity Framework
+NIST 사이버 보안 프레임워크
+NixOS
+NLS
+Nmap
+nML
+NML
+NNDB
+NNTP
+NNUE
+No Silver Bullet
+No-cloning theorem
+no-cloning theorem
+No-code development platform
+no-code development platform
+No-deleting theorem
+Noah Glass
+Noam Shazeer
+node
+Node
+Node graph architecture
+Node-pressure eviction
+Node-RED
+Node.js
+Noisy-channel coding theorem
+Nomura Research Institute
+Non-functional requirement
+non-functional requirement
+non-human
+Non-human
+non-negative matrix factorization
+Non-negative matrix factorization
+Non-normative
+non-parametric statistics
+Non-repudiation
+non-repudiation
+nonce
+nondeterministic finite automaton
+Nondeterministic finite automaton
+nonlinear regression
+Nonlinear regression
+nonparametric regression
+Nonparametric regression
+Nonparametric statistics
+Nonprocedural language
+NOP slide
+NOP 슬라이드
+NordVPN
+Norio Tsukudani
+Normative
+Normative model of decision making
+Normative model of decision-making
+NORSAR
+NoSQL
+NoSQL database management system
+nothing up my sleeve number
+Nothing-up-my-sleeve number
+Notion
+NovelAI
+NSSDC ID
+NTLM
+Nu
+NUC server
+NULL
+Null
+null character
+Null character
+Null distribution
+null hypothesis
+Null hypothesis
+Null session
+null-terminated string
+Null-terminated string
+Nullish
+Nullish 값
+Numbeo
+Number
+Numbering scheme
+numbering scheme
+Numenta
+numerical analysis
+Numerical analysis
+Numerical differentiation
+numerical differentiation
+numerical integration
+Numerical integration
+NumPy
+Nuovo soggettario
+Nuro
+Nutanix
+Nutch
+Nuxt
+Nuxt.js
+Nvidia
+Nvidia 3D Vision
+Nvidia DGX
+Nvidia Drive
+NX bit
+NX 비트
+Nym
+Nym Mixnet
+Nyquist frequency
+Nyquist rate
+Nyquist stability criterion
+Nyquist–Shannon sampling theorem
+OAEP
+OAuth
+Oberon
+Obfuscation
+Object
+Object database
+object database management system
+Object hyperlinking
+object hyperlinking
+Object identifier
+Object Pascal
+object recognition
+Object reference
+Object-oriented analysis and design
+object-oriented analysis and design
+Objective-C
+Object–relational database
+object–relational mapping
+Object–relational mapping
+Observability
+Observer pattern
+observer pattern
+OCaml
+occam
+Occam
+Occam learning
+OceanBase
+OCR-A
+OCR-B
+ODBC
+off-side rule
+Off-side rule
+Office Assistant
+OGAS
+Ohloh
+OID
+Okta
+Okta, Inc.
+OLE DB
+Ollama
+OLSR
+Omnichannel retail strategy
+omnipresence
+Omnipresence
+on-premises software
+On-premises software
+OnBid
+One- and two-tailed tests
+one- and two-tailed tests
+one-child policy
+One-child policy
+one-instruction set computer
+One-instruction set computer
+one-time pad
+One-time pad
+One-time password
+one-time password
+One-way function
+one-way function
+OneDrive
+Online analytical processing
+online analytical processing
+online identity
+Online identity
+online judge
+Online judge
+online machine learning
+Online machine learning
+Online public access catalog
+online public access catalog
+online shaming
+Online shaming
+oNLine System
+online transaction processing
+Online transaction processing
+ONNX
+Onshape
+ontology
+Ontology
+Ontology learning
+ontology learning
+OOP
+Oozie
+open architecture
+Open architecture
+Open Compute Project
+Open Data Center Alliance
+Open Database Connectivity
+Open Database License
+Open Daylight Project
+Open Hub
+Open Letter on Artificial Intelligence
+Open letter on artificial intelligence
+Open Mind Common Sense
+Open Neural Network Exchange
+open source
+Open source
+open system
+Open system
+Open weights
+Open-source artificial intelligence
+open-source artificial intelligence
+Open-source intelligence
+open-source intelligence
+Open-source model
+open-source software security
+Open-source software security
+open-world assumption
+Open-world assumption
+open/closed principle
+OpenAI
+OpenAI Codex
+OpenAI Five
+OpenAI o1
+OpenAI o3
+OpenAI o4-mini
+OpenAPI
+OpenAPI Specification
+OpenAPI 사양
+OpenClaw
+OpenCog
+OpenDaylight Project
+OpenFrame
+OpenGL
+OpenGL Shading Language
+OpenID
+opening
+Opening
+OpenJS Foundation
+OpenJS 재단
+OpenLaszlo
+OpenNap
+OpenNebula
+OpenNN
+OpenShift
+OpenSSL
+OpenStack
+OpenStreetMap
+OpenVPN
+OpenVX
+Open–closed principle
+Opera Browser
+Operand
+Operating system
+operating system
+operations research
+Operations research
+Operator
+opportunistic encryption
+Opportunistic encryption
+opt-in email
+Opt-in email
+Optical character recognition
+optical character recognition
+optical flow
+Optical flow
+Optical mark recognition
+optical mark recognition
+Optical storage
+optical storage
+optical transistor
+Optical transistor
+OPTICS
+OPTICS algorithm
+optimal asymmetric encryption padding
+Optimal asymmetric encryption padding
+Optimistic concurrency control
+optimistic concurrency control
+Optimized Link State Routing Protocol
+opus
+Opus number
+Oracle Certification Program
+Oracle Cloud
+Oracle Exadata
+Orange
+ORCID
+ORCID iD
+Order of approximation
+Order statistic
+order statistic
+Orders of approximation
+Ordinary least squares
+ordinary least squares
+Origin
+OS-level virtualization
+OSASK
+OTA
+OTcl
+OTP
+Our Final Invention
+Out of the box
+out of the box feature
+out-of-bounds read
+Out-of-bounds read
+out-of-box experience
+Out-of-box experience
+outline of artificial intelligence
+Outline of artificial intelligence
+outline of free software
+Outline of free software
+outline of machine learning
+Outline of machine learning
+Outline of object recognition
+output verbosity
+Outrage porn
+Overfitting
+overfitting
+Oversampling
+oversampling
+overshoot
+Overshoot
+OVHcloud
+OVH클라우드
+Ovi
+oVirt
+OVirt
+OWASP
+OWASP ZAP
+OwlNest
+OwnCloud
+ownCloud
+Oxygene
+Oz
+P versus NP problem
+P-NP 문제
+P-value
+p-value
+P2P
+P2PTV
+P3P
+PaaS
+PAC
+PACCOM 프로젝트
+package manager
+Package manager
+Packet
+Packet Tracer
+padding
+Padding
+Padé approximant
+Page load time
+Page prediction
+Page replacement algorithm
+page replacement algorithm
+PagedAttention
+PageRank
+Palantir
+Palantir Technologies
+PaLM
+Pandora
+Pandora FMS
+Panel analysis
+panel analysis
+Paper genocide
+Parallax barrier
+parallax barrier
+Parallax scrolling
+parallax scrolling
+parallel algorithm
+Parallel algorithm
+parallel database
+Parallel database
+parallel programming model
+Parallel programming model
+Parallel text
+Parameter
+parametric regression
+Parent object
+Parental controls
+parental controls
+Pareto distribution
+parity bit
+Parity bit
+Parrot OS
+Parse
+parse tree
+Parse tree
+Parser
+Parsing
+parsing
+particle filter
+Particle filter
+particle method
+Particle method
+particle swarm optimization
+Particle swarm optimization
+partition
+Partition
+Pascal
+Pass the hash
+Passkey
+passkey
+passphrase
+Passphrase
+passport photo
+Password
+password
+Password strength
+password strength
+passwordless authentication
+Passwordless authentication
+Patch
+patch
+Patch cable
+patch cable
+Patch panel
+patch panel
+PATH
+path analysis
+Path analysis
+path dependence
+Path dependence
+Pattern language
+pattern language
+pattern recognition
+Pattern recognition
+Paxos
+payload
+Payload
+Payload body
+Payload header
+PDF
+PEAR
+PEARL
+Pearson correlation coefficient
+pedestrian detection
+Pedestrian detection
+peer-to-peer
+Peer-to-peer
+PeerCast
+PeerTube
+penetration test
+Penetration test
+Per-user unitary rate control
+Per-User Unitary Rate Control
+Perceived performance
+Percent-encoding
+percentage point
+Percentage point
+Percentile
+percentile
+Perceptron
+perceptron
+Perfect Dark
+Performance engineering
+performance engineering
+Performance indicator
+performance indicator
+Perl
+Perlin noise
+Permalink
+permalink
+permissive free software license
+Permissive software license
+Perplexity
+perplexity
+Perplexity AI
+Perplexity.ai
+persistence
+Persistence
+Persistent data structure
+persistent data structure
+Persistent identifier
+persistent identifier
+Persistent Volume
+Persistent Volume Claim
+Perso Dubbing
+persona
+Persona
+Personal area network
+personal area network
+Personal Package Archive
+personal robot
+Personal robot
+personalization
+Personalization
+Peter Chen
+Peter Lee
+PGP web of trust
+Pharo
+Phase correlation
+Phase factor
+phase factor
+Phase margin
+phase margin
+Phase vocoder
+Phi coefficient
+philosophy of artificial intelligence
+Philosophy of artificial intelligence
+Philosophy of computer science
+philosophy of computer science
+Philosophy of information
+philosophy of information
+PhilPapers
+Photographic film
+photographic film
+photographic mosaic
+Photographic mosaic
+PHP
+PHP2Shell
+physical artificial intelligence
+Physical computing
+physical computing
+physical information
+Physical symbol system
+physical symbol system
+Physicalism
+physicalism
+Physically based rendering
+physically based rendering
+physics engine
+Physics engine
+Physics-informed neural networks
+physics-informed neural networks
+Pick's theorem
+piemellikker
+Pike
+Pivot element
+pivot element
+pivot table
+Pivot table
+pixel
+Pixel
+pixel aspect ratio
+Pixel aspect ratio
+Pixlr
+pizza-box form factor
+Pizza-box form factor
+PL/B
+PL/I
+PL/M
+PL/pgSQL
+PL/SQL
+PL360
+PLA Unit 61398
+Placeholder names
+plaintext
+Plaintext
+Plan 9
+Plan 9 from Bell Labs
+PlanetLab
+Plankalkül
+Platform as a service
+platform as a service
+Platform for Privacy Preferences Project
+Play Framework
+PlayCanvas
+Plone
+PLU 코드
+Plug computer
+plug computer
+Pluggable Authentication Module
+pluggable authentication module
+Plugin
+PNG
+Pockels effect
+Pod
+Pod Disruption
+Pod Lifecycle
+Pod Priority
+Pod Security Policy
+Pohlig–Hellman algorithm
+Point distribution model
+point-biserial correlation coefficient
+Point-biserial correlation coefficient
+Pointwise mutual information
+Poisson distribution
+Policy gradient method
+Policy-based design
+policy-based design
+policy-gradient method
+Pollard's rho algorithm for logarithms
+polling
+Polling
+Polybius square
+Polyfill
+polyfill
+Polyglot
+polyglot
+Polymorphism
+polynomial hierarchy
+Polynomial hierarchy
+Polynomial long division
+polynomial long division
+Polynomial regression
+polynomial regression
+polynomial-time approximation scheme
+Polynomial-time approximation scheme
+POODLE
+POP
+Pop-up ad
+pop-up ad
+POP3
+Population Council
+population density
+Population density
+Population ecology
+population ecology
+Population geography
+population geography
+population health
+Population health
+population projection
+Population projection
+population pyramid
+Population pyramid
+Port
+Port forwarding
+port forwarding
+Port mirroring
+port mirroring
+port scanner
+Port scanner
+Possibility theory
+POST
+post-editing
+Post-production
+post-production
+Post-quantum cryptography
+post-quantum cryptography
+Postal Numeric Encoding Technique
+Postediting
+Postman
+Postman, Inc.
+POSTNET
+PostScript
+potentially unwanted program
+Potentially unwanted program
+Potrace
+Power
+Power BI
+Power Fx
+power of a test
+Power over Ethernet
+power over Ethernet
+power-line communication
+Power-line communication
+powered exoskeleton
+Powerset
+PowerShell
+PPA
+PPLive
+PPTV
+PRADO
+PRADO Framework
+Predicate
+predicate
+Prediction interval
+prediction interval
+Predictive analytics
+predictive analytics
+predictive modelling
+Predictive modelling
+Predictive text
+predictive text
+predictor–corrector method
+Predictor–corrector method
+Preemption
+PREEvision
+Prefetch
+Prefetching
+prefetching
+Preflight request
+prehistoric demography
+Prehistoric demography
+Prepared statement
+prepared statement
+Prerender
+Presto
+prevalence of tobacco consumption
+Prevalence of tobacco use
+Preventable causes of death
+preventable causes of death
+Price look-up code
+price look-up code
+Prim's algorithm
+Primary key
+primary key
+prime-factor FFT algorithm
+Prime-factor FFT algorithm
+Primitive
+primorial-steps
+principal component analysis
+Principal component analysis
+Principle of least astonishment
+principle of least astonishment
+principle of least privilege
+Principle of least privilege
+print server
+Print server
+printer tracking dots
+Printer tracking dots
+Priority queue
+priority queue
+Prisma
+privacy concerns regarding Google
+Privacy concerns with Google
+privacy mode
+Private browsing
+Private Internet Access
+private message
+Private message
+Privilege escalation
+privilege escalation
+Privileged
+Privileged code
+Privoxy
+Probabilistic latent semantic analysis
+probabilistic latent semantic analysis
+Probability
+probability
+Probability distribution
+probability distribution
+probably approximately correct learning
+Probably approximately correct learning
+Probe
+probit model
+Probit model
+Problem solving
+problem solving
+Process capability index
+process capability index
+Process control block
+process control block
+Process Environment Block
+Processing
+Processing.js
+processor design
+Processor design
+product bundle
+Product bundling
+Product requirements document
+product requirements document
+products and applications of OpenAI
+Products and applications of OpenAI
+program comment
+Program optimization
+program optimization
+Program-specific information
+program-specific information
+Programmable interval timer
+programmable interval timer
+Programmable logic controller
+programmable logic controller
+Programmer
+Programming language
+programming language
+Programming Language for Business
+Programming language implementation
+programming language semantics
+Programming paradigm
+programming paradigm
+programming tool
+Programming tool
+progress in artificial intelligence
+Progress in artificial intelligence
+progressive enhancement
+Progressive Enhancement
+Progressive enhancement
+Progressive web apps
+Project Athena
+Project Cybersyn
+Project Management Body of Knowledge
+Project Management Professional
+Project MOD
+Project Verona
+Project Xanadu
+Project Zero
+Prolog
+Promela
+Promise
+Promo.com
+prompt engineering
+Prompt engineering
+Prompt injection
+prompt injection
+Proof assistant
+proof assistant
+Proof of stake
+proof of stake
+proof of work
+Proof of work
+Proofpoint, Inc.
+proper generalized decomposition
+Proper generalized decomposition
+Property
+Proprietary firmware
+proprietary firmware
+Prospect theory
+prospect theory
+PROTECT IP Act
+Protection Profile
+Protocol
+Proton VPN
+Prototype
+Prototype JavaScript Framework
+Prototype 자바스크립트 프레임워크
+prototype-based programming
+Prototype-based programming
+Protégé
+provable security
+Provable security
+ProVisual Engine
+Proximal policy optimization
+Proximal Policy Optimization
+Proxy
+proxy
+Proxy auto-config
+proxy auto-config
+Proxy server
+proxy server
+Pruning
+pruning
+Pseudo-class
+Pseudo-element
+Pseudo-wire
+Pseudocode
+pseudocode
+Pseudowire
+psychological statistics
+Psychological statistics
+Psychology of programming
+psychology of programming
+psychometrics
+Psychometrics
+PU2RC
+Public key infrastructure
+Public-key cryptography
+public-key infrastructure
+PubMed
+pull technology
+Pull technology
+Pulse
+pulse
+Pulse compression
+pulse compression
+pulse-density modulation
+Pulse-density modulation
+Pulse-width modulation
+pulse-width modulation
+Punched card
+punched card
+Pure Data
+Pure Storage
+Pure tone
+pure tone
+PureBasic
+PureScript
+push technology
+Push technology
+Python
+PyTorch
+Q Sharp
+Q 러닝
+Q 샤프
+Q#
+Q-learning
+QANDA
+QBasic
+QML
+QNAP Systems
+QNAP Systems, Inc.
+QNAP 시스템즈
+Qooxdoo
+qooxdoo
+QoS
+QoS Class
+QoS 클래스
+Quadratic variation
+quadratic variation
+qualified electronic signature
+Quality of service
+quality of service
+Quality values
+QualNet
+Qualtrics
+Quantinuum
+Quantity
+quantization
+Quantization
+Quantum algorithm
+quantum algorithm
+Quantum annealing
+quantum annealing
+quantum circuit
+Quantum circuit
+Quantum cloning
+quantum cloning
+Quantum computer
+quantum computer
+Quantum cryptography
+quantum cryptography
+quantum entanglement
+Quantum entanglement
+Quantum Experiments at Space Scale
+Quantum Fourier transform
+quantum Fourier transform
+quantum gate
+quantum information science
+Quantum information science
+quantum key distribution
+Quantum key distribution
+Quantum logic gate
+quantum machine learning
+Quantum machine learning
+quantum memory
+Quantum memory
+quantum no-deleting theorem
+quantum radar
+Quantum radar
+Quantum register
+quantum register
+Quantum teleportation
+quantum teleportation
+Quartile
+quartile
+Quartz Composer
+Quasi-identifier
+quasi-identifier
+Quaternion
+Qubes OS
+qubit
+Qubit
+Query by Example
+Query language
+query language
+query optimization
+Query optimization
+Query plan
+query plan
+QUESS
+Question
+question
+question answering
+Question answering
+Queue
+queue
+Queueing theory
+queueing theory
+QUIC
+Quick, Draw!
+Quickselect
+quickselect
+Quine
+quine
+Quota Lab
+qutrit
+Qutrit
+Qwen
+R.U.R.
+Rabin cryptosystem
+Racket
+Rackspace Technology
+Radar signal characteristics
+radar signal characteristics
+Radial basis function
+radial basis function
+radio access technology
+Radio access technology
+Raft
+RAIL
+rainbow table
+Rainbow table
+Raku
+Random forest
+random forest
+Random number
+random number
+Random number generation
+random number generation
+Random sample consensus
+range imaging
+Range imaging
+RANSAC
+rapid application development
+Rapid application development
+RapidMiner
+RAPIEnet
+Rasmus Lerdorf
+Raspberry Pi
+Raspberry Pi Foundation
+Raster image
+raster scan
+Raster scan
+rasterisation
+Rasterisation
+rate-monotonic scheduling
+Rate-monotonic scheduling
+Rate–distortion theory
+rational root theorem
+Rational root theorem
+Rational Unified Process
+Rational unified process
+raw socket
+Raw socket
+Raw 소켓
+ray tracing
+Ray tracing
+Raymond Cattell
+RBAC
+RDF
+RDI
+React
+Real ID Act
+REAL ID Act
+Real User Monitoring
+real-name system
+Real-name system
+Real-time computer graphics
+real-time computer graphics
+RealD
+RealD 3D
+RealD Cinema
+RealSense
+reasoning language model
+Reasoning model
+REBOL
+Rebol
+reCAPTCHA
+ReCAPTCHA
+Receiver operating characteristic
+receiver operating characteristic
+Receptive field
+recognition-primed decision
+Recognition-primed decision
+recommender system
+Recommender system
+Recording medium
+recording medium
+records management
+Records management
+Recordset
+Recovery-oriented computing
+rectangular function
+Rectangular function
+Rectified linear unit
+rectifier
+Recurrent neural network
+recurrent neural network
+Recursion
+Recursive least squares filter
+Recursive neural network
+recursive neural network
+recursive self-improvement
+Recursive self-improvement
+Red Hat
+Redis
+Redo log
+Redundancy
+redundancy
+Reed–Solomon code
+Reed–Solomon error correction
+Referential integrity
+referential integrity
+Reflow
+Regin
+Register spring
+registered jack
+Registered jack
+registered user
+Registered user
+Registrable domain
+Regression analysis
+regression analysis
+regression testing
+Regression testing
+regression toward the mean
+Regression toward the mean
+regret
+Regular expression
+regular language
+Regular language
+Regulation of artificial intelligence
+regulation of artificial intelligence
+reinforcement learning
+Reinforcement learning
+Relation
+relation
+relational algebra
+Relational algebra
+Relational calculus
+relational calculus
+Relational database
+relational database
+relational database management system
+Relational database management system
+Relational model
+relational model
+release management
+Release management
+Relevance vector machine
+relevance vector machine
+Reliability engineering
+reliability engineering
+ReLU
+Remanence
+remanence
+Remote Data Objects
+Render blocking
+render farm
+Render farm
+Rendering
+Rendezvous hashing
+Repaint
+Replay attack
+Replicant
+ReplicaSet
+ReplicationController
+Repo
+Reporting directive
+Reporting mark
+reporting mark
+Repository
+Representation header
+Representation learning
+reputation system
+Reputation system
+Request header
+Requirement
+Requirements analysis
+requirements analysis
+Requirements engineering
+requirements engineering
+reserved word
+Reserved word
+Reservoir computing
+reservoir computing
+Residential gateway
+Residual neural network
+residual neural network
+Resource
+Resource Access Control Facility
+Resource Description Framework
+Resource Timing
+ResourceQuota
+Response header
+responsive web design
+Responsive web design
+REST
+restricted Boltzmann machine
+Restricted Boltzmann machine
+resultant
+Resultant
+retention schedule
+Retention schedule
+Retrieval-augmented generation
+retrieval-augmented generation
+return-oriented programming
+Return-oriented programming
+return-to-libc attack
+Return-to-libc attack
+Return-to-libc 공격
+Reverse engineering
+reverse engineering
+reverse proxy
+Reverse proxy
+Reviewer
+Rexx
+REXX
+RF connector
+RF 단자
+RGB
+RhodeCode
+RhythmOne
+Rich client
+Rich Internet Application
+rich web application
+Richard S. Sutton
+Richardson extrapolation
+Ridge regression
+ridge regression
+right to be forgotten
+Right to be forgotten
+RightScale
+RIL
+ringing artifact
+Ringing artifacts
+Risch algorithm
+Riseup
+Risk of astronomical suffering
+Risk-based testing
+risk-neutral measure
+Risk-neutral measure
+RITE Method
+RITE 기법
+RNG
+Roblox
+roboethics
+Robot
+robot
+Robot ethics
+Robot learning
+robot learning
+robotaxi
+Robotaxi
+robotic arm
+Robotic arm
+Robotics
+robotics
+Robots.txt
+robust principal component analysis
+Robust principal component analysis
+Robust 주성분 분석
+robustness
+Robustness
+ROCm
+Rocq
+Rocq prover
+Roko's basilisk
+role-based access control
+Role-based access control
+rollback
+Rollback
+Rolling release
+rolling release
+ROM hacking
+Romberg's method
+Root mean square
+root mean square
+Root mean square deviation
+Root-finding algorithm
+root-finding algorithm
+root-mean-square deviation
+RootkitRevealer
+Rotten Tomatoes
+Round Trip Time
+round-robin scheduling
+Round-robin scheduling
+router
+Router
+Routh–Hurwitz stability criterion
+routing protocol
+Routing protocol
+Routing table
+routing table
+row
+Row
+Row hammer
+row hammer
+RSA cryptosystem
+RSA SecurID
+RSA 암호
+RSS
+Rsync
+RTCP
+RTF
+RTL
+RTP
+RTSP
+Rubin causal model
+Ruby
+Ruby MRI
+Ruby on Rails
+Rule-based machine learning
+rule-based machine learning
+Runge–Kutta method
+Runge–Kutta methods
+Runge–Kutta–Fehlberg method
+runtime error detection
+Runtime error detection
+Runway
+RUR-PLE
+Rust
+Rényi entropy
+S Voice
+S 보이스
+S-box
+S-박스
+S/MIME
+SaaS
+Safe
+safe typing
+Safenet
+SafeNet
+Safety-critical system
+Salesforce
+Salt
+salt
+Same origin policy
+Same-origin policy
+SAML
+SAML 2.0
+Sammon mapping
+Sammon projection
+sample
+Sample
+sample and hold
+Sample and hold
+Sample mean and covariance
+sampling
+Sampling
+sampling rate
+Sampling rate
+Samsung Knox
+Samsung SDS
+SAMV
+sandbox
+Sandbox
+SAP
+SAP BTP
+SAP Business Technology Platform
+SAP ERP
+SAP SE
+SARSA
+SAS
+Satellite Catalog Number
+Savepoint
+savepoint
+SAVEPOINT
+SCADA
+Scala
+scalability
+Scalability
+Scale AI
+scale-invariant feature transform
+Scale-invariant feature transform
+Scaleogram
+Scalr
+scan line
+Scan line
+schedule
+scheduling
+Scheduling
+Scheffé's method
+Scheme
+SCIgen
+Scikit-learn
+scikit-learn
+Scilab
+SCM
+Scope
+scrambler
+Scrambler
+Scratch
+ScratchJr
+Screen reader
+script kiddie
+Script kiddie
+Script theory
+Script-supporting element
+Scripting
+Scroll container
+scrolling
+Scrolling
+scrum
+Scrum
+scrypt
+Scrypt
+SCTP
+Scylla
+ScyllaDB
+SDK
+SDN
+SDP
+search algorithm
+Search algorithm
+search engine
+Search engine
+search engine manipulation effect
+Search engine manipulation effect
+search engine optimization
+Search engine optimization
+Search game
+Search neutrality
+search neutrality
+search tree
+Search tree
+Search-based software engineering
+search-based software engineering
+Secant method
+secant method
+seccomp
+Seccomp
+Second normal form
+second normal form
+Secret
+Secret sharing
+secret sharing
+Secretary problem
+secretary problem
+Sector model
+secure by design
+Secure by design
+secure coding
+Secure coding
+secure communication
+Secure communication
+Secure Context
+Secure input and output handling
+SecurID
+Security
+Security Account Manager
+Security Accounts Manager
+security as a service
+Security as a service
+Security Assertion Markup Language
+Security association
+security association
+security bug
+Security bug
+Security Context
+Security descriptor
+security descriptor
+Security hacker
+security hacker
+Security Identifier
+Security question
+security question
+Security service
+security token
+Security token
+Security-Enhanced Linux
+Security-focused operating system
+security-focused operating system
+Sed
+sed
+SEI CERT Coding Standards
+Selection algorithm
+selection algorithm
+Selector
+Selenium
+Self
+Self-destruct
+self-destruct
+Self-organizing map
+self-organizing map
+Self-play
+Self-supervised learning
+self-supervised learning
+SELinux
+Semantic analysis
+Semantic network
+semantic network
+semantic role labeling
+Semantic role labeling
+Semantic Scholar
+Semantic Web
+Semantics
+Semi-Automatic Ground Environment
+semiparametric regression
+Semiparametric regression
+Semrush
+Sencha Ext JS
+SenseTime
+sensitivity and specificity
+Sensitivity and specificity
+Sensor array
+sensor array
+sentiment analysis
+Sentiment analysis
+SEO
+Seoul Robotics High School
+Separation of duties
+separation of duties
+Seq2seq
+sequence alignment
+Sequence alignment
+sequence-to-sequence learning
+sequential function chart
+Sequential function chart
+Sequential minimal optimization
+sequential minimal optimization
+Serial concatenated convolutional codes
+Serial Item and Contribution Identifier
+serial number
+Serial number
+Serializability
+serializability
+Serializable object
+Serialization
+Server
+Server emulator
+Server Side Includes
+Server Timing
+server-based computing
+Server-sent events
+server-sent events
+server-side request forgery
+Server-side request forgery
+server-side web API
+serverless computing
+Serverless computing
+Service
+Service Catalog
+Service Data Objects
+Service-oriented architecture
+service-oriented architecture
+Service-oriented infrastructure
+ServiceAccount
+ServiceNow
+Session
+session
+session border controller
+Session border controller
+Session hijacking
+session hijacking
+Session Hijacking
+Set cover problem
+set cover problem
+setgid
+Setuid
+Severance
+SF필름스쿨
+SGLang
+SGML
+shading language
+Shading language
+shadow
+Shadow
+shadow IT
+Shadow IT
+Shadow library
+shadow library
+Shadow tree
+Shadows of the Mind
+Shadowsocks
+Shakespeare
+Shakespeare Programming Language
+Shallow copy
+shannon
+Shannon
+Shannon's source coding theorem
+Shannon–Hartley theorem
+Shard
+shard
+Share
+SharePoint
+shellcode
+Shellcode
+Shellshock
+Shibboleth
+shibboleth
+Shim
+Shor's algorithm
+short-time Fourier transform
+Short-time Fourier transform
+Shortest job next
+shortest job next
+Shortest remaining time
+SHRDLU
+Shutdown
+shutdown
+Siamese neural network
+side effect
+Side effect
+SIG
+SIGCOMM Award
+SIGCOMM Award for Lifetime Contribution
+SIGCOMM상
+sigmoid function
+Sigmoid function
+signal
+Signal
+signal bandwidth
+Signal processing
+signal processing
+SignalR
+Signature
+significance level
+Significance level
+significant figure
+Significant figures
+Silex
+Silverstripe CMS
+SIM card
+SIM 카드
+SIMD
+similarity learning
+Similarity learning
+Similarity measure
+similarity measure
+Similarity search
+similarity search
+Similarweb
+Simon Willison
+Simple linear regression
+simple linear regression model
+Simple Network Management Protocol
+Simulink
+Simultaneous localization and mapping
+simultaneous localization and mapping
+Sinatra
+sinc filter
+Sinc filter
+sinc function
+Sinc function
+Single instruction, multiple data
+single responsibility principle
+Single sign-on
+single sign-on
+single source of truth
+Single source of truth
+Single system image
+single system image
+Single-responsibility principle
+Single-root input/output virtualization
+single-root IOV
+Singularitarianism
+singularitarianism
+Singularity studies
+SIPRNet
+Siri
+Siri AI
+SISD
+Site
+Site map
+Site reliability engineering
+site reliability engineering
+Six Little Dragons
+SK
+SK Inc.
+SK Telecom
+skeleton
+Skeleton
+sketch
+Sketch
+Sketchpad
+Skewness
+Skynet
+SkyscraperPage
+SK텔레콤
+SLAM
+slashdot effect
+Slashdot effect
+SLD
+Slidely
+sliding window protocol
+Sliding window protocol
+SlimRoms
+Sloppy mode
+Slug
+small language model
+Small language model
+Smalltalk
+smart object
+Smart object
+Smart Sheriff
+Smart speaker
+smart speaker
+smartglasses
+Smartglasses
+Smartphone
+smartphone
+SMDS
+SMIL
+Smoke Test
+SMP/E
+SMPTE
+SMTP
+Snake case
+Snakes and ladders
+snakes and ladders
+Snap positions
+Snap!
+Snapshot isolation
+snapshot isolation
+SNARC
+SnatchBot
+Sneakernet
+sneakernet
+SNOBOL
+Snort
+Snowflake Inc.
+Snowflake schema
+snowflake schema
+SOAP
+Soar
+Social dilemma
+social dilemma
+social engineering
+Social engineering
+Social marketing intelligence
+social marketing intelligence
+social media mining
+Social media mining
+Social software engineering
+Sociology of the Internet
+sociology of the Internet
+Soft copy
+soft copy
+soft robotics
+Soft robotics
+SoftEther VPN
+SoftLayer
+softmax function
+Softmax function
+software
+Software
+Software agent
+software agent
+software archaeology
+Software archaeology
+Software architect
+software architect
+Software architecture
+software architecture
+software as a service
+Software as a service
+software bloat
+Software bloat
+Software build
+software build
+software component
+Software component
+software configuration management
+Software configuration management
+Software construction
+software construction
+software crisis
+Software crisis
+Software Defined Perimeter
+Software defined storage
+software deployment
+Software deployment
+Software design
+software design
+Software design pattern
+software design pattern
+Software developer
+software developer
+Software development
+software development
+software development kit
+Software development kit
+software development methodology
+Software development methodology
+Software development process
+software development process
+Software distribution
+software distribution
+Software engine
+software engine
+software engineer
+Software engineer
+software engineering
+Software engineering
+Software Engineering Body of Knowledge
+Software factory
+software factory
+software feature
+Software feature
+software framework
+Software framework
+software incompatibility
+Software incompatibility
+Software industry
+software industry
+Software industry in China
+Software intelligence
+software intelligence
+Software load testing
+Software maintainer
+software maintainer
+software maintenance
+Software maintenance
+Software metric
+software metric
+software obfuscation
+software observability
+Software performance testing
+software performance testing
+Software portability
+software portability
+Software prototyping
+software prototyping
+software quality
+Software quality
+software quality assurance
+Software quality assurance
+software quality engineering
+software quality management
+Software quality management
+Software repository
+software repository
+software requirements
+Software requirements
+software requirements specification
+Software requirements specification
+software stack
+Software test documentation
+software testing
+Software testing
+Software token
+software token
+Software transactional memory
+software transactional memory
+Software verification and validation
+software version
+Software versioning
+Software-defined data center
+software-defined networking
+Software-defined networking
+Software-defined perimeter
+Software-defined storage
+SOLID
+Solid
+Solid project
+Solidity
+solution architecture
+Solution architecture
+Solution stack
+solving chess
+Solving chess
+Sora
+Soribada
+Soundex
+SoundHound
+SoundHound AI
+source code repository
+source lines of code
+Source lines of code
+sovereign AI
+Sovereign AI
+SPA
+space-based data center
+Space-based data center
+spaghetti code
+Spaghetti code
+Spanner
+Spanning Tree Protocol
+Sparkles emoji
+SPARQL
+Sparse dictionary learning
+sparse matrix
+Sparse matrix
+Spatial computing
+spatial computing
+SPDY
+Spearman's rank correlation coefficient
+Specification
+specification language
+Specification language
+Spectral density
+spectral density
+Spectral efficiency
+spectral efficiency
+Spectral flux
+spectral leakage
+Spectral leakage
+Spectre
+spectrogram
+Spectrogram
+Spectrum analyzer
+spectrum analyzer
+Speculative decoding
+Speculative parsing
+Speech processing
+speech processing
+Speech recognition
+speech recognition
+Speech synthesis
+speech synthesis
+Speed index
+spell checker
+Spell checker
+Spiking neural network
+spiking neural network
+Spirit
+Splice
+splinternet
+Splinternet
+Splunk
+Splunk Inc.
+Spoofing attack
+spoofing attack
+Spoon
+Spoon Radio
+Spot Image
+Spot Image Labs
+Spreading activation
+Spring Framework
+sprite
+Sprite
+SproutCore
+SPSS
+spurious relationship
+Spurious relationship
+Sputnik
+Spybot – Search & Destroy
+Spyware
+spyware
+SP소프트
+SQL
+SQL injection
+SQL Injection
+SQL 삽입
+SQL 인젝션
+SQL/PSM
+SQL:2008
+SQL:2011
+Sqoop
+SQRL
+Squarespace
+Squeak
+SRI
+SRWare Iron
+SR웨어 아이언
+SSADM
+SSG
+ssh-keygen
+Ssh-keygen
+SSL
+St. Petersburg paradox
+Stability AI
+Stable Diffusion
+stack
+Stack
+Stack buffer overflow
+stack buffer overflow
+Stack trace
+stack trace
+Stack-oriented programming
+stack-oriented programming
+Stacking context
+Stagefright
+standard deviation
+Standard deviation
+Standard ML
+Standard normal table
+standard normal table
+Standard score
+standard score
+Standardized mortality ratio
+StarDict
+Stata
+StatCounter
+State machine
+state-space search
+State-space search
+stateful firewall
+Stateful firewall
+StatefulSet
+Statement
+Statement on AI Extinction Risk
+Statement on AI Risk
+State–action–reward–state–action
+Static method
+Static Pod
+Static program analysis
+static program analysis
+Static typing
+static web page
+Static web page
+stationary process
+Stationary process
+Statistic
+statistic
+Statistical classification
+statistical classification
+Statistical dispersion
+statistical dispersion
+Statistical hypothesis test
+Statistical inference
+statistical inference
+Statistical learning theory
+statistical learning theory
+Statistical machine translation
+statistical machine translation
+Statistical model
+statistical model
+statistical population
+Statistical population
+Statistical semantics
+statistical semantics
+statistical significance
+Statistical significance
+statistical test
+statistician
+Statistician
+statistics
+Statistics
+Stemming
+stemming
+Stencil buffer
+step response
+Step response
+StepFun
+Stepping level
+Stereo display
+stereopsis
+Stereopsis
+stereoscope
+Stereoscope
+stereoscopy
+Stereoscopy
+Steve Huffman
+Sticky activation
+stochastic calculus
+Stochastic calculus
+Stochastic gradient descent
+stochastic gradient descent
+Stochastic matrix
+stochastic matrix
+stochastic parrot
+Stochastic parrot
+Stockfish
+Stop Online Piracy Act
+Storage Class
+stored procedure
+Stored procedure
+Storey
+storey
+Strassen algorithm
+Strategic information system
+strategic information system
+strategic transitions
+Stratified sampling
+stratified sampling
+Streaming media
+streaming media
+stress testing
+Stress testing
+Strict mode
+String
+string
+Stringifier
+Strong-motion Seismograph Networks
+Structurae
+structural equation modeling
+Structural equation modeling
+Structural risk minimization
+structured analysis
+Structured analysis
+Structured prediction
+structured prediction
+structured text
+Structured text
+Structuring element
+Student number
+student number
+Student's t-test
+StumbleUpon
+STUN
+Stuxnet
+Style origin
+Style sheet
+style sheet
+StyleGAN
+Sub-band coding
+Submit button
+subpixel rendering
+Subpixel rendering
+substitution box
+substitution–permutation network
+Substitution–permutation network
+Successive approximation ADC
+Successive-approximation ADC
+sudo
+Sudo
+Sue Black
+suffering risks
+Sufficient statistic
+sufficient statistic
+suffix array
+Suffix array
+Suhosin
+sum of squares
+Sun Microsystems
+Suno
+Super-resolution imaging
+super-resolution imaging
+Supercollider
+SuperCollider
+superintelligence
+Superintelligence
+Superkey
+superkey
+Superman memory crystal
+superuser
+Superuser
+Supervenience
+supervenience
+supervised learning
+Supervised learning
+Support vector machine
+support vector machine
+surface weather observation
+Surface weather observation
+Surfshark
+Surfshark VPN
+surrogate key
+Surrogate key
+surrogate model
+Surrogate model
+survey methodology
+Survey methodology
+Survival analysis
+survival analysis
+Svelte
+SVG
+SVN
+Swap
+swap algorithm
+Swarm intelligence
+swarm intelligence
+swatting
+Swatting
+Swift
+SWiSH Max
+Switched Multi-megabit Data Service
+SYCL
+sycophancy
+Sycophancy
+Symantec Operations Readiness Tools
+Symbolic artificial intelligence
+symbolic artificial intelligence
+Symfony
+Symmetric multiprocessing
+symmetric multiprocessing
+symmetric-key algorithm
+Symmetric-key algorithm
+Symmetric-key cryptography
+SYN cookies
+SYN 쿠키
+Synchronicity
+synchronicity
+Synchronous
+syntax
+Syntax
+Syntax error
+synthetic division
+Synthetic division
+synthetic intelligence
+Synthetic intelligence
+Synthetic monitoring
+sysctl
+system administrator
+System administrator
+System console
+system console
+System in a package
+system in package
+System Integrity Protection
+System migration
+system migration
+system modeling
+system on a chip
+System on a chip
+System programming language
+System requirements
+system requirements
+System Service Descriptor Table
+System Service Dispatch Table
+System testing
+system testing
+system time
+System time
+Systematic sampling
+systematic sampling
+Systems architecture
+systems architecture
+Systems design
+systems design
+Systems development life cycle
+systems development life-cycle
+systems management
+Systems management
+Systems modeling
+systems programming language
+SYSTRAN
+T 점수
+T-pose
+T-statistic
+t-statistic
+T-test
+T-X
+T-검정
+T-분포 확률적 임베딩
+t-분포 확률적 임베딩
+T9
+Table
+Table Grid Box
+Table Wrapper Box
+tablespace
+Tablespace
+Tabu search
+tabu search
+Tag
+tag
+Taguchi loss function
+Tailwind CSS
+Taint
+Talkman
+tamper resistance
+Tamper resistance
+Tango
+Tape cartridge
+Tatoeba
+Tayo the Little Bus
+TC0
+Tcl
+TCP
+TCP congestion control
+TCP handshake
+TCP offload engine
+TCP slow start
+TCP 느린 시작
+TCP 오프로드 엔진
+TCP 핸드셰이크
+TCP 혼잡 방지 알고리즘
+tcsh
+Tcsh
+Technical debt
+technical debt
+technological singularity
+Technological singularity
+Ted Nelson
+Telephone number
+telephone number
+telephone numbering plan
+Telephone numbering plan
+Teleprocessing monitor
+telexistence
+Telnet
+Temporal database
+temporal database
+Temporal difference learning
+Tensor Processing Unit
+TensorFlow
+Termcap
+terminal server
+Terminal server
+Terminator
+Terminfo
+ternary search tree
+Ternary search tree
+Terraform
+Tesseract
+test automation
+Test automation
+test bench
+Test bench
+Test statistic
+test statistic
+Test-driven development
+test-driven development
+testbed
+Testbed
+Testing Maturity Model
+TeX
+Texel
+Texinfo
+text corpus
+Text corpus
+Text mining
+text mining
+text-to-image model
+Text-to-image model
+text-to-video model
+Text-to-video model
+TEXTOM
+Texture compression
+texture compression
+Texture filtering
+texture filtering
+texture mapping
+Texture mapping
+TF-IDF
+Tf-idf
+Tf–idf
+tf–idf
+The Age of Spiritual Machines
+The Cathedral and the Bazaar
+The Clean Network
+The Cuckoo's Egg
+The Fashion Model Directory
+The Finals
+The Gene of AI
+The Machine
+The Moon Is a Harsh Mistress
+The Unscrambler
+Theaterlexikon der Schweiz
+Theodore Ts'o
+Thermal design power
+thermal design power
+Thesaurus
+thesaurus
+thin client
+Thin client
+Thinning
+thinning
+Third normal form
+third normal form
+Thread
+thread safety
+Thread safety
+Three js
+Three Laws of Robotics
+Three-phase commit protocol
+Throttle
+Thumbnail
+thumbnail
+Théâtre D'opéra Spatial
+Tim Berners-Lee
+Time domain
+time domain
+Time to first byte
+Time to interactive
+Time-based one-time password
+Time-based One-time Password Algorithm
+Time-dependent density functional theory
+time-dependent density functional theory
+Timeout
+timeout
+Tingwen Huang
+Titan Rain
+TLD
+Tlooto
+TLS
+TLS termination proxy
+TLS 종료 프록시
+TmaxGaia
+TOFU
+token ring
+Token Ring
+TokuDB
+Tokumei Sentai Go-Busters
+Toleration
+Tom DeMarco
+Tomasulo algorithm
+Tomasulo's algorithm
+Top layer
+top-down and bottom-up approaches
+Top-hat transform
+Top-p sampling
+Topic map
+Topic Maps
+Topic model
+topic model
+TOPIO
+Topological deep learning
+topological deep learning
+topological quantum computer
+Topological quantum computer
+Topological sorting
+topological sorting
+Tor
+toric code
+Toric code
+Total variation denoising
+toy problem
+Toy problem
+TP-Link
+TP모니터
+Training set
+training set
+Training, validation, and test data sets
+training, validation, and test data sets
+trait
+Trait
+Transact-SQL
+Transaction log
+transaction log
+Transaction processing
+transaction processing
+Transaction Processing Facility
+Transaction Processing Monitor
+Transaction processing system
+transaction processing system
+transactional memory
+Transactional memory
+Transactional NTFS
+Transactions per second
+Transcendence
+transclusion
+Transclusion
+transfer learning
+Transfer learning
+transform coding
+Transform coding
+transformer
+Transformer
+transhumanism
+Transhumanism
+Transient activation
+Transient execution CPU vulnerability
+transient execution CPU vulnerability
+Translate
+Translation memory
+translation memory
+transnational marriage
+Transnational marriage
+Trapdoor function
+trapdoor function
+trapped ion quantum computer
+Trapped-ion quantum computer
+Travelling salesman problem
+travelling salesperson problem
+tree
+Tree
+Tree shaking
+Tree traversal
+tree traversal
+Treebank
+treebank
+Treehouse
+Treehouse Island, Inc.
+Trend Micro
+Trend Micro Internet Security
+triangulation
+Triangulation
+Trident
+Trie
+trie
+Trigram
+trigram
+Trino
+Triplestore
+triplestore
+Triplet loss
+Trove
+True color
+Truncation
+truncation
+truncation error
+Truncation error
+Trunk
+trunk
+trust boundary
+Trust boundary
+Trusted Computing
+Trusted execution environment
+trusted execution environment
+Trusted Platform Module
+Trustworthy AI
+Truthy
+TTL
+Tukey's range test
+tunneling protocol
+Tunneling protocol
+Tupper's self-referential formula
+Turbo code
+turbo code
+Turbo Delphi
+Turbo Pascal
+TurboWarp
+Turing Award
+Turing machine
+Turing Talk
+Turing test
+TURN
+Tuxedo
+TV Time
+TV 타임
+TVants
+Two-phase commit protocol
+two-phase commit protocol
+two-phase locking
+Two-phase locking
+Two-way analysis of variance
+Type
+Type coercion
+Type Conversion
+Type I and type II errors
+type I and type II errors
+Type safety
+TypeScript
+type–token distinction
+Type–token distinction
+Typography
+T분포표
+T포즈
+U-Net
+U-커머스
+Ubiquitous commerce
+ubiquitous commerce
+ubiquitous computing
+Ubiquitous computing
+Ubuntu One
+Ubuntu Touch
+UCSD Pascal
+UCSD 파스칼
+Udacity
+Udio
+UDP
+UDP hole punching
+UDP 홀 펀칭
+UI
+UID
+UIMA
+UltraRAM
+Ultron
+Ulysses
+Umbraco
+uncanny valley
+Uncanny valley
+Uncontrolled format string
+Undefined
+undefined
+undersampling
+Undersampling
+Understand
+Unicast
+unicast
+Unicode
+unification
+Unification
+Unified Modeling Language
+Unified Parallel C
+unified threat management
+Unified threat management
+Unified Video Decoder
+Uniform Resource Name
+UniProt
+unique key
+Unique key
+unit testing
+Unit testing
+United States Census Bureau
+Universal approximation theorem
+universal approximation theorem
+universal hashing
+Universal hashing
+Universal Product Code
+Universally unique identifier
+universally unique identifier
+Unix time
+UnixODBC
+unixODBC
+Unobtrusive JavaScript
+unofficial patch
+Unofficial patch
+unspecified behavior
+Unspecified behavior
+UNSPSC
+Unstructured data
+unstructured data
+Unsupervised learning
+unsupervised learning
+Upload
+upload
+Upsampling
+upsampling
+Upstage
+Urban sprawl
+urban sprawl
+Urbanization
+urbanization
+Urchin
+UrEDAS
+URI
+URL
+URN
+Usability
+usability
+usability testing
+Usability testing
+usage share of operating systems
+Usage share of operating systems
+Use case
+use case
+Use case diagram
+Use Case Diagram
+Usenet
+User agent
+user agent
+User experience
+user experience
+user experience design
+User experience design
+User Interface Privilege Isolation
+user profile
+User profile
+User story
+user story
+User-centered design
+user-centered design
+User-defined function
+user-defined function
+UTF-8
+utility computing
+Utility computing
+UTM parameters
+UTM 파라미터
+UUID
+UX
+V 모델
+V-model
+V3
+Vala
+Validator
+Value
+vanishing gradient problem
+Vanishing gradient problem
+Vannevar Bush
+Vapnik–Chervonenkis theory
+variable
+Variable
+variadic function
+Variadic function
+variance
+Variance
+variational auto-encoder
+Variational autoencoder
+Variational method
+VASP
+VBScript
+VB스크립트
+VC 이론
+VCloud Air
+vCloud Air
+Vector database
+vector database
+vector quantization
+Vector quantization
+Vector-based graphical user interface
+Velocity of money
+velocity of money
+Vendor Prefix
+Veo
+Verbose mode
+Vercel
+Vercel Inc.
+Verge3D
+version control
+Version control
+version control branch
+Very long instruction word
+very long instruction word
+VESSL AI
+VEX
+vibe coding
+Vibe coding
+Victor Basili
+video compression
+Video compression
+Video editing
+video editing
+video editing software
+Video editing software
+Video overlay
+VideoPoet
+Videotex
+videotex
+Vienna Ab initio Simulation Package
+Vienna Ab-initio Simulation Package
+View
+VIEW
+view
+View model
+view model
+Viewport
+viewport
+virtual appliance
+Virtual appliance
+Virtual assistant
+virtual assistant
+virtual column
+Virtual column
+virtual DOM
+Virtual DOM
+virtual firewall
+Virtual firewall
+virtual idol
+Virtual idol
+Virtual International Authority File
+Virtual machine escape
+virtual machine escape
+virtual memory
+Virtual memory
+virtual network interface
+Virtual network interface
+Virtual private cloud
+Virtual Private Cloud
+Virtual private network
+virtual private network
+virtual private server
+Virtual private server
+virtual tape library
+Virtual tape library
+Virut
+Vision
+Vision processing unit
+vision processing unit
+vision transformer
+Vision transformer
+vision-language model
+Vision-language model
+VisionQuest
+Visual Basic
+Visual Basic .NET
+Visual Basic for Applications
+Visual Basic Script
+Visual computing
+visual computing
+Visual descriptor
+Visual FoxPro
+Visual J Sharp
+visual programming language
+Visual programming language
+Visual Viewport
+visualization
+Visualization
+Viterbi algorithm
+Vivy -Fluorite Eye’s Song-
+Vivy: Fluorite Eye's Song
+Vivy: Fluorite Eye’s Song
+VLAN hopping
+VLAN 호핑
+VLIW
+VLLM
+vLLM
+VMware
+VM웨어
+voice activity detection
+Voice activity detection
+Voiceverse NFT plagiarism scandal
+VoiceXML
+Void element
+Voigt profile
+VoIP
+Volume
+Volume Plugin
+Volume ray casting
+Von Neumann stability analysis
+Voronoi diagram
+Vote counting
+vote counting
+voxel
+Voxel
+VP9
+VRChat
+Vue.js
+vulnerability
+Vulnerability
+vulnerability management
+Vulnerability management
+vulnerability scanner
+Vulnerability scanner
+Vvvv
+vvvv
+W3C
+W3C Amaya
+W3Perl
+W3펄
+Wahba's problem
+WAI
+WAI-ARIA
+Waifu2x
+waifu2x
+WAN Interface Card
+WAN 인터페이스 카드
+Wardriving
+wardriving
+Warframe
+Warped linear predictive coding
+Watermark
+watermark
+Watson
+Watts Humphrey
+Watts S. Humphrey
+wavelet
+Wavelet
+wavelet transform
+Wavelet transform
+WaveNet
+Waze
+WBXML
+WCAG
+Weak artificial intelligence
+weak artificial intelligence
+Weak key
+weak key
+Weak measurement
+weak measurement
+Weak supervision
+weakly supervised learning
+wearable computer
+Wearable computer
+wearable device
+Wearable technology
+wearable technology
+Web 3.0
+Web accessibility
+web accessibility
+Web Accessibility Initiative
+web analytics
+Web analytics
+web application
+Web application
+web banner
+Web banner
+Web beacon
+web beacon
+Web cache
+web cache
+Web Components
+Web container
+web container
+Web Content Accessibility Guidelines
+web crawler
+Web crawler
+Web cryptography API
+Web Cryptography API
+Web developer
+web developer
+web development
+Web development
+web development tools
+Web development tools
+web engineering
+Web engineering
+Web feed
+web feed
+web framework
+Web framework
+web intelligence
+Web intelligence
+web mining
+Web mining
+Web of Science
+Web of trust
+Web Ontology Language
+Web performance
+Web programming language
+Web server
+web server
+Web SQL Database
+Web standards
+Web storage
+web storage
+Web syndication
+web syndication
+Web testing
+Web worker
+Web3D
+WebAssembly
+WebAuthn
+WebCL
+WebDAV
+WebExtensions
+WebGL
+WebGPU
+Webhook
+webhook
+WebIDL
+WebKit
+WebM
+webmaster
+Webmaster
+WebP
+WebRTC
+website builder
+Website builder
+WebSocket
+WebSockets
+WebSphere sMash
+WebTorrent
+WebVTT
+WebXR
+Weebly
+Weka
+well-formed formula
+Well-formed formula
+well-posed problem
+Well-posed problem
+Wet-bulb temperature
+wet-bulb temperature
+wetware
+Wetware
+wetware computer
+Wetware computer
+WG
+WHATWG
+Whisper
+white noise
+White noise
+White-box cryptography
+White-box testing
+white-box testing
+Whitelist
+whitelist
+Whitening transformation
+Whitespace
+Whittaker–Shannon interpolation formula
+Whonix
+Why am I me, rather than someone else?
+Why am I me?
+Wi-Fi Protected Access
+WIC
+wide area network
+Wide area network
+wide column store
+Wide-column store
+Wiener–Khinchin theorem
+Wiki
+wiki
+wiki software
+Wiki software
+Wikidata
+Wikimapia
+WikiMapia
+Wikipedia
+WikiScanner
+wildcard character
+Wildcard character
+Wildenstein Index Number
+William F. Friedman
+William Frederick Friedman
+Willy's Chocolate Experience
+window function
+Window function
+WindowProxy
+Windows App Studio
+Windows Live Mesh
+Windows Phone
+Windows Phone 8.1
+Windows Vista networking technologies
+WinMX
+Winny
+Wire-frame model
+wire-frame model
+Wired Equivalent Privacy
+Wix.com
+WLPC
+Wmux
+Wolfram Alpha
+Wolfram Language
+Wolfram Mathematica
+Wolfram Research
+WolframAlpha
+Wombo
+Woohyung Lim
+Word embedding
+word embedding
+word-sense disambiguation
+Word-sense disambiguation
+Word2vec
+Word2Vec
+WordBASIC
+WordNet
+Workaround
+workaround
+Workday, Inc.
+Workload
+Workspace
+workspace
+world population
+World population
+World Statistics Day
+World Wide Web
+World Wide Web Consortium
+Wrapper
+Write once, run anywhere
+Write-ahead logging
+write-ahead logging
+Writesonic
+WS-Security
+WS-Transaction
+XAML
+XAMPP
+Xcitium
+Xenoblade Chronicles
+Xenobot
+xenobot
+XForms
+XGBoost
+XHR
+XHTML
+Xianxingzhe
+Xiaomi HyperOS
+XInclude
+XLink
+XML
+XML database
+XML 데이터베이스
+XMLHttpRequest
+XMPP
+Xojo
+XOOPS
+XOR swap algorithm
+XOR 교체 알고리즘
+XOS
+XPath
+XPDL
+XQuery
+XRI
+XSL Formatting Objects
+XSL-FO
+XSLT
+xUnit
+XUnit
+XZ Utils backdoor
+XZ Utils 백도어
+X세대
+YaCy
+Yahoo! Babel Fish
+YAML
+Yandex Disk
+Yandex Maps
+Yandex Translate
+YandexGPT
+Yann LeCun
+YARA
+Yelp
+yeoman
+Yeoman
+Yii
+Yoda conditions
+You Only Look Once
+You.com
+YouTube
+YubiKey
+YUI Library
+YUI 라이브러리
+Z 검정
+Z-test
+Z-transform
+Z-Wave
+Z-테스트
+Z80
+Zabbix
+Zachman Framework
+ZAP
+Zarya of the Dawn
+Zeller's congruence
+ZEM
+ZEPETO
+Zepeto
+zero trust architecture
+Zero trust architecture
+zero-day
+Zero-day vulnerability
+Zero-knowledge proof
+zero-knowledge proof
+Zero-order hold
+Zero-shot learning
+zero-shot learning
+ZeroNet
+zeta
+Zeta
+Zettelkasten
+Zhou Ming
+Zig
+Zimbra
+Zipf's law
+ZK
+Zoho Office Suite
+Zombie
+zombie
+Zonbu
+Zone 414
+Zoom fatigue
+Zope
+Zscaler
+Z변환
+Z세대
+‘전국시각장애인연대 대 타겟 법인’ 소송
+ムービーコレクション
+가격 조회 코드
+가계조사
+가능성 이론
+가능성의 평등
+가디언
+가라쿠리
+가벼운 프로그래밍 언어
+가변 벡터 도형
+가변 인자 함수
+가변수
+가보르 필터
+가비아
+가비지 수집
+가비지 컬렉션
+가사지원 로봇
+가상 DOM
+가상 국제 전거 파일
+가상 네트워크 인터페이스
+가상 머신 탈출
+가상 메모리
+가상 물리 시스템
+가상 방화벽
+가상 비서
+가상 사설 서버
+가상 아이돌
+가상 어플라이언스
+가상 요소
+가상 클래스
+가상 테이프 라이브러리
+가상사설망
+가설 검정
+가용 채널 평가 공격
+가용성
+가우스-마르코프 정리
+가우스-마코프 정리
+가우스-자이델 방법
+가우시안 과정
+가이노이드
+가정용 게이트웨이
+가젯
+가지치기
+가짜 정밀도
+간섭 제거 빔포밍
+간이 망 관리 프로토콜
+간이언어
+간편 URL
+감마 분포
+감바스
+감성 컴퓨팅
+감정 분석
+강제적 접근 제어
+강진관측망
+강화 학습
+개념 모형
+개념적 모델
+개발자
+개발자 도구
+개방 세계 가정
+개방-폐쇄 원칙
+개방형 신경망 교환
+개인 메시지
+개인 통신망
+개인 패키지 저장소
+개인서비스 로봇
+개인정보 보호의 날
+개인화
+개주기 함수
+개체-관계 모델
+개체군생태학
+개체명 인식
+개표
+객체 관계 데이터베이스
+객체 관계 매핑
+객체 식별자
+객체 인식
+객체 인식 개요
+객체 지향 데이터베이스
+객체 지향 데이터베이스 관리 시스템 비교
+객체 지향 분석 및 설계
+객체 하이퍼링크
+갤럭시 AI
+거래처리시스템
+거리 벡터 라우팅 프로토콜
+거리 이미징
+거짓 같은 값
+거짓 양성과 거짓 음성
+거짓말쟁이의 배당금
+거터
+건강 수명
+검사계획
+검색 게임
+검색 기반 소프트웨어 공학
+검색 알고리즘
+검색 엔진
+검색 엔진 최적화
+검색 중립성
+검색성
+검색엔진 조작 효과
+검색증강생성
+검은 10월
+검정력
+검정통계량
+게릿
+게마인자메 노름다타이
+게이트 순환 유닛
+게이트웨이
+게임 이론
+게임트리
+게코
+격자 경로
+격자 그래프
+견고성
+결정 경계
+결정 이론
+결정 트리
+결정 트리 학습법
+결정계수
+결정론적 유한 상태 기계
+결정적 유한 오토마타
+결합 응용 설계
+결합도
+결혼 휴가
+경계요소법
+경로 분석
+경로 의존성
+경사지향 히스토그램
+경영 정보 시스템
+경영정보학
+경영통계학
+경제 주체
+경제인구학
+경제통계학
+경험적 누적 분포 함수
+경험적 소프트웨어 공학
+경험적 위험 최소화
+계량경제학
+계량화학
+계산 기계와 지능
+계산 지능
+계산기하학
+계산물리학
+계산사진술
+계산수론
+계산언어학회
+계산주의 마음 이론
+계산학습이론
+계약에 의한 설계
+계층 제어 시스템
+계층적 군집화
+계층적 데이터 형식
+계층적 모델-뷰-컨트롤러
+계층적 분류
+계층형 모델
+계통표집
+계획생육정책
+고가용성
+고감도 지진관측망
+고객 지원
+고귀한 인류
+고급 공정 제어
+고급 셰이더 언어
+고급 프로그래밍 언어
+고대 이집트 곱셈법
+고든 벨 상
+고령 임신
+고른 표본 추출을 통한 병렬 정렬
+고립 포레스트
+고속 역 제곱근
+고속 응용 프로그램 개발
+고속 푸리에 변환
+고수준 프로그래밍 언어
+고스트넷
+고유 크기
+고유얼굴
+고인구학
+고전검사이론
+고정 활성화
+고정점
+고정점 논리
+고퍼
+고퍼 프로토콜
+골룸 브라우저
+곰퍼츠 분포
+곰퍼츠 함수
+공각기동대
+공각기동대: 고스트 인 더 쉘
+공간 컴퓨팅
+공개 키 기반 구조
+공개 키 암호화 방식
+공개출처정보
+공격 표면
+공급업체 접두사
+공백
+공분산
+공분산 행렬
+공시성
+공용 게이트웨이 인터페이스
+공적분
+공정능력지수
+공정성
+공정정보규정
+공진기 양자 전기역학
+공통 객체 요구 매개자 구조
+공통 데스크톱 환경
+공통 약점 열거
+공통 취약성 및 노출
+공통 취약성 평가 시스템
+공통평가기준
+과적합
+곽달아
+관계
+관계 논리
+관계대수
+관계형 데이터베이스
+관계형 데이터베이스 관리 시스템
+관계형 모델
+관심사
+관측 가능성
+광고 AI
+광기억 장치
+광선 추적
+광스위치
+광역 통신망
+광학 마크 인식
+광학 문자 인식
+광학 흐름
+괴델 기계
+괴델상
+교육용 로봇
+교육행정정보시스템
+교차 사이트 요청 위조
+교차 출처 리소스 공유
+교차상관
+교차축
+교차타당도
+교체 연산
+교환 가능 확률 변수족
+구간연산
+구거법
+구글
+구글 AI 스튜디오
+구글 나우
+구글 네스트
+구글 네이티브 클라이언트
+구글 드라이브
+구글 드로잉
+구글 딥마인드
+구글 마케팅 플랫폼
+구글 문서도구
+구글 번역
+구글 베이스
+구글 브레인
+구글 빅 슬립
+구글 스토리지
+구글 스트리트 뷰
+구글 스트리트 뷰 개인정보 문제
+구글 신경망 기계 번역
+구글 애널리틱스
+구글 앱 스크립트
+구글 앱 엔진
+구글 어시스턴트
+구글 엔그램 뷰어
+구글 옵티마이즈
+구글 워크스페이스
+구글 원
+구글 웹 디자이너
+구글 웹 툴킷
+구글 웹사이트 옵티마이저
+구글 제미나이
+구글 주스
+구글 지도
+구글 컴퓨트 엔진
+구글 코랩
+구글 크롬
+구글 클라우드 스토리지
+구글 클라우드 커넥트
+구글 클라우드 플랫폼
+구글 클로저 툴스
+구글 패밀리 링크
+구글 퍼블릭 DNS
+구글 퍼블릭 데이터 익스플로러
+구글 퓨전 테이블
+구글 학술 검색
+구글 해킹
+구글 행렬
+구글과 관련된 개인정보 문제
+구문
+구문 분석
+구문 오류
+구문분석
+구문분석기
+구성 관리
+구조방정식 모델링
+구조방정식모형
+구조적 분석
+구조적 예측
+구조적 요소
+구조적 위험 최소화
+구조화된 텍스트
+구체화 뷰
+구현
+구형 테스트
+구형함수
+국가사이버안보센터
+국가사이버안전센터
+국가정보원 스마트폰 해킹 사건
+국가지리정보국
+국부 기술자
+국부 삼진 패턴
+국부 이진 패턴
+국소 특이점 요인
+국제 데이터 암호화 알고리즘
+국제 모바일 가입자 구별자
+국제 상품 번호
+국제 식별번호
+국제 이동국 식별 번호
+국제 인공지능 공동 학술대회
+국제 정보 올림피아드
+국제 컬러 협회
+국제 표준 녹음 코드
+국제 표준 도서 번호
+국제 표준 도서관 부호
+국제 표준 시청각 번호
+국제 표준 연속 간행물 번호
+국제 표준 음악 번호
+국제 표준 음악 작품 코드
+국제 표준 이름 식별자
+국제 화학 식별자
+국제결혼
+국제공인 정보시스템 보안전문가
+국제인구과학연맹
+국제질병분류
+국제표준시청각자료번호
+국제화
+군사용 로봇
+군사정보
+군지연과 위상지연
+군집표집
+권한 확대
+권한슬
+귀납적 편향
+귀납적 프로그래밍
+귀무 가설
+규칙 기반 기계 학습
+그누텔라
+그누텔라2
+그라디언트 부스팅
+그람 행렬
+그래멀리
+그래스베이스
+그래프
+그래프 기반 접근 제어
+그래프 데이터베이스
+그래프 동형 문제
+그래프 동형 사상
+그래프 모형
+그래프 순회
+그래프 신경망
+그래프 트래버설
+그래프 편집 거리
+그래프QL
+그래피컬 커널 시스템
+그래픽
+그래픽 사용자 인터페이스
+그래픽 소프트웨어
+그래픽 처리 장치
+그레이박스 검사
+그레이트 캐논
+그렘린
+그로버 알고리즘
+그록
+그뢰브너 기저
+그뢰브너 부채
+그루비
+그룹 노트
+그리드
+그리드 셀
+그리드 열
+그리드 영역
+그리드 컨테이너
+그리드 컴퓨팅
+그리드 트랙
+그리드 행
+그리드의 선
+그린버튼
+그림 압축
+그림자
+그림자 도서관
+극한로봇
+근 찾기 알고리즘
+근거리 통신망
+근사 알고리즘
+근사 이론
+근사값의 순서
+근삿값
+근삿값의 순서
+근위 정책 최적화
+글래스피시
+글로벌 데이터 동기화 네트워크
+글리치 토큰
+글자수세기
+금융범죄단속네트워크
+금융범죄단속망
+금지된 헤더 이름
+기가챗
+기각 구역
+기계 번역
+기계 지각
+기계 탈학습
+기계 학습
+기계어
+기계요소
+기계적 해석 가능성
+기기 지문
+기능 명세서
+기능 모델
+기능 요구사항
+기능 점수
+기능 테스트
+기능 토글
+기능주의
+기대 여명
+기대수명
+기댓값 최대화 알고리즘
+기록 관리
+기록 처리일정표
+기록매체
+기르사노프 정리
+기본 논리
+기본 인증
+기본 키
+기브스 부등식
+기사의 여행
+기상 관측
+기술 부채
+기술법
+기술적 특이점
+기술통계학
+기아 커넥트
+기억장치 배치전략
+기업 간 거래
+기업 응용 프로그램 통합
+기업 콘텐츠 관리
+기업 통합 프로세스
+기업공학
+기여자 라이선스 동의
+기울기 소멸 문제
+기저 대역
+기저 함수
+기저율
+기준
+기준선
+기호계산
+기호주의 인공지능
+기회주의적 암호화
+기후연구소 전자우편 논란
+긴급지진속보
+깁스 부등식
+깃랩
+깃발 뺏기
+깃허브
+깃허브 코파일럿
+깊은 복사
+깊이 우선 탐색
+꼬마버스 타요
+나노 큐플러스
+나노네트워크
+나무AX
+나무기술
+나무클라우드
+나시슈나이더만도
+나이브 베이즈 분류
+나이퀴스트 안정성 기준
+나이퀴스트 진동수
+나이퀴스트율
+나탈리아 카스퍼스키
+낙관적 병행 수행 제어
+난독화
+난수
+난수 발생기
+난수 생성
+난수 생성기
+난카이 해곡 해저지진해일 관측망
+난해한 프로그래밍 언어
+내부 링크
+내부 페이지랭크
+내용 기반 이미지 검색
+내용 주소화 기억장치
+냅스터
+너그러운 자유 소프트웨어 라이선스
+너비 우선 탐색
+너치
+널 문자
+널 세션
+널 종단 문자열
+네서스
+네스팅
+네오사피엔스
+네오코그니트론
+네오클라우드
+네이글 알고리즘
+네이만-피어슨 정리
+네이먼-피어슨 보조정리
+네이버
+네이버 MYBOX
+네이버 모바일 백신
+네이버 백신 모바일
+네이버 클로바
+네이버 파파고
+네이티브
+네임스페이스
+네트워크 관리 시스템
+네트워크 드라이버 인터페이스 사양
+네트워크 모델
+네트워크 보안
+네트워크 보안사각
+네트워크 브리지
+네트워크 블록 장치
+네트워크 성능
+네트워크 스로틀링
+네트워크 스위치
+네트워크 시큐리티 툴킷
+네트워크 인터페이스 컨트롤러
+네트워크 정보 시스템
+네트워크 지연
+네트워크 침입 탐지 시스템
+네트워크 폴리시
+네트워크 프로세서
+네트워크 흐름
+네트워크에 연결된 장난감
+네트워킹 하드웨어
+넥서스 Q
+넥스트클라우드
+넥슨타운
+넷PC
+넷기어
+넷마이너
+넷맨
+넷바이브스
+넷북
+넷빈즈
+넷스케이프 네비게이터
+넷톱
+넷플릭스
+넷필터
+노드
+노드 그래프 아키텍처
+노드-압박 축출
+노드VPN
+노매딕 컴퓨팅
+노무라 종합연구소
+노벨AI
+노션
+노아 글래스
+노암 샤지어
+노인학
+노코드
+노코드 개발 플랫폼
+노터블 네임스 데이터베이스
+노트북LM
+노티플라이
+논리
+논리 연산
+논리 합성
+논리식
+논리형 프로그래밍
+논스
+놀람 최소화 원칙
+농업 온톨로지 서비스
+농업 정보 관리 표준
+농업용 로봇
+뇌-컴퓨터 인터페이스
+누구
+누멘타
+누오보 소겟타리오
+누오보 소제타리오
+누텔라
+누텔라2
+눈송이 스키마
+뉴럴 디자이너
+뉴로
+뉴로맨서
+뉴로사마
+뉴스 인터내셔널 전화 해킹 스캔들
+뉴타닉스
+뉴턴 방법
+뉴턴의 방법
+느껴, 지니
+느슨한 결합
+느슨한 모드
+능동적 외양 모델
+능동적 형태 모델
+능력 성숙도 모델
+능력 성숙도 모형 결합
+능력 성숙도 통합 모델
+니지산지
+다구치 손실 함수
+다니엘라 아모데이
+다단계 큐 스케줄링
+다단계 피드백 큐 스케줄링
+다목적 인터넷 메일 확장
+다봉분포
+다시점 비디오 부호화
+다양체 가설
+다요소 인증
+다운그레이드
+다운그레이드 공격
+다운로드
+다운링크 빔포밍
+다운샘플링
+다음
+다이너모 이론
+다이렉트플레이
+다이제스트
+다이제스트 인증
+다자 얽힘
+다중 디스패치
+다중 레이블 분류
+다중 버전 동시성 제어
+다중 비교
+다중 에이전트 강화 학습
+다중 에이전트 시스템
+다중 인증
+다중 작업 학습
+다중 클래스 분류
+다중 패러다임 프로그래밍 언어
+다중공선성
+다중물리 시뮬레이션
+다중서열정렬
+다중화
+다중회귀분석
+다차원 신호 처리
+다차원 척도
+다체 문제
+다층 구조
+다층 모형
+다층 퍼셉트론
+다크 데이터
+다크 모드
+다크트레이스
+다트
+다트머스 회의
+다항 분포
+다항 시간 근사 해법
+다항 위계
+다항식 장제법
+다항식 회귀
+다형성
+닥터 슬럼프
+단대단 암호화
+단발어
+단색 모니터
+단색 색상
+단순 객체 접근 프로토콜
+단순회귀분석
+단시간 푸리에 변환
+단어 가방 모형
+단어 의미 명확화
+단어 의미 중의성 해소
+단위 계단 함수
+단위전략 기반 디자인
+단일 곱셈-누산기
+단일 루트 입/출력 가상화
+단일 명령어 집합 컴퓨터
+단일 시스템 이미지
+단일 진실 공급원
+단일 책임 원칙
+단일 칩 시스템
+단일 페이지 애플리케이션
+단일화
+단측-양측 검정
+단편화 상자
+닫기
+달은 무자비한 밤의 여왕
+달이 딜리버리
+닷핵
+당나귀
+대규모 언어 모델
+대기행렬이론
+대니얼 글래즈먼
+대리 모델
+대리 변수
+대립 가설
+대만의 인공지능 정책
+대역폭
+대응 분석
+대입-치환 네트워크
+대체 정렬
+대체키
+대치법
+대칭 키 암호
+대칭키 암호화
+대칭형 다중 처리
+대한로봇스포츠협회
+대한로봇축구협회
+대한민국 국가정보원 스마트폰 해킹 사건
+대한민국의 이민정책
+대형 언어 모델
+대화형 데이터 언어
+대화형 사용자 인터페이스
+더 머쉰
+더 클린 네트워크
+더 파이널스
+더글러스 엥겔바트
+더블 래칫 알고리즘
+더블린 코어
+더존ICT그룹
+더존IT그룹
+덤아틀라스
+데누보
+데드 레터 큐
+데몬셋
+데브옵스
+데브옵스 툴체인
+데브팩
+데스크톱 가상화
+데스크톱 검색
+데스크톱 메타포
+데스티니
+데이비드 마
+데이비드 파나스
+데이어스 엑스: 휴먼 레볼루션
+데이지 체인
+데이콤넷
+데이크스트라 알고리즘
+데이터 구조
+데이터 드레징
+데이터 레이크
+데이터 마스킹
+데이터 마이닝
+데이터 마트
+데이터 메시
+데이터 무결성
+데이터 뱅크
+데이터 보안
+데이터 보존
+데이터 분석
+데이터 분석 전문가
+데이터 비닝
+데이터 사전
+데이터 센터
+데이터 센터 관리
+데이터 수집
+데이터 스토리지
+데이터 스토어
+데이터 시각화
+데이터 어노테이션
+데이터 웨어하우스
+데이터 유출
+데이터 유출 방지
+데이터 유효성 검사
+데이터 익명화
+데이터 자원 관리
+데이터 재식별화
+데이터 전처리
+데이터 절도
+데이터 접근 계층
+데이터 정규화
+데이터 정의 언어
+데이터 정제
+데이터 제어 언어
+데이터 조작 언어
+데이터 준비
+데이터 중복
+데이터 증대
+데이터 지향
+데이터 처리 장치
+데이터 통합
+데이터 프로파일링
+데이터 플레인
+데이터 허브
+데이터 흐름도
+데이터교
+데이터그램 전송 계층 보안
+데이터베이스
+데이터베이스 관리 시스템
+데이터베이스 마케팅
+데이터베이스 머신
+데이터베이스 모델
+데이터베이스 보안
+데이터베이스 분할
+데이터베이스 설계
+데이터베이스 스키마
+데이터베이스 시스템
+데이터베이스 언어
+데이터베이스 엔진
+데이터베이스 정규화
+데이터베이스 카탈로그
+데이터베이스 커서
+데이터베이스 트랜잭션
+데이터베이스 트리거
+데이터소스
+데이터옵스
+데이터플로 프로그래밍
+데일리 빌드
+데일리메드
+덱스트업로드
+덴드로그램
+델 테크놀로지스
+델타
+델타 규칙
+델타 변조
+델타-시그마 변조
+델파이
+도구 변수
+도구 변수법
+도구적 수렴
+도깨비 문자
+도널드 노먼
+도네이션웨어
+도메인
+도메인 모델
+도메인 분석
+도메인 샤딩
+도메인 이름
+도메인 주도 설계
+도메인 지식
+도메인 특화 모델링
+도메인 특화 언어
+도메인 프론팅
+도서 분류법
+도수 분포
+도수 확률
+도시권 통신망
+도시화
+도이치–조사 알고리듬
+도제 학습
+도커
+도커심
+도표척도법
+독립 성분 분석
+독립 소프트웨어 개발 판매 회사
+독립변수와 종속변수
+독립성
+독립항등분포
+독일 통합전거파일
+돌비 3D
+동기
+동력형 외골격
+동류 신뢰도
+동상 및 직교 성분
+동시성 제어
+동일 출처 정책
+동일-출처 정책
+동적 라이브러리
+동적 리소스 할당
+동적 링커
+동적 범위
+동적 볼륨 프로비저닝
+동적 시간 워핑
+동적 웹페이지
+동적 타입
+동적 프로그래밍 언어
+동적 프로그램 분석
+동형사상
+동형암호
+두근두근 문예부!
+두낫페이
+두리틀
+둠스데이 알고리즘
+듀얼 SIM
+듀얼 테이블
+드라이브 바이 다운로드
+드롭박스
+드롭아웃
+드루팔
+드리스 바이타르트
+드릴 다운
+드림 머신
+드림부스
+등록 사용자
+등분산성
+등분산성과 이분산성
+등축 투영법
+디 언스크램블러
+디더링
+디랙 델타 함수
+디렉터리 서비스
+디렉토리 서비스
+디바운스
+디바이스
+디버깅 패턴
+디벨로퍼 릴레이션
+디스조인트-셋 자료 구조
+디스트리뷰티드 매니지먼트 태스크 포스
+디엘라
+디인터레이스
+디자인 매트릭스
+디자인 요구 사항
+디자인 패턴
+디즈니 디지털 3-D
+디지몬 유니버스 어플리 몬스터즈
+디지털 가입자 회선
+디지털 객체 식별자
+디지털 국가
+디지털 기회 지수
+디지털 밀레니엄 저작권법
+디지털 발자국
+디지털 배급
+디지털 생태계
+디지털 서명 알고리즘
+디지털 신경망 체계
+디지털 신호
+디지털 신호 처리
+디지털 신호 처리 장치
+디지털 암흑기
+디지털 영상
+디지털 오실로스코프
+디지털 온스크린 그래픽
+디지털 워터마킹
+디지털 이미지
+디지털 장의사
+디지털 정체성
+디지털 주권
+디지털 증거
+디지털 콘텐츠
+디지털 큐레이션
+디지털 패션
+디지털 포렌식
+디지털 필터
+디지털 화상 처리
+디지털-아날로그 변환회로
+디지털글로브
+디지털세
+디지털오션
+디플로이먼트
+딜루션
+딥 러닝
+딥 러닝 슈퍼 샘플링
+딥 러닝 안티에일리어싱
+딥노이드
+딥드림
+딥루트.ai
+딥마인드
+딥시크
+딥페이크
+딥페이크 포르노그래피
+떼 지능
+라라벨
+라미나스
+라빈 암호체계
+라스무스 러도프
+라스트 FM
+라쏘
+라우터
+라우팅 테이블
+라우팅 프로토콜
+라운드 로빈 스케줄링
+라이브 백업
+라이브러리 제네시스
+라이브코드
+라이트소닉
+라이트스케일
+라이트웨이트 포터블 시큐리티
+라인 백신
+라인 스펙트럴 페어스
+라즈베리 파이
+라즈베리 파이 재단
+라쿠
+라틴 방진
+라플라스 변환
+라플라스 애널리틱스
+라피치
+란다우어의 원리
+람다 대수
+람다 아키텍처
+람베르트 반사
+랑데부 해싱
+래더 로직
+래셔널 통합 프로세스
+래스터 스캔
+래스터 이미지
+래스터화
+래킷
+래프트
+래피드마이너
+랙스페이스
+랙스페이스 테크놀로지
+랜덤 포레스트
+랜섬디펜더
+램버시안 반사율
+랭체인
+러닝 커브
+러스터
+러스트
+러시아의 우크라이나 침공 중 공개출처정보
+런웨이
+런타임 오류 탐지
+레긴
+레니 엔트로피
+레드햇
+레디스
+레벤슈타인 거리
+레벤슈타인 자동 기계
+레빈슨 재귀 알고리즘
+레이더 신호 특성
+레이몬드 카텔
+레이블
+레이블 데이터
+레이아웃 모드
+레이아웃 뷰포트
+레이어드 서비스 프로바이더
+레인보 테이블
+레지스터 스프링
+레지스터드 잭
+레코드셋
+레플리카셋
+레플리케이션컨트롤러
+렉시스
+렌더 팜
+렌더링 엔진
+렌더링 차단
+렌티큘러
+로 코드 개발 플랫폼
+로거
+로고
+로그 선행 기입
+로그 정규 분포
+로그인
+로깅
+로드코드
+로보택시
+로봇
+로봇 부품
+로봇 윤리
+로봇 저널리즘
+로봇 팔
+로봇 학습
+로봇공학
+로봇공학의 삼원칙
+로봇랜드
+로봇산업
+로봇신문
+로봇축구
+로블록스
+로우
+로우 해머
+로우패스 필터
+로지스틱 분포
+로지스틱 회귀
+로컬 공유 객체
+로컬토크
+로케일
+로코의 바실리스크
+로튼 토마토
+록맨 X
+롤링 릴리스
+롤백
+롬 해킹
+롬베르크 적분
+롯데IT테크
+롯데이노베이트
+롯데정보통신
+뢰브너 상
+루마
+루비
+루비 MRI
+루비 온 레일즈
+루빈 인과 모델
+루스-후르비츠 안정성 판별법
+루시드
+루아
+루치아노 플로리디
+루트킷리빌러
+루프
+루프 불변성
+룬 알고리즘
+룽게-쿠타 방법
+룽게-쿠타-펠베르크 방법
+리걸테크
+리노드
+리눅스
+리눅스 보안 모듈
+리두 로그
+리드 솔로몬 부호
+리듬원
+리버스 프록시
+리뷰어
+리빙 아파트 투게더
+리소스
+리소스 쿼터
+리소스 타이밍
+리슈 알고리즘
+리스코프 치환 원칙
+리스크 기반 테스팅
+리스프
+리액트
+리얼 데스크톱 인프라스트럭처
+리얼디
+리얼메일
+리우빌리안 함수
+리저버 컴퓨팅
+리처드 S. 서턴
+리처드슨 외삽법
+리치 서튼
+리치 인터넷 애플리케이션
+리터럴
+리페인트
+리포팅 마크
+리프트
+리플리컨트
+릴라 제로
+릴리스 관리
+림보
+릿지 회귀
+링구아 리브레
+링귀
+링잉 현상
+링크 빌딩
+링크드 데이터
+마그마
+마누스
+마르코니상
+마르코프 결정 과정
+마르코프 네트워크
+마르코프 모형
+마르코프 블랭킷
+마르코프 연쇄
+마르코프 연쇄 몬테카를로
+마르코프 연쇄 몬테카를로 방법
+마르코프 행렬
+마르코프 확률 과정
+마법의 수 칠, 더하거나 빼기 이
+마빈 민스키
+마산로봇랜드
+마샬링
+마스터
+마스터 정리
+마음
+마음AI
+마음에이아이
+마음의 그림자
+마음의 모듈성
+마이크로 타겟팅
+마이크로데이터 이용센터
+마이크로데이터 통합서비스
+마이크로로봇
+마이크로소프트
+마이크로소프트 365 코파일럿
+마이크로소프트 SQL 서버
+마이크로소프트 SQL 서버의 역사
+마이크로소프트 다이내믹스 365
+마이크로소프트 번역기
+마이크로소프트 베이직
+마이크로소프트 보안 개발 수명 주기
+마이크로소프트 비주얼 프로그래밍 언어
+마이크로소프트 스몰 베이직
+마이크로소프트 애저
+마이크로소프트 액세스
+마이크로소프트 웹매트릭스
+마이크로소프트 윈도우
+마이크로소프트 윈도우의 메시지 루프
+마이크로소프트 음성 API
+마이크로소프트 익스프레션 웹
+마이크로소프트 인증 프로페셔널
+마이크로소프트 커스터머 케어 프레임워크
+마이크로소프트 코그니티브 툴킷
+마이크로소프트 코타나
+마이크로소프트 코파일럿
+마이크로소프트 트랜잭션 서버
+마이크로소프트 팀즈
+마이크로소프트 파워 BI
+마이크로소프트 포어프론트
+마이크로타깃팅
+마이크로포맷
+마이크로폼
+마이크로프레임워크
+마이크로프로세서
+마이크로프린팅
+마이클 A. 잭슨
+마인드맵
+마인즈
+마케팅과 인공지능
+마코브 행렬
+마크 애버니
+마크업
+말레볼제
+말뭉치
+말뭉치언어학
+맘바
+맞춤법 검사기
+매개변수
+매개변인
+매니지드 서비스
+매니패스트
+매니페스트
+매니퓰레이터
+매스 이펙트
+매스매티카
+매스캐드
+매시업
+매직 넘버 7, ±2
+매체 접근 장치
+매켈리스 암호체계
+매트랩
+매트록스
+맥스
+맵리듀스
+맹목적 탐색
+머리전달함수
+머신 러닝
+머신 비전
+머지
+머큐리
+멀티 암드 밴딧
+멀티 코어
+멀티모달 인터페이스
+멀티모달 학습
+멀티미디어 데이터베이스
+멀티사이트 클라우드
+멀티클라우드
+멀티테넌시
+메가존클라우드
+메디세이프 논란
+메멕스
+메모 상자
+메모리 무결성 강제
+메모리 보안
+메사
+메소드 스텁
+메시지 교환
+메시지 인증
+메시지 인증 코드
+메시지 큐
+메이드 위드 코드
+메이플
+메이플스토리 월드
+메인 스레드
+메칼프의 법칙
+메타 AI
+메타 오브젝트 퍼실리티
+메타-학습
+메타넷엑스
+메타데이터
+메타데이터 가져오기 요청 헤더
+메타모델링
+메타문자
+메타스플로이트
+메타스플로이트 프로젝트
+메타크리틱
+메타트론 디스커버리
+메타포스트
+메타폰트
+메탈 기어 솔리드 2: 선즈 오브 리버티
+멘딕스
+멘탈 이미지스
+멜트다운
+멤버
+멤트랜지스터
+멱등 행렬
+멱등성
+명령문
+명령어 인터프리터
+명령줄 인터페이스
+명목척도
+명세 언어
+명세서
+명시 의미 분석
+명함
+모건
+모노크롬 모니터
+모놀리식 시스템
+모델 기반 테스트
+모델 붕괴
+모델 압축
+모델 역추론 공격
+모델 컨텍스트 프로토콜
+모델-뷰-컨트롤러
+모델리카
+모델링 언어
+모뎀
+모듈라
+모듈라-2
+모듈라-3
+모듈러 커넥터
+모듈성
+모라벡의 역설
+모르프OS
+모바일 단말 관리
+모바일 보안
+모바일 비즈니스 인텔리전스
+모바일 애플리케이션 제어
+모바일 우선
+모바일 클라우드 컴퓨팅
+모바일명함
+모바일미
+모바일펜스
+모비게임스
+모빌아이
+모성사망비
+모수 회귀
+모습
+모의 객체
+모조
+모질라 페르소나
+모집단
+모쯔
+모핑
+모형 선택
+몬테 카를로법
+몬테카를로 방법
+몬테카를로 트리 순회
+몬테카를로 트리 탐색
+몰트북
+몽고DB
+몽고메리 곱셈
+몽구스
+무비 컬렉션
+무선 접속 기술
+무손실 압축
+무어 기계
+무요소법
+무인 주차 로봇
+무인소방로봇
+무작위 표본 합의
+무차별 대입 검색
+무차별 대입 공격
+무한 언어 학습 시스템
+무한 임펄스 응답
+묶음판매
+문법 유도
+문서 분류
+문서 지시문
+문서 지향 데이터베이스
+문서 타입 정의
+문자 집합
+문자열
+문제 해결
+문학적 프로그래밍
+문항 반응 이론
+물리 기반 렌더링
+물리 기호 체계
+물리 엔진
+물리 컴퓨팅
+물리정보 신경망
+물리주의
+뮤제로
+뮤즈
+뮤즈 스파크
+뮤지오
+미국 국립생물공학정보센터
+미국 국립지리정보국
+미국 연방거래위원회 공정정보규정
+미국 의회도서관 제어 번호
+미국 인구조사국
+미국국립의학도서관분류법
+미국인구협회
+미끼 효과
+미니 PC
+미니맥스 원리
+미니탭
+미들웨어
+미디버스
+미디어
+미디어 (Media)
+미디어 파사드
+미디어 프로세서
+미디어젠
+미라이 아카리
+미란다
+미러 파드
+미미틱 알고리즘
+미분 엔트로피
+미스트랄 AI
+미유아이
+미지정 동작
+미첼-네트라발리 필터
+미튼스
+믹스인
+민감도와 특이도
+민코프스키 덧셈
+밀도 행렬
+밀도독립화소
+밀레니얼 세대
+밀리 기계
+바두기
+바둑의 미래 서밋
+바라바시-알베르트 모델
+바벨넷
+바빌로니아 법
+바운딩 박스
+바이그램
+바이너리 라지 오브젝트
+바이너리 이미지
+바이두 왕판
+바이두 이
+바이두윈
+바이럿
+바이브 코딩
+바이오로보틱스
+바이오메트리카
+바이오메트릭스
+바인딩
+바코드
+박스-젠킨스 방법
+반높이 너비
+반모수 회귀
+반복 로그 법칙
+반복법
+반복자
+반복적 깊이심화 탐색
+반응형 웹
+반응형 웹 디자인
+반자동식 방공조직
+반짝이 이모지
+반치전폭
+반환 지향형 프로그래밍
+발견적 평가방법
+발라
+발신자 ID
+방사 기저 함수
+방송 엔지리어링
+방송공학
+방울 검출
+방정식 풀이
+방화벽
+배깅
+배낭 문제
+배드락
+배리 보임
+배송 로봇
+배시
+배열
+배열 프로그래밍
+배치 정규화
+백그라운드 인텔리전트 전송 서비스
+백도어
+백링크
+백본망
+백분위수
+백블레이즈
+백색 잡음
+백업
+백업 사이트
+백트랙
+백포팅
+뱀과 사다리
+버그 바운티 프로그램
+버니바 부시
+버디 메모리 할당
+버러바시 얼베르트 라슬로
+버림
+버벅거림
+버보스 모드
+버전 관리
+버추얼 컬럼
+버추얼 프라이빗 클라우드
+버클리 DB
+버퍼
+버퍼 오버리드
+버퍼 오버플로
+버퍼 오버플로 보호
+버펄로 에어스테이션
+버프 스위트
+번스타인 상수
+번역
+번역 메모리
+번호 매기기
+벌러캠프-매시 알고리즘
+벌러캠프-웰치 알고리즘
+범용 고유 식별자
+범용 상품 부호
+범용 프로그래밍 언어
+범위 제한
+범주화
+법무관리시스템
+법치학
+베르누이 분포
+베르트랑 마이어
+베르트랑 메예르
+베른슈타인 다항식
+베리의 역설
+베스핀글로벌
+베슬에이아이
+베어 머신
+베어스토우 방법
+베이비붐
+베이비붐 세대
+베이스 레오노르
+베이스밴드 프로세서
+베이즈 네트워크
+베이즈 정리
+베이즈 추론
+베이즈 탐색 이론
+베이직
+베지에 곡선
+베켄슈타인 경계
+베타 분포
+벡터 기반 그래픽 사용자 인터페이스
+벡터 데이터베이스
+벡터 양자화
+벤포드의 법칙
+벨 라파듈라 모델
+벨 부등식
+벨로나 2
+벨링캣
+벨만-포드 알고리즘
+벨먼-포드 알고리즘
+변경 제어
+변동 계수
+변량 조절
+변분 오토인코더
+변분 원리
+변수
+변환 부호화
+변환기
+별 찍기
+병렬 데이터베이스
+병렬 알고리즘
+병렬 프로그래밍 모델
+병렬말뭉치
+병원정보시스템
+보간법
+보건분야의 인공지능
+보고 지시어
+보드 선도
+보로노이 다이어그램
+보안 강화 리눅스
+보안 계정 관리자
+보안 관리 서비스
+보안 버그
+보안 서비스
+보안 서술자
+보안 소켓 계층
+보안 소프트웨어
+보안 식별자
+보안 연관
+보안 정보와 이벤트 관리
+보안 중심 운영체제
+보안 질문
+보안 취약점
+보안 컨텍스트
+보안 토큰
+보안 통신
+보안 해커
+보이스 커드 정규형
+보이스-코드 정규화
+보이스버스 NFT 표절 논란
+보조과학기술
+보편 근사 정리
+보행자 검출
+보험계리학
+보호나라
+보호프로파일
+보흐너의 정리
+복구 지향 컴퓨팅
+복사 방지
+복셀
+복제 불가능성 정리
+복합 연산
+복호화
+본 셸
+본페로니 교정
+볼륨
+볼륨 레이 캐스팅
+볼륨 플러그인
+볼츠만 머신
+봄브
+봇넷
+부대역 부호화
+부모 객체
+부서
+부스팅
+부인봉쇄
+부작용
+부적절한 입력 검증
+부정 응답
+부정 허위 가정
+부채꼴 모델
+부트스트랩
+부하 테스트
+부하분산
+부호
+부호 이론
+부호어
+부호율
+부호율-변형 이론
+부활절 날짜
+북마클릿
+북코퍼스
+분노 포르노
+분산
+분산 개발
+분산 데이터베이스
+분산 버전 관리
+분산 서비스 거부
+분산 알고리즘
+분산 운영체제
+분산 컴포넌트 오브젝트 모델
+분산 컴퓨팅
+분산 파일 시스템
+분산 해시 테이블
+분자 채굴
+분자동역학
+분포 의미론
+분할 정복 알고리즘
+불리 알고리즘
+불리언
+불쾌한 골짜기
+뷰 모델
+뷰포트
+브라-켓 표기법
+브라우저
+브라우저 보안
+브라우저 익스플로잇
+브라우징 맥락
+브라이트 컴퓨팅
+브래드포드 법칙
+브래킷츠
+브랜드 페이지
+브랜치
+브레이니악
+브레인퍽
+브레젠험 직선 알고리즘
+브렌던 아이크
+브루스 토냐치니
+브루스터 카일
+브루스터 케일
+브룩스의 법칙
+브릭스 앤드 클릭스
+블랙리스트
+블랙박스 검사
+블랙보드 시스템
+블랙홀
+블레이드 러너 2099
+블레이저
+블록
+블록 레벨 콘텐츠
+블록 암호 운용 방식
+블록 중첩 루프
+블록리
+블록체인
+블록헤드
+블루믹스
+블루스나핑
+블루스팟
+블루피시
+블루햇
+블룸 필터
+블리츠 베이직
+블링스
+비결정론적 유한 상태 기계
+비공식 패치
+비기능 요건
+비대칭도
+비동기
+비동기 모듈 정의
+비동기 입출력
+비동기 전송 방식
+비디오 오버레이
+비디오텍스
+비디오포엣
+비딩톰
+비매개
+비모수 통계
+비모수 통계학
+비모수 회귀
+비무장지대
+비밀 공유
+비밀구절
+비밀번호
+비밀번호 강도
+비밀번호 없는 인증
+비브코드
+비서
+비서 문제
+비선형 다차원 신호 처리
+비선형 회귀
+비식별화
+비연결형 통신
+비월 주사 방식
+비율 단조 스케줄링
+비음수 행렬 분해
+비인간
+비전
+비전 변환기
+비전 언어 모델
+비전 처리 장치
+비전 트랜스포머
+비전퀘스트
+비절차어
+비정형 데이터
+비주얼 베이직
+비주얼 베이직 닷넷
+비주얼 베이직 닷넷과 C 샤프의 비교
+비주얼 베이직 포 애플리케이션
+비주얼 폭스프로
+비즈니스 로직
+비즈니스 애널리틱스
+비즈니스 인텔리전스
+비즈니스 프로세스 모델 및 표기법
+비즈니스 프로세스 자동화
+비지도 학습
+비침투적 자바스크립트
+비터비 알고리즘
+비트나미
+비트코인 골드
+비트토렌트
+비판적 사고
+비펀지
+비표준
+비화기
+비화폰
+빅 데이터
+빅 데이터 윤리
+빅데이터 분석가
+빅도그
+빅스비
+빅터 바실리
+빅테이블
+빈 요소
+빈도분석
+빈약한 도메인 모델
+빌덴슈타인 색인 번호
+빔 탐색
+빗버킷
+빛자루
+빠른 선택
+뻐꾸기 알
+사건 기반 프로그래밍
+사고범위 문제
+사례기반추론
+사망원인
+사물지능
+사물지능 사고력
+사분위수
+사설 서버
+사소한 자비
+사소한 칼
+사악한 가정부 공격
+사업 성과 관리
+사용성
+사용성 테스트
+사용자 경험
+사용자 경험 디자인
+사용자 데이터그램 프로토콜
+사용자 에이전트
+사용자 인터페이스 권한 격리
+사용자 정의 함수
+사용자 중심 디자인
+사용자 중심 설계
+사용자 프로필
+사운덱스
+사운드하운드
+사원수
+사유 펌웨어
+사이냅소프트
+사이먼 윌리슨
+사이버 전쟁
+사이버 전쟁과 중국
+사이버 회복탄력성
+사이버방위센터
+사이버스톰 훈련
+사이버스파이
+사이버신 계획
+사이버작전사령부
+사이버콘텐츠 중개상
+사이보그
+사이트
+사이트 간 스크립팅
+사이트 간 요청 위조
+사이트 맵
+사이트 신뢰성 공학
+사이트가드
+사이퍼
+사이퍼 질의어
+사이퍼펑크
+사전 공격
+사전 요청
+사전 측정
+사전검색
+사진 모자이크
+사진 필름
+사회공학
+사회적 딜레마
+사회적 소프트웨어 공학
+사회조사분석사
+사후 편집
+산업 인공지능
+산포도
+삼각측량
+삼성 녹스
+삼성SDS
+삼중항 손실
+삼항 탐색 트리
+상관 벡터 머신
+상관 분석
+상관관계와 인과관계
+상관은 인과를 나타내지 않는다
+상속
+상수
+상식 지식
+상식적 추론
+상용 소프트웨어
+상위 호환성
+상태 공간 탐색
+상태 기계
+상태 기반 방화벽
+상태분석형 방화벽
+상트페테르부르크의 역설
+상향식 설계와 하향식 설계
+상호 배제
+상호정보
+새몬 매핑
+색 관리
+색상환
+샌드박스
+샘플 앤 홀드
+샘플링
+샘플링 레이트
+샘플링 속도
+생명표
+생물통계학
+생산 관리 시스템
+생성 모델
+생성 예술
+생성자
+생성적 적대 신경망
+생성형 AI 엔진 최적화
+생성형 AI 포르노그래피
+생성형 엔진 최적화
+생성형 인공지능
+생식능력
+생식력
+생존분석
+생체인증
+생체인증 여권
+생활수준연구
+샤논-하틀리 정리
+샤드
+샤오미 하이퍼OS
+샤오이
+샴 신경망
+섀넌
+섀넌-하틀리 정리
+섀넌의 소스 코딩 정리
+섀도 IT
+섀도 라이브러리
+섀도삭스
+서드 파티 개발자
+서로소 집합 자료 구조
+서류 학살
+서명 (signature)
+서버 기반 컴퓨팅
+서버 사이드 요청 위조
+서버 에뮬레이터
+서버 전송 이벤트
+서버 타이밍
+서버리스 컴퓨팅
+서브픽셀 렌더링
+서비스
+서비스 거부
+서비스 거부 공격
+서비스 데이터 객체
+서비스 지향 아키텍처
+서비스 지향 인프라스트럭처
+서비스 카탈로그
+서비스나우
+서비스로서의 보안
+서비스로서의 블록체인
+서비스로서의 함수
+서비스어카운트
+서비스형
+서비스형 게임
+서비스형 네트워크
+서비스형 데이터
+서비스형 모빌리티
+서비스형 백엔드
+서비스형 뱅킹
+서비스형 보안
+서비스형 블록체인
+서비스형 소프트웨어
+서비스형 인프라스트럭처
+서비스형 플랫폼
+서비스형 함수
+서열 정렬
+서울로봇고등학교
+서포트 벡터 머신
+선반입
+선언형 프로그래밍 언어
+선입 선처리 스케줄링
+선입 선출
+선점
+선택 알고리즘
+선행자
+선형 계획법
+선형 근사
+선형 되먹임 시프트 레지스터
+선형 분류
+선형 시불변 시스템
+선형 예측 부호화
+선형 최소제곱법
+선형 판별 분석
+선형 회귀
+선형대수학
+선형화가능성
+설계상 안전
+설계행렬
+설명 논리
+설명가능 인공지능
+설명적 간극
+설문
+설정보다 관습
+섬네일
+성과 지표
+성긴 행렬
+성능 공학
+성당과 시장
+성적 지향 인구 통계
+세계 인구
+세계 통계의 날
+세계모델
+세계의 인터넷 사용
+세대 및 성별 실태조사
+세브란스: 단절
+세션
+세션 구분 컨트롤러
+세션 하이재킹
+세이프넷
+세일즈포스닷컴
+센서 배열
+센서스 변환
+센스타임
+셀 셰이딩
+셀레늄
+셀렉터
+셀프
+셀프 플레이
+셈러시
+셧다운
+셰어
+셰어포인트
+셰이딩 언어
+셰익스피어
+셰페의 방법
+셸쇼크
+셸코드
+소거론
+소니 픽처스 엔터테인먼트 해킹 사건
+소라
+소리 압축
+소리바다
+소버린 AI
+소셜 네트워크 서비스에 관한 문제
+소셜 네트워크 서비스의 개인정보 보호 문제
+소셜 네트워킹 서비스의 개인정보 보호 문제
+소셜 마케팅 인텔리전스
+소셜 미디어 마이닝
+소셜웨어
+소수 계승 걸음
+소수 예시 기반 학습
+소수계승걸음
+소스 라인 오브 코드
+소어
+소인수 알고리즘
+소인수분해
+소자 프로그래머
+소조
+소프트 로보틱스
+소프트 카피
+소프트레이어
+소프트맥스 함수
+소프트웨어
+소프트웨어 개발
+소프트웨어 개발 방법론
+소프트웨어 개발 보안
+소프트웨어 개발 생명 주기
+소프트웨어 개발 수명 주기
+소프트웨어 개발 키트
+소프트웨어 개발 프로세스
+소프트웨어 개발자
+소프트웨어 검사와 타당성 검증
+소프트웨어 고고학
+소프트웨어 공학
+소프트웨어 공학 지식 체계
+소프트웨어 공학자
+소프트웨어 구성 관리
+소프트웨어 구조
+소프트웨어 구축
+소프트웨어 기능
+소프트웨어 디자인 패턴
+소프트웨어 메트릭
+소프트웨어 배포
+소프트웨어 버전 작성
+소프트웨어 부하 테스트
+소프트웨어 블롯
+소프트웨어 비호환성
+소프트웨어 빌드
+소프트웨어 산업
+소프트웨어 설계
+소프트웨어 성능 테스트
+소프트웨어 수동 테스팅
+소프트웨어 아키텍트
+소프트웨어 에이전트
+소프트웨어 엔진
+소프트웨어 요구 명세
+소프트웨어 요구사항
+소프트웨어 위기
+소프트웨어 유지보수
+소프트웨어 유지보수자
+소프트웨어 이식성
+소프트웨어 인텔리전스
+소프트웨어 저장소
+소프트웨어 전개
+소프트웨어 정의 경계
+소프트웨어 정의 네트워킹
+소프트웨어 정의 데이터 센터
+소프트웨어 정의 스토리지
+소프트웨어 컴포넌트
+소프트웨어 테스트
+소프트웨어 토큰
+소프트웨어 트랜잭셔널 메모리
+소프트웨어 팩토리
+소프트웨어 품질
+소프트웨어 품질 관리
+소프트웨어 품질보증
+소프트웨어 프레임워크
+소프트웨어 프로토타이핑
+소프트웨어의 종류
+소형 언어 모델
+속성 기반 접근 제어
+손실 압축
+손실 함수
+솔루션 스택
+솔루션 아키텍처
+솔리드 프로젝트
+솔리디티
+솔트
+송건후
+쇄도 효과
+쇼어 알고리즘
+쇼핑 카트 소프트웨어 비교
+수 블랙
+수노
+수노 AI
+수단 목표 분석
+수도권 지진관측망
+수동 시스템
+수량
+수리 금융
+수리금융학
+수리통계학
+수명 연장
+수반
+수신자 조작 특성
+수용영역
+수치 미분
+수치 전자기학
+수치적분
+수치해석학
+수태인자
+수학 모델
+수학에서의 인공지능
+수학적 모델
+수학적 최적화
+수학적 형태학
+수호신
+수확 후 해독
+순방향 신경망
+순서도
+순서통계량
+순위 학습
+순음
+순차 검색
+순차 검색 알고리즘
+순차 기능 차트
+순차적 최소 최적화
+순환 신경망
+순환 인공 신경망
+순환 참조
+술어
+쉐도우 트리
+쉽볼렛
+슈투트가르트 과학 일러스트레이터 데이터베이스 1450–1950
+슈트라센 알고리즘
+슈퍼 사용자
+슈퍼 키
+슈퍼바이저 모드 접근 방지
+슈퍼유저
+슈퍼콜라이더
+스냅 위치
+스냅!
+스냅샷 격리
+스네이크 케이스
+스노우플레이크
+스노트
+스니커넷
+스레드
+스레드 안전
+스로틀
+스마트 금고
+스마트 스피커
+스마트 오브젝트
+스마트 오피스
+스마트글래스
+스마트보안관
+스마트폰
+스모크 테스트
+스몰토크
+스미스 요원
+스위시맥스
+스위치드 멀티 메가비트 데이터 서비스
+스위프트
+스위프트폭스
+스카다
+스카이넷
+스카이스크래퍼페이지
+스칼라
+스칼로그램
+스캔라인
+스케일 AI
+스케줄
+스케줄링
+스케치
+스케치패드
+스켈레톤
+스코프
+스퀘어스페이스
+스퀵
+스크래치
+스크래치 주니어
+스크럼
+스크롤 컨테이너
+스크롤링
+스크린 리더
+스크립트 이론
+스크립트 지원 요소
+스크립트 키디
+스킴
+스타딕트
+스타일 시트
+스타일 출처
+스타일시트
+스태빌리티 AI
+스태킹 컨텍스트
+스태틱 파드
+스택
+스택 버퍼 오버플로
+스택 지향 프로그래밍
+스택 추적
+스탯카운터
+스턱스넷
+스텀블어폰
+스테레오스코피
+스테이블 디퓨전
+스테이지프라이트
+스테이트풀셋
+스테핑
+스테핑 레벨
+스텐실 버퍼
+스텔스 팰컨
+스텝 응답
+스텝펀
+스토리지 클래스
+스톡피시
+스튜디오 페르소
+스트레스 테스트
+스트리밍
+스티브 허프먼
+스파게티 코드
+스파이봇-서치&디스트로이
+스파이웨어
+스파이킹 신경망
+스팟이미지
+스패너
+스펙터
+스펙트럴 플럭스
+스펙트럼 누설
+스펙트럼 밀도
+스펙트럼 애널라이저
+스펙트럼 효율
+스펙트로그램
+스푸핑
+스푼
+스푼 라디오
+스프라이트
+스프레딩 액티베이션
+스프롤 현상
+스프링 프레임워크
+스플라이스
+스플렁크
+스플린터넷
+스피드 인덱스
+스피릿
+스피릿 로버
+스피어만 상관 계수
+스피어먼 상관 계수
+슬라이딩 윈도
+슬래시닷 효과
+습구 온도
+습수
+승인자
+시각 기술자
+시각 컴퓨팅
+시각적 뷰포트
+시각적 프로그래밍 언어
+시각화
+시간 기반 일회용 비밀번호
+시간 영역
+시간 의존 밀도 범함수 이론
+시간상의 보안사각
+시간차 학습
+시그모이드 함수
+시나트라
+시도-응답 인증
+시리
+시만텍 오퍼레이션 레디니스 툴
+시맨틱 네트워크
+시맨틱 스칼라
+시맨틱 웹
+시뮬링크
+시민 기술
+시밀러웹
+시소러스
+시스코 전문 자격
+시스템 검사
+시스템 관리
+시스템 관리자
+시스템 모델링
+시스템 무결성 보호
+시스템 서비스 서술자 테이블
+시스템 설계
+시스템 시간
+시스템 아키텍처
+시스템 온 칩
+시스템 요구사항
+시스템 이관
+시스템 인 패키지
+시스템 콘솔
+시스템 프로그래밍 언어
+시스트란
+시아노젠모드
+시어도어 초
+시차 스크롤링
+시차 장벽
+시큐리티 컨텍스트
+시크릿
+시트릭스 버추얼 앱스
+시험 성숙도 모델
+식별자
+신 클라이언트
+신경 경로
+신경 방사장
+신경 스타일 전이
+신경-기호 AI
+신경가소성
+신경로봇공학
+신경망
+신경망 교환 포맷
+신경망 구조 탐색
+신경망 기계 번역
+신경망 스케일링 법칙
+신경망 처리 장치
+신경장
+신경형태 컴퓨팅
+신념 수정
+신뢰 가능 AI
+신뢰 구간
+신뢰 범위
+신뢰 실행 환경
+신뢰 컴퓨팅
+신뢰 플랫폼 모듈
+신뢰성
+신뢰성 공학
+신뢰전파
+신상 털기
+신원 관리
+신원 기반 암호
+신장 트리 프로토콜
+신한은행 NBS시스템
+신호
+신호 처리
+실버스트라이프
+실버스트라이프 CMS
+실시간 스트리밍 프로토콜
+실시간 컴퓨터 그래픽스
+실제 사용자 모니터링
+실행 가능 공간 보호
+실험계획법
+실험실 정보 관리 시스템
+실험적 소프트웨어 공학
+심리측정학
+심리통계학
+심신 관계
+심신 문제
+심층 강화 학습
+심층 신뢰 신경망
+심층 패킷 검사
+심판형 LLM
+심포니
+싱글 칩 클라우드 컴퓨터
+싱크 필터
+싱크함수
+싸이랩
+쌍선형 변환
+썬 마이크로시스템즈
+쓰레기
+쓰레기통 모형
+아그보그블로시
+아기 걸음 거인 걸음
+아기걸음 거인걸음
+아날로그 신호 처리
+아날로그-디지털 변환회로
+아다마르 변환
+아다부스트
+아동사망률
+아두이노
+아두이노 라이브러리
+아두파일럿
+아리아
+아마도 대략적으로 올바른 학습
+아마존 S3
+아마존 S3 글래셔
+아마존 관계형 데이터베이스 서비스
+아마존 다이나모DB
+아마존 드라이브
+아마존 레드시프트
+아마존 머신 이미지
+아마존 베드록
+아마존 세이지메이커
+아마존 심플 큐 서비스
+아마존 심플DB
+아마존 알렉사
+아마존 오로라
+아마존 웹 서비스
+아마존 일래스틱 블록 스토어
+아마존 일래스틱 컴퓨트 클라우드
+아마존 일래스틱 파일 시스템
+아마존 파이어 TV
+아마존 표준 식별 번호
+아메카
+아무것도 숨기지 않은 숫자
+아미가OS
+아비라
+아시아 테크 서밋
+아울네스트
+아웃 오브 더 박스
+아웃 오브 박스 익스피리언스
+아이덴티티 공급자
+아이덴티티 컬럼
+아이리스 플라워 데이터 세트
+아이맥스
+아이오
+아이오닉
+아이웹
+아이지키미
+아이콘
+아이클라우드
+아이티센클로잇
+아젠스그래프
+아찔한 질문
+아첨
+아카마이 테크놀로지스
+아카이벌 디스크
+아카이벌 리소스 키
+아카이케 히로쓰구
+아큐웨더
+아키네이터
+아키텍처 기술 언어
+아톰
+아파넷
+아파치 HBase
+아파치 MXNet
+아파치 ORC
+아파치 UIMA
+아파치 그루비
+아파치 너치
+아파치 드루이드
+아파치 드릴
+아파치 머하웃
+아파치 메소스
+아파치 브루클린
+아파치 빔
+아파치 솔
+아파치 스쿱
+아파치 스톰
+아파치 스트럿츠
+아파치 스파크
+아파치 슬링
+아파치 아큐뮬로
+아파치 오픈NLP
+아파치 우지
+아파치 위켓
+아파치 임팔라
+아파치 주키퍼
+아파치 카본데이터
+아파치 카산드라
+아파치 코쿤
+아파치 쿠두
+아파치 클라우드스택
+아파치 클릭
+아파치 태피스트리
+아파치 파케이
+아파치 플렉스
+아파치 피그
+아파치 피노
+아파치 하둡
+아파치 하이브
+아포다이제이션
+아희
+안나 카레니나 법칙
+안드로이드
+안드로이드 11
+안드로이드 12
+안드로이드 개발자 챌린지
+안드로이드 씽스
+안드로이드 오토
+안랩클라우드메이트
+안전 필수 시스템
+안전성 증명
+안전한 입출력 처리
+안전함
+안티 키로거
+안티섹 작전
+안티패턴
+알고리즘
+알고리즘 난수열
+알고리즘 설계
+알고리즘 작곡
+알고리즘 정보 이론
+알고리즘 트레이딩
+알고리즘 편향
+알고리즘 확률
+알고리즘 효율
+알고리즘 효율성
+알고리즘제
+알골
+알골 60
+알렉스넷
+알리바바 클라우드
+알맵
+알버트 라즐로 바라바시
+알약
+알카미스
+알테어 베이직
+알티베이스
+알파
+알파 매핑
+알파-베타 가지치기
+알파고
+알파고 대 이세돌
+알파고 대 커제
+알파고 마스터
+알파고 제로
+알파제로
+알파폴드
+암구호
+암스트롱의 공리
+암키스트 셸
+암페어 컴퓨팅
+암호
+암호 전쟁
+암호 해독
+암호문
+암호문 비구별성
+암호바이러스학
+암호학
+암호학적으로 안전한 유사난수 생성기
+암호화
+암호화 기법
+암호화 스위트
+암호화 해시 함수
+압축 감지
+압축 소프트웨어의 비교
+앙상블 학습법
+애그리게이션 레이어
+애너글리프
+애널리틱스
+애니매트로닉스
+애니메이션 데이터베이스
+애드온
+애드혹 망
+애스크닷컴
+애플 Safari
+애플 인텔리전스
+애플리케이션
+애플리케이션 도메인
+애플리케이션 방화벽
+애플리케이션 보안
+애플리케이션 서버
+애플리케이션 컨텍스트
+애플소프트 베이직
+애플스크립트
+액세스 데이터베이스 엔진
+액션스크립트
+액시엄
+액정 셔터 안경
+액추에이터
+액티브 러닝
+앤드루 응
+앤디 허츠펠드
+앤섬 의료 데이터 유출 사건
+앤스컴 콰르텟
+앤트로픽-미국 국방부 분쟁
+앨리스
+앨리스 AI
+앱 인벤터
+앱 컨테이너
+앱북
+앱이미지
+앱체크
+앳킨슨 지수
+앵귤러
+앵커 텍스트
+야후 데이터 유출 사건
+야후! 바벨피쉬
+약한 인공 지능
+약한 측정
+얀 라이케
+얀 르쾽
+얀 르쿤
+얀덱스 디스크
+얀덱스 번역
+얀덱스 지도
+얀덱스GPT
+얇게하기
+양방향 탐색
+양방향반사도분포함수
+양안시
+양자 게이트
+양자 기계 학습
+양자 논리 게이트
+양자 담금질
+양자 레이더
+양자 레지스터
+양자 메모리
+양자 복제
+양자 삭제 불가능성 정리
+양자 상태 비소거 정리
+양자 순간 이동
+양자 알고리즘
+양자 암호
+양자 얽힘
+양자 컴퓨터
+양자 키 분배
+양자 푸리에 변환
+양자 회로
+양자 후 암호
+양자정보과학
+양자화
+양적 형질
+얕은 복사
+어간 추출
+어노테이션
+어니봇
+어도비 XD
+어도비 드림위버
+어도비 뮤즈
+어도비 애니메이트
+어도비 에지
+어도비 에지 애니메이트
+어도비 익스피리언스 클라우드
+어도비 콜드퓨전
+어도비 파이어플라이
+어도비 프리루드
+어도비 플래시 프로페셔널
+어도비 플렉스
+어드미션 컨트롤러
+어린이 온라인 개인정보 보호법
+어마야
+어밴던웨어
+어베스트
+어베스트 안티바이러스
+어베스트!
+어셈블리어
+어텐션
+어플몬스터
+어피니티
+어휘 마크업 틀
+언더샘플링
+언더스탠드
+언어 기술
+언어 모델
+언어 식별자
+언어 인식
+언어 자원
+언어 코드
+언어공학
+언캐니 밸리
+얼굴 검출
+얼굴 인식 시스템
+얼라인먼트 리서치 센터
+얼랭
+얼터드 카본
+얽힘 스펙트럼
+엄격 모드
+업로드
+업무 분리
+업샘플링
+업스테이지
+에니그마의 해독
+에듀롬
+에듀테크
+에드박의 보고서 최초 초안
+에드워드 요던
+에드윈 자비스
+에릭 호비츠
+에버 로봇
+에버노트
+에스터블라이프
+에스피소프트
+에어갭
+에어라이너
+에어테이블
+에이다
+에이다부스트
+에이닷
+에이스
+에이전트 기반 모델링
+에이전트 오피니언
+에이전트 하네스
+에이전틱 AI
+에일리어싱
+에지 컴퓨팅
+에츠허르 데이크스트라
+에코 상태 네트워크
+에킨 도우스 주북
+에펠
+에피텍
+엑소브레인
+엑스블 숄더
+엑스키퍼
+엑스트라넷
+엑스트라토렌트
+엔드게임 테이블베이스
+엔드포인트
+엔드포인트 DLP
+엔드포인트 위협탐지 및 대응
+엔드포인트슬라이스
+엔디언
+엔비디아
+엔비디아 3D 비전
+엔비디아 DGX
+엔비디아 드라이브
+엔진
+엔터티
+엔터프라이즈 서비스 버스
+엔터프라이즈 통합 패턴
+엔터프라이즈 포털
+엔트로피율
+엔트로피적 중력
+엔트리
+엔티티 헤더
+엔피
+엘가말 암호
+엠포리스
+엣지 컴퓨팅
+여명의 자리야
+여성주의 HCI
+여유도
+역공학
+역사인구학
+역색인
+역전파
+역정규화
+역직렬화
+역할 기반 접근 제어
+역합성곱
+연결 리스트
+연결 지향 통신
+연결 풀
+연결주의
+연관 규칙 학습
+연관 규칙 학습법
+연산
+연속간행물 상세 표준 식별코드
+연속적인 미디어
+연어
+연접 오류 정정 코드
+연합 학습
+열 설계 전력
+열거형
+열기
+영 분포
+영구 식별자
+영상
+영상 압축
+영상 정합
+영상 편집
+영상 편집 소프트웨어
+영속 자료 구조
+영숫자
+영역
+영적 기계의 시대
+영지식 증명
+영차 홀드
+영화 필름
+예방가능 사인
+예약어
+예외
+예외 처리 문법
+예측 구문 분석
+예측 모델링
+예측 문자
+예측 분석
+예측구간
+예측자-수정자 방법
+옐프
+오가스
+오디오 시간 늘리기 및 피치 스케일링
+오디오 신호 처리
+오라클 엑사데이터
+오라클 자격증 프로그램
+오라클 클라우드
+오라클_자격증_프로그램
+오래 걸리는 작업
+오렌지
+오류 검출 정정
+오류 정정 부호
+오버샘플링
+오버슈트
+오베론
+오브젝트
+오브젝트 파스칼
+오브젝티브-C
+오비
+오비고
+오션베이스
+오스트레일리아 여성 등록부
+오일러 방법
+오즈
+오차
+오차 함수
+오차막대
+오차역전파법
+오차와 잔차
+오캄 학습
+오컴 학습
+오토노미
+오토셋
+오토스케일링
+오토스테레오스코피
+오토인코더
+오페라 브라우저
+오폰
+오프사이드 룰
+오픈 데이터 센터 연합
+오픈 데이터베이스 라이선스
+오픈 마인드 커먼 센스
+오픈 소스
+오픈 소스 모델
+오픈 소스 소프트웨어 보안
+오픈 소스 인공지능
+오픈 소스 형상 관리 소프트웨어 비교
+오픈 소스와 클로즈드 소스 소프트웨어 간 비교
+오픈 시스템
+오픈 아키텍처
+오픈 웨이트
+오픈 캐시 가속 소프트웨어
+오픈 컴퓨트 프로젝트
+오픈 허브
+오픈AI
+오픈AI o1
+오픈AI o3
+오픈AI o4-mini
+오픈AI 코덱스
+오픈AI 파이브
+오픈AI의 제품 및 응용 프로그램
+오픈VPN
+오픈냅
+오픈네불라
+오픈네뷸라
+오픈데이라이트 프로젝트
+오픈라즐로
+오픈스택
+오픈스트리트맵
+오픈시프트
+오픈아이디
+오픈프레임
+오피스 길잡이
+오피스 제품군 비교
+옥시즌
+옥타
+온라인 기계 학습
+온라인 머신러닝
+온라인 분석 처리
+온라인 셰이밍
+온라인 아이덴티티
+온라인 저작권 침해 금지 법안
+온라인 저지
+온라인 트랜잭션 처리
+온라인 퍼블릭 액세스 카탈로그
+온라인 평판
+온비드
+온셰이프
+온톨로지
+온톨로지 학습
+온프레미스
+온프레미시즈 소프트웨어
+올 미디어 네트워크
+올림과 버림
+옴니-패스
+옴니채널 리테일 전략
+옵서버 패턴
+옵저버 패턴
+옵트인
+옵티마이즈드 링크 스테이트 루팅 프로토콜
+와바의 문제
+와이드 컬럼 스토어
+와이어프레임 모델
+와이어호그
+와이파이 보호 접속
+와일드카드 문자
+와츠 험프리
+완전 무선 설계
+왓슨
+왓츠 험프리
+왕복 시간
+외래 키
+외판원 문제
+왼쪽에서 오른쪽으로 읽는 특성
+요구공학
+요구사항
+요구사항 분석
+요다 조건
+요먼
+요소
+요청 헤더
+요한 페터 쥐스밀히
+용어집
+우리의 마지막 발명품
+우분투 원
+우분투 터치
+우선순위 큐
+우수AI
+우아한 성능 저하
+우융후이
+우주 기반 데이터 센터
+우쿵AI
+운영 체제 비교
+운영체제
+운영체제 수준 가상화
+운영체제 시장 점유율
+운영체제의 역사
+운용과학
+운전자 졸음 감지
+운항정보 교신시스템
+울트라램
+울트론
+울프럼 리서치
+울프럼 알파
+울프럼 언어
+워 드라이빙
+워드 임베딩
+워드넷
+워드베이직
+워드프로세서
+워드프로세서 자격시험
+워크데이
+워크로드
+워크어라운드
+워터마크
+워프레임
+원 타임 패드
+원격 근무
+원격 데이터 오브젝트
+원드라이브
+원시 값
+원자 조작
+원자력 로봇
+원자성
+원자적 커밋
+원환면 오류 정정 부호
+월드 와이드 웹 컨소시엄
+웨어러블 테크놀로지
+웨이브넷
+웨이블릿
+웨이블릿 변환
+웨이즈
+웨카
+웹 3.0
+웹 API
+웹 SQL 데이터베이스
+웹 개발
+웹 개발 도구
+웹 개발자
+웹 검색 엔진
+웹 공학
+웹 마이닝
+웹 배너
+웹 버그
+웹 분산 저작 및 버전 관리
+웹 서버
+웹 성능
+웹 스토리지
+웹 신디케이션
+웹 애널리틱스
+웹 애플리케이션
+웹 애플리케이션 서버
+웹 애플리케이션 프레임워크
+웹 어셈블리
+웹 오브 트러스트
+웹 온톨로지 언어
+웹 워커
+웹 인텔리전스
+웹 접근성
+웹 접근성 이니셔티브
+웹 캐시
+웹 컨테이너
+웹 컴포넌트
+웹 콘텐츠 접근성 가이드라인
+웹 크롤러
+웹 크립토그래피 API
+웹 테스트
+웹 프레임워크
+웹 프로그래머
+웹 프로그래밍 언어
+웹 피드
+웹 해킹
+웹3D
+웹GPU
+웹마스터
+웹방화벽
+웹사이트 빌더
+웹소켓
+웹스피어 애플리케이션 서버 커뮤니티 에디션
+웹어셈블리
+웹토렌트
+웹훅
+웻웨어
+웻웨어 컴퓨터
+위너-힌친 정리
+위니
+위블리
+위상 보코더
+위상 상관
+위상 수학적 딥 러닝
+위상 양자 컴퓨터
+위상 여유
+위상 인자
+위상정렬
+위스퍼
+위신호 제거 필터
+위아더
+위조품
+위조품의 거래 방지에 관한 협정
+위치 측정 및 동시 지도화
+위키
+위키 소프트웨어
+위키데이터
+위키매피아
+위키미디어 프로젝트의 인공지능
+위키스캐너
+위해 분석
+위험 분석
+위험중립측도
+윈도 7의 새로운 기능
+윈도 8의 새로운 기능
+윈도 애저
+윈도 폰
+윈도 폰 8.1
+윈도우 10의 새로운 기능
+윈도우 7의 새로운 기능
+윈도우 7의 제거된 기능
+윈도우 8의 새로운 기능
+윈도우 XP의 제거된 기능
+윈도우 라이브 메시
+윈도우 비스타 네트워크 기술
+윈도우 비스타의 제거된 기능
+윈도우 폰
+윈도우 폰 8.1
+윌리엄 F. 프리드먼
+윌리의 초콜릿 체험
+유 온리 룩 원스
+유니버설 해싱
+유니캐스트
+유니코드
+유니티 C샤프
+유니프롯
+유닉스 시간
+유닛 테스트
+유다시티
+유도, 항법 및 제어
+유럽 연합 일반 데이터 보호 규칙
+유럽 컴퓨터 제조업 협회
+유레다스
+유리근 정리
+유명한 웹사이트에 사용되는 프로그래밍 언어들
+유무선융합
+유무인 복합전투체계
+유비쿼터스
+유비쿼터스 간호
+유비쿼터스 컴퓨팅
+유비쿼터스 컴퓨팅 지능 공간
+유비키
+유사도 검색
+유사도 측정
+유사도 학습
+유선 동등 프라이버시
+유스 케이스
+유스 케이스 다이어그램
+유의 수준
+유의 확률
+유익한 AI에 관한 아실로마 회의
+유일 키
+유저 스토리
+유전 알고리즘
+유전 프로그래밍
+유즈넷
+유진 구스트만
+유클리드 호제법
+유튜브
+유틸리티 컴퓨팅
+유포리아
+유한 상태 기계
+유한 임펄스 응답
+유한차분
+유한체적법
+유헬스
+유효 연결 타입
+유효 최상위 도메인
+유효성 검사기
+유효숫자
+윤곽선 검출
+윤리적 공인 해커
+율리시스
+율리우스일
+은닉 마르코프 모델
+은닉 마르코프 모형
+은빛 총알은 없다
+은행 종합전산시스템
+음성 검출
+음성 되먹임
+음성 인식
+음성 처리
+음성 피드백
+음성 합성
+음수 미포함 행렬 분해
+음악과 인공지능
+응답 엔진 최적화
+응답 집합 프로그래밍
+응답 헤더
+응용인구학
+응용통계학
+응집도
+의도성
+의료 정보 시스템
+의미 분석
+의미론
+의미역 결정
+의사 코드
+의사결정 규범 모델
+의사결정 지원 시스템
+의사소통의 수학적 이론
+의사코드
+의사회선
+의식의 신경 상관물
+의식의 어려운 문제
+의존성 주입
+이노그리드
+이니텍
+이더넷 오버 USB
+이더넷 전원 장치
+이더넷 허브
+이동 로봇
+이동키 네트워크
+이드리스
+이력 데이터베이스
+이루다
+이름
+이마젠
+이매진
+이메일 암호화
+이미지
+이미지 분석
+이미지 스캐너
+이미지 압축
+이미지 해상도
+이미지넷
+이바르 야콥손
+이바르 야콥슨
+이벤트
+이벤트 기반 아키텍처
+이벤트 루프
+이분법
+이블 트윈
+이산 로그
+이산 신호
+이산 웨이블릿 변환
+이산 코사인 변환
+이산 푸리에 변환
+이산시간 푸리에 변환
+이산화
+이상 탐지
+이순탁
+이스터 에그
+이시카와 다이어그램
+이식성
+이원분산분석
+이중 차분
+이중 해시
+이중누가우량분석
+이중선형 필터링
+이지넘버
+이진 검색
+이진 검색 알고리즘
+이진 골레 부호
+이진 최대공약수 알고리즘
+이진 코드
+이차변동성
+이촌향도
+이탈리안 브레인롯
+이터널블루
+이터니티
+이토 적분
+이항 분류
+이홍락
+익스텐션
+익스트림 러닝 머신
+익스프레스VPN
+인간 인터페이스 장치
+인간 중심 컴퓨팅
+인간 피드백을 통한 강화 학습
+인간-기계 시스템
+인간-컴퓨터 상호 작용
+인간공학
+인간과 로봇 상호 작용
+인간이 읽을 수 있는 매체
+인공 뉴런
+인공 두뇌
+인공 신경망
+인공 의식
+인공 일반 지능
+인공 일반 지능의 실존적 위험
+인공 일반 지능의 존재 위험
+인공생식
+인공지능
+인공지능 군비 경쟁
+인공지능 규제
+인공지능 기본법
+인공지능 논란
+인공지능 산업 급진화 논쟁
+인공지능 시스템 통합
+인공지능 예술
+인공지능 용어집
+인공지능 철학
+인공지능 콘텐츠 감지
+인공지능 환경문제
+인공지능과 머신러닝
+인공지능과 저작권
+인공지능에 관한 공개 서한
+인공지능연구원
+인공지능윤리
+인공지능융합사고력
+인공지능의 개요
+인공지능의 고용 영향
+인공지능의 군사적 활용
+인공지능의 윤리
+인공지능의 응용
+인공지능의 진행상황
+인공지능인문학
+인과 추론
+인구 밀도
+인구 조사
+인구 통계
+인구 피라미드
+인구구조
+인구론
+인구주택총조사
+인구지리학
+인구집단건강
+인구추계
+인구통계학
+인그레스
+인덱서
+인덱스
+인덱스 트란슬라티오눔
+인디드
+인디아 스택
+인라인 링크
+인라인 요소
+인류의 마지막 시험
+인메모리 데이터베이스
+인메모리 프로세싱
+인본주의 협회
+인사이드-아웃사이드-비기닝
+인쇄 서버
+인수 검사
+인스턴스
+인식-촉발 결정
+인자 분석
+인적 자원 관리 시스템
+인증
+인증 기관
+인증, 인가, 과금
+인증됨
+인증서
+인지 인간공학
+인지 컴퓨터
+인지 컴퓨팅
+인지 편향
+인지공학
+인지된 성능
+인지문헌학
+인지적 구조
+인천 로봇랜드
+인터 프레임
+인터넷
+인터넷 감시 재단
+인터넷 검열 우회
+인터넷 경찰
+인터넷 과의존
+인터넷 릴레이 챗
+인터넷 백본
+인터넷 보안
+인터넷 브로드웨이 데이터베이스
+인터넷 사변 소설 데이터베이스
+인터넷 사변물 데이터베이스
+인터넷 사회학
+인터넷 영화 데이터베이스
+인터넷 오프브로드웨이 데이터베이스
+인터넷 익스체인지 포인트
+인터넷 익스플로러
+인터넷 중독 장애
+인터넷 체크섬
+인터넷 프라이버시
+인터넷 프로토콜 스위트
+인터넷닷오알지
+인터넷범죄신고센터
+인터넷피해구제협회
+인터랙션 디자인
+인터랙티비티
+인터로이드
+인터칼
+인터페이스 메시지 프로세서
+인터페이스 분리 원칙
+인터페이스 정의 언어
+인터프레스
+인텔 관리 엔진
+인텔 리얼센스
+인포메틱스
+인프라넷
+일관성
+일관성 모델
+일급 함수
+일라이자 효과
+일련번호
+일반 데이터 보호 규칙
+일반 프로세서 분할
+일반화 선형 모형
+일반화 오차
+일반화된 분배 법칙
+일반화의 오류
+일방향함수
+일본의 고령화
+일본해구 해저지진해일 관측망
+일시적 실행 CPU 취약점
+일회용 비밀번호
+임베디드 SQL
+임베디드 시스템
+임베딩
+임상 의사결정 지원 시스템
+임시 컨테이너
+임시 활성화
+임우형
+임의 접근 제어
+임의 코드 실행
+임퍼바
+입구 필터링
+입력 방법 편집기
+입자 군집 최적화
+입자법
+입체경
+입체시
+잉크 오버플로우
+잊혀질 권리
+잊힐 권리
+자곤 파일
+자기 디스크
+자기 잉크 문자 인식
+자기 저장
+자기 지도 학습
+자기상관
+자기조직화 지도
+자기회귀누적이동평균
+자기회귀모형
+자녀 보호 기능
+자동 미분
+자동 번호판 인식
+자동 요약
+자동 재송 요구
+자동 정리 증명
+자동 형변환
+자동기계
+자동화된 의사결정
+자동화된 추론
+자료 구조
+자료 긁어내기
+자료형 안전
+자리 표시자 이름
+자모 빈도
+자바
+자바 플랫폼, 엔터프라이즈 에디션
+자바서버 페이스
+자바스크립트
+자바스크립트 라이브러리
+자바스크립트 스타일 시트
+자바스크립트 엔진
+자바스크립트 프레임워크
+자바스크립트 프레임워크 비교
+자바스크립트MVC
+자바와 C++의 비교
+자스민
+자연어
+자연어 생성
+자연어 이해
+자연어 처리
+자연적 결정 형성
+자원 기술 프레임워크
+자원 접근 제어 기능
+자유 라이선스
+자유 변수와 종속 변수
+자유 소프트웨어의 개요
+자유-오픈 소스 소프트웨어 라이선스 비교
+자유도
+자율 로봇
+자율 에이전트
+자율 컴퓨팅
+자카르타 EE
+자카르타 페이스
+자크-베라 검정
+자크만 프레임워크
+자폭
+작업 공간
+작업 증명 시스템
+작품 번호
+작품 속 인공지능
+잔디
+잔류 자기
+잔차 신경망
+잘 설정된 문제
+잘못 설정된 문제
+잠금화면
+잠금화면 및 보안
+잠재 계층 모델
+잠재 공간
+잠재 디리클레 할당
+잠재 변수
+잠재 의미 분석
+잠재 지식
+잠재적 유해 프로그램
+잡음 채널 부호화 정리
+장기 지원 버전
+장단기 메모리
+장애 허용 시스템
+장애인 전용 주차구역
+장제법
+장착형 인증 모듈
+장치 구성 오버레이
+장치 플러그인
+재귀
+재귀 신경망
+재귀 최소 제곱 필터
+재귀적 자기 개선
+재난 복구 계획
+재매개
+재전송 공격
+재태기간
+재해 복구
+저급 프로그래밍 언어
+저널 오브 머신 러닝 리서치
+저밀도 패리티 검사 부호
+저불일치 수열
+저우밍
+저작물 관리 시스템
+저장 프로시저
+저장소
+저주파 통과 필터
+적대적 기계 학습
+적률법
+적응 필터
+적절한 일반화 분해
+적중과 비적중 변환
+전국시각장애인연대 대 타겟 법인 소송
+전기공학
+전기전자공학자협회
+전기전자기술자협회
+전략 정보 시스템
+전략적 전환
+전력선 통신
+전망 이론
+전문 데이터베이스
+전문가 시스템
+전문가 혼합
+전문서비스 로봇
+전미인공지능학회
+전방 추론
+전변동 잡음제거
+전사적 자원 관리
+전산 유체 역학
+전산언어학
+전송 계층 보안
+전수조사
+전역 객체
+전역 고유 식별자
+전역 변수
+전역 스코프
+전역 통과 필터
+전역 환경
+전이학습
+전자 여권
+전자 인적 자원
+전자 정보 처리 시스템
+전자 평가
+전자공학
+전자서명
+전자인간 오토맨
+전자정부 표준프레임워크
+전자투표
+전체 확률의 법칙
+전화번호
+전화번호 할당 계획
+절단오차
+점 분포 모델
+점 양분 상관계수
+점별 상호정보량
+점진적 빌드 모델
+점진적 향상
+점프 서버
+점프 플러딩 알고리즘
+접근 가능한 이름
+접근 제어
+접근성 트리
+접미사 배열
+정교화 이론
+정규 언어
+정규방정식
+정규성
+정규식
+정보
+정보 검색
+정보 관리
+정보 교환
+정보 기술 관리
+정보 모델
+정보 보고 시스템
+정보 보안
+정보 보안 관리
+정보 사일로
+정보 산업
+정보 시스템
+정보 시스템 기술자
+정보 시스템 협회
+정보 아키텍처
+정보 엔트로피
+정보 이득
+정보 이론
+정보 이론 및 측정 이론
+정보 인프라스트럭처
+정보 정책
+정보 중심 네트워킹
+정보 처리
+정보 처리 언어
+정보 추출
+정보 프라이버시
+정보 필터링 시스템
+정보 행동
+정보 혁명
+정보기술
+정보기술 거버넌스
+정보기술 분야의 괴롭힘
+정보물리
+정보시스템 마스터플랜
+정보철학
+정보통신기술
+정보화
+정부의 인공 지능
+정상 과정
+정수 오버플로
+정적 메서드
+정적 사이트 생성기
+정적 웹 페이지
+정적 타이핑
+정적 프로그램 분석
+정책 경사법
+정형 기법
+정확도와 정밀도
+정확성
+정확성 오류
+제1정규형
+제1종 오류와 제2종 오류
+제2정규형
+제3정규형
+제곱평균제곱근
+제곱합
+제너두 프로젝트
+제네시스 미션
+제노봇
+제노블레이드
+제노블레이드 크로니클스
+제논
+제럴드 마빈 와인버그
+제로 데이 공격
+제로 코드 공격
+제로 트러스트 보안 모델
+제로넷
+제로샷 학습
+제미나이
+제미나이 노트북
+제미니
+제스
+제약 충족 문제
+제어 반전
+제어 흐름
+제어이론
+제이스토어
+제이콥 닐슨
+제인스 인포메이션 그룹
+제임스 럼보
+제자리 알고리즘
+제조업용 로봇
+제출 버튼
+제퍼슨 디스크
+제품 번들링
+제품 요구 문서
+제프 앳우드
+제한된 볼츠만 머신
+제한적 본인 확인제
+젠드 프레임워크
+젠슨 황
+조건
+조건부 독립
+조건부 무작위장
+조건부 상호 정보
+조건부 엔트로피
+조건부 확률
+조건수
+조기 중단
+조립제법
+조이언트
+조절변인
+조지 폴리아 상
+조콩드
+조합 최적화
+조호 오피스 제품군
+존 414
+존 레식
+존부
+졸리 OS
+좀비 컴퓨터
+종결식
+종합 모니터링
+좋아요 버튼
+주기적 타이머
+주변 분포
+주석
+주성분 분석
+주소 공간 배치 무작위화
+주의 집중
+주의집중
+주제 모델
+주축
+주치하오
+주파수 영역
+주파수 응답
+죽음
+준식별자
+준지도 학습
+줄리아
+줌 피로
+줌라
+중간값 필터
+중간언어 기계번역
+중간자 공격
+중국 뇌
+중국 인민해방군 61398부대
+중국어 방
+중국어 베이직
+중국의 고령화
+중국의 소프트웨어 산업
+중단
+중도절단
+중복 코드
+중세 후기의 위기
+중심 극한 정리
+중심경향치
+중심성
+중앙값
+중앙값 절대 편차
+중첩 루프 조인
+중화인민공화국의 소프트웨어 산업
+즉시 실행 함수
+증강 분석
+증강 인지
+증명 보조기
+증명사진
+증분 학습
+지그
+지그도
+지노드
+지능형 단어 인식
+지능형 로봇
+지능형 반도체
+지능형 에이전트
+지능형 제어
+지니버스
+지도 데이터베이스 관리
+지도 학습
+지리 정보 시스템
+지리학
+지문
+지문 등 사전등록제
+지배자
+지북
+지분증명
+지불 카드 산업 데이터 보안 표준
+지속성
+지속적 배포
+지속적 전달
+지수
+지수족
+지스케일러
+지시자
+지식 경영
+지식 기반 시스템
+지식 베이스
+지식 수준
+지식 조직화
+지식 증류
+지식 컷오프
+지식 표현
+지식 표현 및 추론
+지식공학
+지식재산권 보호 법안
+지역 범위
+지역 변수
+지오아이
+지오코딩
+지원 활동
+지진조기경보
+지프의 법칙
+지향성
+직도
+직렬 연결 컨볼루션 코드
+직렬화
+직렬화 가능 객체
+직렬화 성질
+직접 디지털 합성
+진 바틱
+진단
+진정신원증법
+진화 알고리즘
+진화 연산
+질문
+질문 응답
+질병
+질의 계획
+질의 언어
+질의 응답
+질의 최적화
+질의 확장
+질의어
+집합 덮개 문제
+차단
+차량 자동 항법 장치
+차량 정보 통신 시스템
+차를 맛보는 여인
+차분 진화
+차세대 보안 컴퓨팅 기반
+차원 축소
+차원의 저주
+착용 컴퓨터
+참 같은 값
+참조 무결성
+참조 정합성
+창 함수
+창문 함수
+창발 알고리즘
+채널
+채널 용량
+챗GPT
+챗봇 정신병
+척도 불변 특징 변환
+천공 카드
+천문학적 고통의 위험
+천체물리학 자료시스템
+첨도
+첩보
+첫 번째 CPU 유휴 상태
+첫 사용에 대한 신뢰
+체르노프 얼굴
+체스 풀이
+체이너
+체크 디지트
+체화된 인지
+체화된 인지 과학
+첼러 합동식
+초기화 벡터
+초기화 컨테이너
+초단타 매매
+초당 트랜잭션 수
+초등함수
+초암호화
+초지능
+초차원 컴퓨팅
+초해상도
+촘스키 위계
+최고 정보 책임자
+최근접 이웃 탐색
+최단 마감 우선 스케줄링
+최단 작업 우선 스케줄링
+최단 잔여 시간 우선 스케줄링
+최대 엔트로피 마르코프 모델
+최대 엔트로피 마르코프 모형
+최빈값
+최상 우선 탐색
+최상위 계층
+최상위 도메인
+최소 권한의 원칙
+최소 설명 길이
+최소 잔류 시간 우선 스케줄링
+최소 평균 제곱 필터
+최소극대화
+최소제곱 스펙트럼 분석
+최소제곱법
+최장 공통 부분 수열
+최장 증가 부분 수열
+최적 판별 분석과 분류 트리 분석
+최종 사용자 개발
+최초 의미있는 페인트
+최초 입력 지연
+최초 콘텐츠풀 페인트
+최초 페인트
+추론 언어 모델
+추론 엔진
+추상화
+추적 금지
+추정 이론
+추천 시스템
+추축
+추측 디코딩
+축차 비교형 아날로그-디지털 변환회로
+축출
+출구 필터링
+출처
+충돌 감지
+충족 통계량
+취약 키
+취약점 공격
+취약점 공격 도구
+취약점 관리
+취약점 스캐너
+츠쿠다니 노리오
+측도 보존 동역학계
+층화표집
+치궈쥔
+치명적 망각
+친절한 인공지능
+침식
+침입 차단 시스템
+침입 탐지 시스템
+침투 시험
+침투 테스트
+침푸이
+카구야 루나
+카뎀리아
+카라쿠리 인형
+카렐
+카멜 케이스
+카본
+카스퍼스키 안티바이러스
+카오스 엔지니어링
+카우치DB
+카우치베이스
+카우치베이스 서버
+카이저 윈도
+카이제곱 검정
+카타고
+카탈리스트
+카테고리 2 케이블
+카파 상관계수
+카페
+카플란-마이어 생존분석
+카플레이
+칵테일
+칼리 리눅스
+칼만 필터
+캐글
+캐니 윤곽선 검출
+캐럿
+캐시
+캐시 교체 정책
+캔버스
+캠핑
+캡슐화
+캡처 더 플래그
+캡티브 포털
+캣부스트
+커널 메소드
+커널 밀도 추정
+커널 트랜잭션 관리자
+커드의 12 규칙
+커리
+커리큘럼 학습
+커먼 데이터 포맷
+커먼 리스프
+커뮤니티 매핑
+커뮤니티 컴퓨팅
+커뮤니티 클라우드
+커밋
+커버로스
+커서
+커스텀 리소스 데피니션
+커피스크립트
+컨버지드 인프라스트럭처
+컨볼루션 부호
+컨조인트 분석
+컨테이너
+컨테이너 네트워크 인터페이스
+컨테이너 라이프사이클 훅
+컨테이너 런타임
+컨테이너 런타임 인터페이스
+컨테이너 리눅스
+컨테이너 스토리지 인터페이스
+컨테이너 환경 변수
+컨텍스트 기반 접근 제어
+컨텍스트 윈도
+컨트롤 플레인
+컨트롤러
+컨트리뷰터
+컨퓨전 행렬
+컨피그맵
+컬러 그라데이션
+컬러 밴딩
+컬럼
+컬럼 기반 DBMS
+컬리
+컴파일 시간
+컴파일러 컴파일러
+컴포넌트 기반 소프트웨어 공학
+컴포넌트 오브젝트 모델
+컴퓨터 공학
+컴퓨터 공학과
+컴퓨터 과학
+컴퓨터 과학 철학
+컴퓨터 과학의 미해결 문제
+컴퓨터 과학자
+컴퓨터 그래픽스
+컴퓨터 네트워크
+컴퓨터 네트워크 프로그래밍
+컴퓨터 망
+컴퓨터 매개 통신
+컴퓨터 보안
+컴퓨터 보안 평가 지침서
+컴퓨터 보조 공동 작업
+컴퓨터 비전
+컴퓨터 수리 기술자
+컴퓨터 스테레오 비전
+컴퓨터 아트
+컴퓨터 애니메이션
+컴퓨터 어플라이언스
+컴퓨터 접근 제어
+컴퓨터 지원 소프트웨어 공학
+컴퓨터 클러스터
+컴퓨터 통합 생산
+컴퓨터 파이어니어 어워드
+컴퓨터 파이오니어 상
+컴퓨터 포렌식
+컴퓨터 프로그래밍
+컴퓨터 프로그램
+컴퓨터 호환성
+컴퓨터를 이용한 증명
+컴퓨터수리
+컴퓨터활용능력
+케라스
+케르크호프스의 원리
+케밥 케이스
+케빈 워릭
+케이맨 제도의 인구
+케이아스 엔지니어링
+케이아이엔엑스
+케이티 바우만
+케임브리지 애널리티카
+켄싱턴 시큐리티 슬롯
+켈리 공식
+코넷
+코덱
+코드 경량화
+코드 단위
+코드 서명
+코드 인젝션
+코드 재사용
+코드 커버리지
+코드 컨트리뷰터
+코드 포인트
+코드로서의 인프라스트럭처
+코드버그
+코드베이스
+코드이그나이터
+코드카데미
+코드펜
+코드형 인프라스트럭처
+코딧
+코멧
+코모도
+코모도 그룹
+코모도 드래곤
+코모도 사이버시큐리티
+코모도어 베이직
+코바
+코볼
+코사라주 알고리즘
+코사라주의 알고리즘
+코시크
+코어위브
+코조
+코틀린
+콘셉트 맵
+콘텐츠 보안 정책
+콘텐츠 전송 네트워크
+콘텐츠 중심 네트워킹
+콜론 분류법
+콜모고로프 복잡도
+콜백 함수
+콤 필터
+콤솔 멀티피직스
+콰이쇼우
+콰인
+콴다
+쿠버네티스
+쿠버네티스 API
+쿠쿠체스
+쿨백-라이블러 발산
+쿼리 바이 이그잼플
+쿼리 최적화
+쿼리 플랜
+쿼츠 컴포저
+쿼타랩
+퀀티넘
+퀵셀렉트
+퀼트릭스
+큐로보
+큐베이직
+큐비트
+큐트리트
+크누스상
+크러스컬 알고리즘
+크러스컬-월리스 검정
+크로노스 그룹
+크로마키
+크로미움
+크론바흐 알파 계수
+크론바흐의 알파
+크론잡
+크론코더 프로그래밍 언어
+크롬박스
+크롬북
+크롬빗
+크리덴셜 스터핑
+크리스토피데스 알고리즘
+크리스티안 다네스쿠-니쿨레스쿠-미질
+크리에이티브 커먼즈
+크리에이티브 커먼즈 라이선스
+크리티컬 라인 알고리즘
+크리티컬 패스 분석법
+크립토아나키즘
+큰 수의 법칙
+클라우단트
+클라우데라
+클라우드
+클라우드 게임
+클라우드 공급자
+클라우드 관리
+클라우드 기반 통합
+클라우드 네이티브 컴퓨팅
+클라우드 네이티브 컴퓨팅 재단
+클라우드 데이터베이스
+클라우드 로봇
+클라우드 스토리지
+클라우드 접근 보안 중개
+클라우드 컨트롤 매니저
+클라우드 컴퓨팅
+클라우드 컴퓨팅 보안
+클라우드 통합운영관리 플랫폼
+클라우드 파운드리
+클라우드9 IDE
+클라우드마인즈
+클라우드브릭
+클라이언트 허니팟
+클래스
+클러스터
+클러스터 분석
+클러스터 운영
+클러스터 운영자
+클러스터 인프라스트럭처
+클레버봇
+클레이니 스타
+클로드
+클로드 미토스
+클로저
+클로프리 순열
+클리퍼
+클리핑
+클릭하시겠습니까?
+클린
+클린룸 설계
+키 관리
+키 싸기
+키 크기
+키 클러스터링
+키 프레임
+키-값 데이터베이스
+키넥트
+키미
+키오시아
+키워드
+키윅스
+키잉
+키즈토피아
+키클록
+킬 체인
+킵얼라이브
+타부 탐색법
+타원곡선 DSA
+타원곡선 디피-헬만
+타원곡선 디피-헬먼
+타원곡선 암호
+타이거
+타이탄 레인
+타임아웃
+타입
+타입 변환
+타입-토큰 구별
+타입스크립트
+타토에바
+탈중앙화 신원증명
+탈중앙화된 자율조직
+탐색 게임
+탐색 기반 소프트웨어 공학
+탐색 지시문
+탐색 트리
+탐색-이용 딜레마
+탐색적 자료 분석
+탐지 이론
+탑 햇 변환
+태그
+탬퍼링 방지
+탱고
+터널링 프로토콜
+터미널 서버
+터미네이터
+터보 델파이
+터보 부호
+터보 파스칼
+턱시도
+텀즈
+테드 넬슨
+테라폼
+테서랙트
+테스트 벤치
+테스트 자동화
+테스트 주도 개발
+테스트베드
+테이블
+테이블 그리드 상자
+테이블 래퍼 상자
+테이블스페이스
+테이프 카트리지
+테인트
+테일윈드 CSS
+텍셀
+텍스처 매핑
+텍스처 압축
+텍스처 필터링
+텍스토미
+텍스톰
+텍스트 마이닝
+텍스트-비디오 모델
+텍스트-이미지 모델
+텐서 처리 장치
+텐서플로
+텔넷
+텔레비전 기술자 협회
+텔레익지스턴스
+토끼 보니
+토르
+토마술로 알고리즘
+토이 문제
+토쿠DB
+토크맨
+토큰링
+토픽 모델
+토픽맵
+톨러레이션
+톰 디마르코
+톱 p 샘플링
+통계 모델
+통계 모형
+통계 의미론
+통계량
+통계적 가설 검정
+통계적 기계 번역
+통계적 분류
+통계적 유의성
+통계적 추론
+통계적 학습이론
+통계학
+통계학자
+통신 채널
+통신 프로토콜
+통제 어휘집
+통합 개발 환경
+통합 개발 환경 비교
+통합 모델링 언어
+통합 비디오 디코더
+통합 시험
+통합 위협 관리 시스템
+통합 인증
+통합 정보 이론
+퇴각검색
+투키 크레이머 방법
+투퍼의 자기언급 공식
+튜링 강연
+튜링 검사
+튜링 기계
+튜링 테스트
+튜링 토크
+튜링상
+트라이
+트라이그램
+트랜센던스
+트랜스클루전
+트랜스포머
+트랜스휴머니즘
+트랜잭셔널 NTFS
+트랜잭셔널 메모리
+트랜잭션 로그
+트랜잭션 처리
+트랜잭션 처리 기능
+트랜잭트 SQL
+트랩도어 함수
+트럼프 2기 행정부 관세
+트레이닝 셋
+트레이트
+트렌드 마이크로
+트렌드 마이크로 인터넷 시큐리티
+트렐릭스
+트로브
+트루컬러
+트리
+트리 셰이킹
+트리 순회
+트리노
+트리니티소프트
+트리뱅크
+트리플스토어
+트리하우스
+특권
+특권 코드
+특명전대 고버스터즈
+특성
+특이점 연구
+특이점주의
+특징
+특징 공학
+특징 선택
+특징 스케일링
+특징 통합론
+특징 학습
+특허 정보 검색 서비스
+틀루토
+티맥스 윈도
+티맥스가이아
+티맥스구름
+티피링크
+팀 버너스리
+파노의 부등식
+파데 근사
+파드
+파드 라이프사이클
+파드 시큐리티 폴리시
+파드 중단
+파드 프라이어리티
+파레토 분포
+파로
+파로스
+파비콘
+파스 트리
+파스칼
+파운데이션 모델
+파운데이션DB
+파워셋
+파워셸
+파이 계수
+파이널라이저
+파이넥스
+파이버 채널
+파이썬
+파이어 OS
+파이어버드
+파이어베이스
+파이어폭스 싱크
+파이어폭스의 기능
+파이크
+파인 튜닝
+파인드 뉴질랜드 아티스츠
+파인드 어 그레이브
+파인리더
+파인만-카츠 공식
+파인먼-카츠 공식
+파일구리
+파일메이커
+파티클 필터
+파프 방향
+팍소스 알고리즘
+판도라
+판도라 FMS
+판별 모델
+판쯔정
+팔란티어 테크놀로지스
+팝업창
+패널 분석
+패딩
+패럴럭스 스크롤링
+패럿 OS
+패리티 비트
+패션 모델 디렉터리
+패션 모델 디렉토리
+패스 더 해시
+패스키
+패스트텍스트
+패스틀리
+패치
+패치 케이블
+패치 패널
+패키지 관리 시스템
+패키지 관리자
+패키지 내 시스템
+패킷
+패킷 트레이서
+패턴 언어
+패턴 인식
+팩소스
+팩터
+팰컨
+팻 클라이언트
+팽창
+퍼머링크
+퍼미시브 라이선스
+퍼블
+퍼센트 포인트
+퍼셉트론
+퍼스널 로봇
+퍼스트 먼데이
+퍼시스턴트 볼륨
+퍼시스턴트 볼륨 클레임
+퍼즈 테스팅
+퍼지 논리
+퍼지 제어 시스템
+퍼지 집합
+퍼지 클러스터링
+퍼징
+퍼펙트 다크
+퍼플렉시티
+퍼플렉시티 AI
+펄 6
+펄린 노이즈
+펄스
+펄스 밀도 변조
+펄스 압축
+펄스 폭 변조
+펍메드
+펑싱왕
+페르소 더빙
+페르소 인터랙티브
+페르소나
+페이로드
+페이로드 본문
+페이로드 헤더
+페이스북
+페이스북 질의어
+페이스북에 대한 비판
+페이스앱
+페이지 교체 알고리즘
+페이지 로드 시간
+페이지 예측
+페이지랭크
+페이페이 리
+편각
+편재
+편집 충돌
+편차
+편향-분산 트레이드오프
+평균
+평균 이동
+평균 절대 편차
+평균 제곱근 편차
+평균으로의 회귀
+평균편차
+평문
+평판 시스템
+폐루프
+폐세계 가설
+포드 싱크
+포맷 스트링 버그
+포바이포
+포스
+포스트맨
+포스트스크립트
+포실워크스
+포커스 그룹
+포켈스 효과
+포크
+포크소노미
+포크트 윤곽
+포트
+포트 미러링
+포트 스캐너
+포트 스캔
+포트 포워딩
+포트란
+포트레이스
+포획 이온 양자컴퓨터
+폰 노이만 안정성 분석
+폴라드 로 이산 로그 알고리즘
+폴리곤에이드
+폴리그-헬먼 알고리즘
+폴리글롯
+폴리비오스 암호
+폴리비오스의 암호표
+폴리필
+폴링
+표도르
+표명
+표본
+표본 평균
+표본조사
+표본화
+표본화 정리
+표제어 추출
+표준
+표준 ML
+표준 순서
+표준 점수
+표준 편차
+표준정규분포표
+표준화 사망률
+표집
+표현 능력
+표현 헤더
+표현으로서의 코드
+푸리에 급수
+푸리에 해석학
+푸시 기법
+푸아송 분포
+푸톈판
+풀 기법
+품질 값
+풋프린팅
+퓨어 데이터
+퓨어베이직
+퓨어스크립트
+퓨어스토리지
+퓨처 오브 라이프 인스티튜트
+프라이데이
+프라이복시
+프라이빗 브라우징
+프라이빗 인터넷 액세스
+프라이빗 인터넷 어세스
+프레더릭 브룩스
+프레스토
+프레이밍
+프레임
+프레임 삽입
+프레임 속도
+프레임버퍼
+프렌드 투 프렌드
+프로그래머블 로직 컨트롤러
+프로그래밍 도구
+프로그래밍 심리학
+프로그래밍 언어
+프로그래밍 언어 구현
+프로그래밍 언어 구현체
+프로그래밍 언어의 비교
+프로그래밍 패러다임
+프로그램 지정 정보
+프로그램 최적화
+프로그레시브 웹 앱
+프로멜라
+프로미스
+프로브
+프로비주얼 엔진
+프로빗 모형
+프로빗 회귀 모형
+프로세서 설계
+프로세스 제어 블록
+프로세스 환경 블록
+프로세싱
+프로젝트 관리 전문가
+프로젝트 관리 지식 체계
+프로젝트 아테나
+프로젝트 제로
+프로토콜
+프로토타입 기반 프로그래밍
+프로토타입 자바스크립트 프레임워크
+프로톤 VPN
+프록시
+프록시 서버
+프록시 자동 구성
+프론트엔드와 백엔드
+프롤로그
+프롬프트 압축
+프롬프트 엔지니어링
+프롬프트 인젝션
+프루프포인트
+프리 렌더
+프리 파스칼
+프리넷
+프리드먼 검정
+프리디비
+프리매트
+프리베이직
+프리웨어
+프리즈마
+프리코드캠프
+프리패치
+프리페어드 스테이트먼트
+프리페치
+프린터 추적점
+프림 알고리즘
+플란칼퀼
+플래닛랩
+플랜 9
+플랫 파일 데이터베이스
+플러그 컴퓨터
+플러그인
+플럭스
+플레이 프레임워크
+플레이캔버스
+플렉스
+플렉스 컨테이너
+플렉스 항목
+플렉스박스
+플로이드-워셜 알고리즘
+플로이드의 삼각형
+플론
+피겨 AI
+피그마
+피드백 간섭 제거 빔포밍
+피드버너
+피벗
+피벗 테이블
+피셔 정보
+피씨필터
+피어슨 상관 계수
+피어튜브
+피자 박스 폼 팩터
+피지컬 AI
+피처 크리프
+피츠의 법칙
+피터 리
+피터 첸
+픽 정리
+픽셀AI
+픽의 정리
+필기 인식
+필레이트
+필수적 시스템 분석
+필터
+필페이퍼스
+핑거프린팅
+하둡
+하드 카피
+하드닝
+하드웨어 난수 발생기
+하드웨어 보안 모듈
+하드웨어 보안 버그
+하세 도표
+하세 도형
+하스켈
+하위 자원 무결성
+하이 롤러 작전
+하이OS
+하이다이내믹레인지 이미징
+하이브리드 인텔리전트 시스템
+하이브리드 자동 재송 요구
+하이젠버그
+하이컬러
+하이패스 필터
+하이퍼 컨버지드 인프라스트럭처
+하이퍼넷
+하이퍼데이터
+하이퍼매개
+하이퍼미디어
+하이퍼카드
+하이퍼텍스트
+하이퍼텍스트 문학
+하이퍼파라미터
+하트리-폭 방법
+하향식과 상향식 디자인
+학번
+학술전산망협의회
+학습객체 메타데이터
+학습률
+한 아이 정책
+한국AI로봇산업협회
+한국BI데이터마이닝학회
+한국데이터산업진흥원
+한국로봇산업진흥원
+한국십진분류법
+한국의학논문데이터베이스
+한국인의 이민
+한국정보산업연합회
+한국표준질병사인분류
+한국학술지인용색인
+한글 검색엔진
+한컴 구름
+할선법
+함무라비의 밀실
+함수
+함수 시그니처
+함수 원형
+합성 지능
+합성곱
+합성곱 신경망
+합자
+핫링크
+핫픽스
+항저우의 여섯 마리 용
+항해가능성
+해밍 부호
+해상 이동 업무 식별 부호
+해상도
+해시 기반 메시지 인증 코드
+해시 조인
+해시 테이블
+해시 트리
+해시 함수
+해시태그
+해시태그 운동
+해양 및 비해양 속 중간 등록부
+해양 및 비해양 속명의 임시등록부
+해커
+해커 선언문
+해커톤
+해킹
+해킹 도구
+해킹팀
+핵심 성과 지표
+핵자기공명 양자 컴퓨터
+핵티비즘
+핸들 시스템
+햄프턴 린턴-캐틀린
+행동 인식
+행동정보학
+행동주의
+행성 간 파일 시스템
+행성간 인터넷
+행위 주도 개발
+행위자 기반 모형
+행화주의
+허가
+허깅 페이스
+허니팟
+허상 포인터
+허용 오차
+허용적 휴리스틱
+허위 상관
+허위 신고
+헤더
+헤로쿠
+헤이즐캐스트
+헤테로다인
+헬름 차트
+헬릭스 키튼
+헵 이론
+헵의 이론
+협력 MIMO
+협업 필터링
+형식 검증
+형식 동등성 검사
+형식 체계
+형식의 법칙들
+형식인구학
+형태학적 골격
+형태학적 기울기
+호너의 방법
+호모아이코니시티
+호세 아이젠버그
+호스트
+호스트 기반 침입 탐지 시스템
+호스트에일리어스
+호이스팅
+호출 규약
+호출 스택
+호환성 테스트
+혼동 행렬
+혼합 모델
+홀로그래피
+홀로그래피 원리
+홀로그래픽 디스플레이
+홈 네트워크
+홈 네트워킹
+홉필드 네트워크
+화석연구데이터베이스
+화소
+화소 가로세로비
+화압
+화웨이 클라우드
+화이트닝 변환
+화이트디펜더
+화이트리스트
+화이트박스 검사
+화이트박스 암호
+화이트스페이스
+화폐유통속도
+화학정보학
+확률
+확률 변수의 수렴
+확률 분포
+확률미적분학
+확률의 고전적 정의
+확률적 경사 하강법
+확률적 앵무새
+확률적 잠재 의미 분석
+확산 모델
+확장
+확장 가능성
+확장 가능한 저장소 엔진
+확장성
+환각
+환경용량
+환경통계학
+활성함수
+활성화 함수
+황금분할 탐색
+황팅원
+회귀 분석
+회귀 테스트
+회로
+효과적 가속주의
+후디니
+후반 작업
+후방 추론
+후버 손실
+후보 키
+후입 선출
+후킹
+후회이론
+훈련용 검증용 테스트 데이터 세트
+휘태커-섀넌 보간 공식
+휴렛 팩커드
+휴리스틱 함수
+휴머노이드
+휴먼 프로세서 모델
+휴먼스
+휴먼인더루프
+휴버트 드라이퍼스
+흐름 기반 생성 모델
+흐리스토 그로제프
+흡연율
+희소 사전 학습
+히스토그램
+히어
+히치봇
+힉-하이먼 법칙
+힉의 법칙
+힌지 손실
+힐 클라이밍
+힐버트 변환
+힐베르트 변환
+힙 스프레이
+힙 스프레이칠
+힙 오버플로

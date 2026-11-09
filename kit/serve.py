@@ -189,18 +189,33 @@ def noun_groups(s):
     return out
 
 
+def plain_line(s):
+    """마크다운 표시를 걷어 낸 읽을 수 있는 문장: **굵게**·# 제목·- 목록·표 칸"""
+    s = re.sub(r"\s+", " ", s).strip()
+    if re.fullmatch(r"\|?[\s:\-|]+\|?", s):
+        return ""
+    s = re.sub(r"^(?:#{1,6}\s+|[-*+]\s+|\d+[.)]\s+|>\s+)+", "", s)
+    if s.startswith("|") and s.endswith("|"):
+        s = " · ".join(c.strip() for c in s.strip("|").split("|") if c.strip())
+    return re.sub(r"\*\*|__", "", s).strip()
+
+
 def extract(text):
     """본문 → [(문장, {개념 키: 표기})] (코드 용어는 첫 문장 자리에 붙인다)"""
     code = "\n".join(FENCE.findall(text))
     prose = FENCE.sub(" ", text)
     inline = INLINE.findall(prose)
     prose = PATH.sub(" ", URL.sub(" ", INLINE.sub(" ", prose)))
+    shown = URL.sub(" ", INLINE.sub(lambda m: m.group(1), FENCE.sub(" ", text)))     # 화면에 보일 문장: 인라인 코드를 빼지 않는다 (`main`에 커밋 → main에 커밋)
     both = code + "\n" + "\n".join(inline) + "\n" + text
     code_terms = {(a or b).split(".")[0] for a, b in IMPORT.findall(code)}
     code_terms |= {re.split(r"[=<>\[]", p)[0] for m in PIP.findall(both) for p in m.split() if not p.startswith("-")}
     code_terms |= set(ERR.findall(both))
     out = []
-    for s in SENT.split(prose):
+    parts = SENT.split(prose)
+    display = SENT.split(shown)
+    same = len(parts) == len(display)                     # 나뉜 수가 다르면(인라인 코드에 마침표 등) 분석한 문장을 그대로 보여 준다
+    for i, s in enumerate(parts):
         s = re.sub(r"\s+", " ", s).strip()
         if len(s) < 4:
             continue
@@ -209,7 +224,7 @@ def extract(text):
             if len(f) >= 2 and f not in STOP and f not in STOP_LOWER and f.lower() not in STOP_EN:
                 cs.setdefault(_model.key(f), f)
         if cs:
-            out.append((s, cs))
+            out.append((plain_line(display[i] if same else s) or s, cs))
     code_cs = {_model.key(c): c for c in code_terms if len(c) >= 2 and c.lower() not in STOP_EN}
     if code_cs:
         snip = out[0][0] if out else re.sub(r"\s+", " ", prose).strip() or "(코드)"
@@ -231,9 +246,17 @@ CREATE TABLE IF NOT EXISTS forms (concept TEXT, form TEXT, n INTEGER, PRIMARY KE
 CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, last_ts REAL, project TEXT);
 CREATE TABLE IF NOT EXISTS term_sess (concept TEXT, session TEXT, PRIMARY KEY (concept, session));
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS answers (id TEXT PRIMARY KEY, session TEXT, ts TEXT, source TEXT, text TEXT, question INTEGER);
+CREATE INDEX IF NOT EXISTS ix_a ON answers (ts DESC);
+CREATE TABLE IF NOT EXISTS judgments (concept TEXT PRIMARY KEY, llm INTEGER, user TEXT, updated TEXT);
+CREATE TABLE IF NOT EXISTS study_notes (concept TEXT PRIMARY KEY, body TEXT, status TEXT, model TEXT, updated TEXT);
+CREATE TABLE IF NOT EXISTS answer_summaries (answer TEXT PRIMARY KEY, body TEXT, status TEXT, model TEXT, updated TEXT);
+CREATE TABLE IF NOT EXISTS progress (concept TEXT PRIMARY KEY, status TEXT, updated TEXT);
+CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, kind TEXT, target TEXT, priority INTEGER, status TEXT, tries INTEGER DEFAULT 0, updated TEXT, UNIQUE (kind, target));
 """
-SCHEMA_VERSION = 4            # 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
-DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta")   # notes(웹 근거)는 남긴다
+SYSTEM_MSG = re.compile(r"\s*<(?:task-notification|system-reminder|command-|local-command)")
+SCHEMA_VERSION = 6            # 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
+DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta", "answers")   # notes(웹 근거)·판정·노트·진도는 남긴다
 
 
 def open_db(path):
@@ -286,7 +309,8 @@ def prepare_record(r, roles):
     sess = r.get("session_id")
     sess = sess if isinstance(sess, str) and sess else "day:" + ts[:10]
     project = r.get("project")
-    return {"t": t, "ts": ts, "sess": sess, "role": role, "text": text,
+    source = r.get("source")
+    return {"t": t, "ts": ts, "sess": sess, "role": role, "text": text, "source": source if isinstance(source, str) and source else "unknown",
             "project": project if isinstance(project, str) else None,
             "sc": extract(text) if role in roles else None}
 
@@ -294,11 +318,13 @@ def prepare_record(r, roles):
 def apply_record(con, p):
     """준비한 기록을 DB에 넣는다 (쓰기 잠금 안). → 새로 색인한 턴이면 True"""
     t, ts, sess = p["t"], p["ts"], p["sess"]
-    if p["role"] == "user":                               # 질문은 분석하지 않고 원문 그대로 저장 → 뒤따르는 답변의 개념과 연결
+    if p["role"] == "user" and not SYSTEM_MSG.match(p["text"]):   # 질문은 분석하지 않고 원문 그대로 저장 → 뒤따르는 답변의 개념과 연결. 도구가 보낸 알림은 질문이 아니다
         con.execute("INSERT INTO questions (session, ts, text) VALUES (?,?,?)", (sess, ts, p["text"]))
     if not p["sc"]:
         return False
     q = con.execute("SELECT MAX(id) FROM questions WHERE session=?", (sess,)).fetchone()[0]
+    aid = hashlib.sha1(f"{sess}|{ts}".encode("utf-8")).hexdigest()[:16]    # 답변 읽기 화면용 원문 (study_api.answer_id와 같은 규칙)
+    con.execute("INSERT OR REPLACE INTO answers VALUES (?,?,?,?,?,?)", (aid, sess, ts, p.get("source", "unknown"), p["text"], q))
     seen = set()
     for s, cs in p["sc"]:
         for k, form in cs.items():
@@ -498,12 +524,18 @@ def fetch_note(term, aliases=(), searx=None, context=()):
 
     def result(ev):
         ev = [e for e in ev if str(e["url"]).startswith(("http://", "https://"))]   # 외부에서 온 링크: 화면에 넣기 전에 거른다
+        ev = [e for e in ev if not hasattr(fs, "subject_ok") or fs.subject_ok(term, e["text"])]   # '이동 기준선은…'처럼 다른 낱말을 설명하는 문장은 받지 않는다
         return (ev[0]["text"], [{"text": e["text"], "url": e["url"]} for e in ev]) if ev else None
     for lang in NOTE_LANGS:
         srcs = fs.wikipedia(term, lang)
         # 띄어쓰기만 다른 문서 제목(파인튜닝 → 파인 튜닝)은 같은 개념의 표기로 본다. 다른 제목은 받지 않는다 (AP → AP 통신)
         titles = [s["title"] for s in srcs if norm_key(s.get("title", "")) == norm_key(term)]
         got = result(fs.pick(term, list(aliases) + titles, srcs))
+        if got:
+            return got
+        # 분야가 괄호로 붙은 문서(커밋 → 커밋 (버전 관리)): 기술 분야 괄호일 때만 같은 개념으로 본다
+        tech = fs.wikipedia_tech(term, lang) if hasattr(fs, "wikipedia_tech") else []
+        got = result(fs.pick(term, list(aliases) + [s["title"] for s in tech], tech))
         if got:
             return got
     if searx:
@@ -617,9 +649,9 @@ projects().then(lb); new EventSource('/api/events').addEventListener('update',()
 
 
 class State:
-    def __init__(self, db, inbox, roles, web, project=None, model=None, any_host=False):
+    def __init__(self, db, inbox, roles, web, project=None, model=None, any_host=False, llm="off"):
         self.db, self.inbox, self.roles, self.web = db, inbox, roles, web
-        self.model, self.any_host = model, any_host
+        self.model, self.any_host, self.llm = model, any_host, llm or "off"
         self.project = norm_project(project)   # --project: 화면이 처음 보여 줄 폴더
         self.version = 0
         self.cond = threading.Condition()
@@ -632,6 +664,11 @@ class State:
         self.worker_starts = self.worker_closes = 0
         self.lb_cache = {}         # (k, 폴더) → (version, 계산 시각, 결과)
         self.lb_lock = threading.Lock()
+        self.study_proc = None     # 모델 작업자 프로세스
+        self.wake = threading.Event()
+
+    def study_running(self):
+        return self.study_proc is not None and self.study_proc.poll() is None
 
     def pick_project(self, q):
         """요청의 폴더: project=경로, project=(빈 값)은 전체, 없으면 서버 기본값(--project)"""
@@ -816,10 +853,159 @@ def tail_loop(st, interval=1.0, idle=WORKER_IDLE):
     con.close()
 
 
+MAX_POST = 256 * 1024          # 붙여넣기 등 요청 본문 상한 (바이트)
+WARM_TOP = 30                  # 뒤에서 미리 준비할 상위 개념 수
+
+
+def study_get(st, con, path, q):
+    """공부 화면용 GET. 없는 경로면 None (계약: docs/API.md)"""
+    import study_api as api                                # 쓸 때만 불러온다
+    project = st.pick_project(q)
+    board = lambda c, k, project=None: st.cached_leaderboard(c, k, project)   # noqa: E731 — 순위 계산은 캐시를 쓴다
+    if path == "/api/study/today":
+        return api.today(con, board, max(1, min(int(q.get("k", 7)), 50)), project)
+    if path == "/api/study/concepts":
+        view = q.get("view", "show")
+        if view not in ("show", "hidden", "all"):
+            raise ValueError("view는 show·hidden·all")
+        return api.concepts(con, board, view, max(1, min(int(q.get("k", 50)), 500)), project)
+    if path.startswith("/api/study/concept/"):
+        cid = urllib.parse.unquote(path[len("/api/study/concept/"):])
+        if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
+            return {"__status": 404, "error": "없는 개념", "id": cid}
+        out = api.detail(con, card_response(st, con, cid, q.get("cursor"), project), cid)
+        if out["note"]["status"] == "none" and out["note_status"] != "pending" and st.llm != "off":
+            api.enqueue(con, "note", cid, 1)                # 연 개념을 먼저
+            st.wake.set()
+        return out
+    if path == "/api/answers":
+        clause = in_project(project, "session") if project else None
+        return api.answers_list(con, max(1, min(int(q.get("k", 20)), 100)), project, clause)
+    if path.startswith("/api/answers/"):
+        got = api.answer_detail(con, urllib.parse.unquote(path[len("/api/answers/"):]))
+        return got if got else {"__status": 404, "error": "없는 답변"}
+    if path == "/api/health":
+        import llm as llm_mod
+        return {"llm": {"name": st.llm, "available": llm_mod.make(st.llm).available()}, "jobs": api.job_counts(con), "study_worker": st.study_running(),
+                "turns": int(meta_get(con, "turns", 0)), "sessions": con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0], "web": bool(st.web)}
+    return None
+
+
+def study_post(st, con, path, body):
+    """공부 화면용 POST (기록). 없는 경로면 None"""
+    import study_api as api
+    if path == "/api/ingest":
+        import concept_add
+        text = body.get("text")
+        if not isinstance(text, str) or not text.strip():
+            raise ValueError("text가 비어 있습니다")
+        return {"added": concept_add.add(text, str(body.get("source") or "paste")[:40], inbox=st.inbox)}    # 서버가 읽는 인박스에 쓴다
+    m = re.fullmatch(r"/api/study/concept/([^/]+)/(progress|feedback)", path)
+    if m:
+        cid = urllib.parse.unquote(m.group(1))
+        if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
+            return {"__status": 404, "error": "없는 개념", "id": cid}
+        if m.group(2) == "progress":
+            api.set_progress(con, cid, body.get("status"))
+        else:
+            api.set_feedback(con, cid, body.get("verdict"))
+        st.bump()
+        return {"ok": True}
+    m = re.fullmatch(r"/api/answers/([^/]+)/summary", path)
+    if m:
+        aid = urllib.parse.unquote(m.group(1))
+        if not con.execute("SELECT 1 FROM answers WHERE id=?", (aid,)).fetchone():
+            return {"__status": 404, "error": "없는 답변"}
+        if st.llm == "off":
+            return {"queued": False, "reason": "LLM이 꺼져 있습니다"}
+        api.enqueue(con, "summary", aid, 0)
+        st.wake.set()
+        return {"queued": True}
+    return None
+
+
+def warm_targets(con):
+    """뒤에서 준비할 것: 사전으로 못 가른 낱말 판정 → 상위 개념의 정의·노트 (작업자가 하나씩 처리)"""
+    import concept_gate as gate
+    import study_api as api
+    for x in leaderboard(con, k=100000)["items"]:
+        row = con.execute("SELECT llm, user FROM judgments WHERE concept=?", (x["id"],)).fetchone()
+        if gate.rule_verdict(x["label"]) in ("likely", "unknown") and not (row and (row[0] is not None or row[1])):
+            api.enqueue(con, "judge", x["id"], 8)
+    shown = api.concepts(con, leaderboard, "show", WARM_TOP)["items"]
+    return [x["id"] for x in shown]
+
+
+def study_loop(st, interval=5.0):
+    """모델 작업자 관리: 할 일이 있을 때만 별도 프로세스를 띄운다. LLM이 없거나 작업자가 죽어도 서버는 그대로"""
+    con = open_db(st.db)
+    last_warm, backoff_until, seen_version = 0.0, 0.0, -1
+    while not st.stop.is_set():
+        try:
+            now = time.time()
+            if now - last_warm > 120 or (st.version != seen_version and now - last_warm > 15):   # 새 기록이 오면 곧바로 준비한다
+                last_warm, seen_version = now, st.version
+                import study_api as api
+                for cid in warm_targets(con):
+                    note_status(st, con, cid)               # 정의 수집 예약 (이미 있으면 그대로)
+                    has_def = con.execute("SELECT 1 FROM notes WHERE concept=? AND definition<>''", (cid,)).fetchone()
+                    if has_def and not con.execute("SELECT 1 FROM study_notes WHERE concept=?", (cid,)).fetchone():
+                        api.enqueue(con, "note", cid, 5)
+            pending = con.execute("SELECT COUNT(*) FROM jobs WHERE status='queued'").fetchone()[0]
+            if pending and st.study_proc is None and now >= backoff_until:
+                st.study_proc = subprocess.Popen([sys.executable, str(pathlib.Path(__file__).with_name("study_worker.py")), "--db", str(pathlib.Path(st.db).expanduser()), "--llm", st.llm],
+                                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            if st.study_proc is not None and st.study_proc.poll() is not None:
+                failed = st.study_proc.returncode != 0
+                st.study_proc = None
+                st.bump()
+                if failed:
+                    backoff_until = time.time() + 120       # LLM이 꺼져 있으면 2분 뒤 다시 본다
+        except Exception as e:  # noqa: BLE001 — 모델 쪽 문제로 서버를 멈추지 않는다
+            print(f"[경고] 모델 작업 관리 실패: {type(e).__name__}: {e}", flush=True)
+        st.wake.wait(interval)
+        st.wake.clear()
+    if st.study_proc is not None:
+        st.study_proc.terminate()
+    con.close()
+
+
 def make_handler(st):
     class H(BaseHTTPRequestHandler):
         def log_message(self, *a):
             pass
+
+        def do_POST(self):
+            """기록 요청. 다른 사이트의 요청을 막으려고 Host·Origin·Content-Type을 모두 본다"""
+            if not self.host_ok():
+                return self.send(403, {"error": "이 PC 안에서만 접속할 수 있습니다"})
+            origin = self.headers.get("Origin")
+            if origin and not st.any_host and (urllib.parse.urlparse(origin).hostname or "") not in LOCAL_HOSTS:
+                return self.send(403, {"error": "다른 사이트에서는 쓸 수 없습니다"})
+            if not (self.headers.get("Content-Type") or "").lower().startswith("application/json"):
+                return self.send(415, {"error": "JSON으로 보내 주세요"})
+            try:
+                n = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                return self.send(400, {"error": "잘못된 길이"})
+            if n > MAX_POST:
+                return self.send(413, {"error": "글이 너무 깁니다"})
+            try:
+                body = json.loads(self.rfile.read(n).decode("utf-8") or "{}")
+                if not isinstance(body, dict):
+                    raise ValueError("JSON 객체가 아닙니다")
+            except (ValueError, UnicodeDecodeError) as e:
+                return self.send(400, {"error": str(e)})
+            con = open_db(st.db)
+            try:
+                got = study_post(st, con, urllib.parse.urlparse(self.path).path, body)
+                if got is None:
+                    return self.send(404, {"error": "없는 API"})
+                return self.send(got.pop("__status", 200), got)
+            except ValueError as e:
+                return self.send(400, {"error": str(e)})
+            finally:
+                con.close()
 
         def send(self, code, body, ctype="application/json; charset=utf-8"):
             b = body if isinstance(body, bytes) else (
@@ -868,6 +1054,9 @@ def make_handler(st):
                                                "turns": int(meta_get(con, "turns", 0)),
                                                "sessions": con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0],
                                                "version": st.version})
+                    got = study_get(st, con, path, q)
+                    if got is not None:
+                        return self.send(got.pop("__status", 200), got)
                     return self.send(404, {"error": "없는 API"})
                 except ValueError as e:
                     return self.send(400, {"error": str(e)})
@@ -934,6 +1123,7 @@ def main():
     ap.add_argument("--searx", default=DEFAULT_SEARX, help="위키백과에 없는 개념을 찾을 SearXNG 주소. 안 쓰려면 off")
     ap.add_argument("--project", default=None, help="이 폴더(하위 포함)의 대화만 보기. 화면에서 다른 폴더로 바꿀 수 있다")
     ap.add_argument("--model", default=None, help="개념 묶기에 쓸 모델 (모듈:함수). 기본은 끔, 고장 나면 규칙으로 계속")
+    ap.add_argument("--llm", default="off", help="공부 노트·요약에 쓸 로컬 LLM (예: ollama:qwen3:4b). 기본은 끔, 끄면 출처 문장만 보여 준다")
     ap.add_argument("--once", action="store_true", help="한 번 색인하고 순위를 출력한 뒤 끝")
     ap.add_argument("--rebuild", action="store_true", help="색인을 지우고 처음부터 다시")
     ap.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)   # 서버가 띄우는 분석 프로세스
@@ -966,7 +1156,7 @@ def main():
         return
     con.close()
     print(f"인박스 {pathlib.Path(a.inbox).expanduser()} 을 뒤에서 색인합니다", flush=True)
-    st = State(a.db, a.inbox, roles, a.web, project, a.model, any_host=a.host not in LOCAL_HOSTS)
+    st = State(a.db, a.inbox, roles, a.web, project, a.model, any_host=a.host not in LOCAL_HOSTS, llm=a.llm)
     try:
         srv = make_server(st, a.host, a.port)
     except OSError:
@@ -977,6 +1167,8 @@ def main():
     threading.Thread(target=tail_loop, args=(st,), daemon=True).start()
     searx = None if a.searx.lower() == "off" else a.searx
     threading.Thread(target=note_loop, args=(st, lambda t, al=(), ctx=(): fetch_note(t, al, searx, ctx)), daemon=True).start()
+    if st.llm != "off":
+        threading.Thread(target=study_loop, args=(st,), daemon=True).start()
     print(f"열림: http://localhost:{srv.server_address[1]}  (끝내려면 Ctrl+C)", flush=True)
     try:
         srv.serve_forever()

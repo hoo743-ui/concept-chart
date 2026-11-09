@@ -3,6 +3,8 @@
 Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주고, 개념을 누르면 출처가 붙은 공부 노트로 펼쳐 주는 개인 학습 도구.
 이 저장소에는 모델 선택 시뮬레이터, Claude Code 입력 수집 키트, 결과 페이지가 들어 있다.
 
+> **프로토타입:** `python dev.py app` → http://localhost:8765. 기획 `docs/WORKSHEET.md`, 결정 근거 `docs/DECISION_LOG.md`, 화면·서버 계약 `docs/API.md`, 오류 방지 규칙 `docs/CONSTRAINTS.md`.
+>
 > 다른 PC에서 처음 받는다면 **[SETUP.md](SETUP.md)**, 복사해서 쓰는 명령만 보려면 **[docs/COMMANDS.md](docs/COMMANDS.md)**, 구조와 설계 이유는 **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 ## 빠른 시작

@@ -8,6 +8,9 @@
     python dev.py build          결과 → 페이지 데이터 → 결과 페이지 다시 만들기
     python dev.py sim            시뮬레이터 A·B·C 다시 실행 → build
     python dev.py serve          로컬 서버 http://localhost:8765 (인박스 → 순위·클릭 카드, kit/serve.py)
+    python dev.py app            프로토타입 켜기 (화면 + 서버 + 로컬 LLM) http://localhost:8765
+    python dev.py add            AI 답변 추가 (어떤-CLI | python dev.py add)
+    python dev.py import 파일    Claude 앱·ChatGPT 내보내기 가져오기
     python dev.py searx up       정의 검색용 SearXNG 켜기 (Docker 필요, http://localhost:8888). 끄기: searx down
 
 check·build·sim·serve는 concept-chart 환경을 켠 상태에서 실행한다.
@@ -19,6 +22,7 @@ import pathlib
 import platform
 import secrets
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -30,6 +34,7 @@ except Exception:
 
 ROOT = pathlib.Path(__file__).resolve().parent
 ENV_NAME = "concept-chart"
+LLM = "ollama:qwen3:4b"     # 비용 없는 로컬 LLM (Apache 2.0). 바꾸려면 --llm
 WIN = platform.system() == "Windows"
 
 
@@ -139,6 +144,39 @@ def serve(extra):
         return 0
 
 
+def port_open(port):
+    with socket.socket() as s:
+        s.settimeout(0.5)
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+def app(extra):
+    """프로토타입 한 번에 켜기: 화면(app/) + 서버 + 로컬 LLM(있으면). LLM이나 SearXNG가 없어도 그대로 켜진다"""
+    step("개념 차트 — 끝내려면 Ctrl+C")
+    args = ["--web", "app"]
+    if "--llm" not in extra:
+        ollama = shutil.which("ollama") or next((p for p in [pathlib.Path(os.environ.get("LOCALAPPDATA", "")) / "Programs/Ollama/ollama.exe"] if p.is_file()), None)
+        if ollama and not port_open(11434):
+            subprocess.Popen([str(ollama), "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            time.sleep(3)
+        args += ["--llm", LLM] if ollama else []
+        print(f"AI 요약: {LLM}" if ollama else "AI 요약: 꺼짐 (Ollama 없음). 출처 문장만 보여 줍니다")
+    if "--searx" not in extra and not port_open(8888):
+        args += ["--searx", "off"]
+    try:
+        return run([sys.executable, "kit/serve.py"] + args + extra)
+    except KeyboardInterrupt:
+        return 0
+
+
+def add(extra):
+    return run([sys.executable, "kit/concept_add.py", "text"] + extra)
+
+
+def import_chats(extra):
+    return run([sys.executable, "kit/concept_add.py", "import"] + extra)
+
+
 def searx(action):
     folder = ROOT / "kit" / "searxng"
     docker = shutil.which("docker")
@@ -160,15 +198,24 @@ def main():
     sub.add_parser("build", help="페이지 데이터·결과 페이지 다시 만들기")
     sub.add_parser("sim", help="시뮬레이터 다시 실행 + build")
     sub.add_parser("serve", help="로컬 서버 (뒤에 붙인 옵션은 kit/serve.py로 전달: --port, --once, --rebuild ...)")
+    sub.add_parser("app", help="프로토타입 켜기: 화면 + 서버 + 로컬 LLM (옵션은 kit/serve.py로 전달)")
+    sub.add_parser("add", help="AI 답변 추가: 어떤-CLI | python dev.py add, 또는 python dev.py add 파일")
+    sub.add_parser("import", help="Claude 앱·ChatGPT 내보내기 가져오기: python dev.py import conversations.json")
     s = sub.add_parser("searx", help="정의 검색용 SearXNG 켜기·끄기 (Docker 필요)")
     s.add_argument("action", choices=["up", "down"])
     a, extra = ap.parse_known_args()
-    if extra and a.cmd != "serve":
+    if extra and a.cmd not in ("serve", "app", "add", "import"):
         ap.error("알 수 없는 옵션: " + " ".join(extra))
     if a.cmd == "setup":
         rc = setup_venv() if a.venv else setup_conda()
     elif a.cmd == "serve":
         rc = serve(extra)
+    elif a.cmd == "app":
+        rc = app(extra)
+    elif a.cmd == "add":
+        rc = add(extra)
+    elif a.cmd == "import":
+        rc = import_chats(extra)
     elif a.cmd == "searx":
         rc = searx(a.action)
     else:

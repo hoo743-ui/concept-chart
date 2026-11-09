@@ -1,0 +1,2 @@
+epoch,train_loss,val_loss,val_ap,val_auc,val_hard_fp,val_cross_recall,sec
+1,0.3309,0.5428,0.7959,0.9228,0.6098,0.9623,83.1

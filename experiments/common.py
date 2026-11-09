@@ -91,6 +91,48 @@ def make_group_split(concepts, links, seed=42, ratio=(("train", 0.70), ("val", 0
     return out, groups
 
 
+def best_threshold(scores, labels):
+    """F1이 가장 큰 임계값 (검증 세트에서만 고른다)"""
+    from sklearn.metrics import f1_score
+    best, thr = -1.0, 0.5
+    for t in sorted(set(float(s) for s in scores)):
+        f = f1_score(labels, [s >= t for s in scores], zero_division=0)
+        if f > best:
+            best, thr = f, t
+    return thr
+
+
+def metrics(rows, scores, thr):
+    """시뮬레이터와 같은 지표: AUC, AP, F1·정밀도·재현율, 어려운 오답 오판율, 한↔영 재현율"""
+    from sklearn.metrics import average_precision_score, f1_score, precision_score, recall_score, roc_auc_score
+    y = [r["label"] for r in rows]
+    pred = [float(s) >= thr for s in scores]
+    hard = [p for p, r in zip(pred, rows) if r["kind"] == "hard"]
+    cross_hard = [p for p, r in zip(pred, rows) if r["source"] == "kowiki:similar-cross"]
+    cross = [p for p, r in zip(pred, rows) if r["label"] == 1 and cross_script(r["a"], r["b"])]
+    avg = lambda v: sum(v) / len(v) if v else None   # noqa: E731
+    return {"n": len(rows), "auc": roc_auc_score(y, scores), "ap": average_precision_score(y, scores), "f1": f1_score(y, pred, zero_division=0),
+            "precision": precision_score(y, pred, zero_division=0), "recall": recall_score(y, pred, zero_division=0), "threshold": thr,
+            "hard_fp": avg(hard), "cross_hard_fp": avg(cross_hard), "cross_recall": avg(cross)}
+
+
+LIVE = ROOT / "data" / "live.json"
+
+
+def write_live(**state):
+    """실시간 화면(experiments/live_view.py)용 현재 상태. 학습에 영향을 주지 않고, 실패해도 학습을 멈추지 않는다"""
+    try:
+        tmp = LIVE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(LIVE)
+    except OSError:
+        pass
+
+
+def load_split(path=SPLIT):
+    return json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+
+
 def part(rows, names):
     """두 개념이 모두 같은 세트에 있는 쌍만"""
     s = set(names)

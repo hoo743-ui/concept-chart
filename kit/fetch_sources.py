@@ -52,6 +52,38 @@ def wikipedia(term, lang="ko"):
     return [{"url": url, "text": j.get("extract", ""), "src": "wikipedia", "title": j.get("title", hits[1][0])}] if j.get("extract") else []
 
 
+TECH_PAREN = re.compile(r"\((?:[^()]*(?:컴퓨팅|컴퓨터|소프트웨어|프로그래밍|프로그램|버전 관리|기계 학습|통계학|운영 체제|데이터베이스|네트워크|인터넷|웹|자료 구조|computing|software|programming|computer|version control|machine learning|statistics|operating system|database|network)[^()]*)\)\s*$", re.I)
+
+
+def subject_ok(term, text):
+    """문장의 첫 언급이 다른 낱말에 붙은 꼴이면 거절: '이동 기준선 은 …'은 기준선의 설명이 아니다.
+    앞 낱말이 '에서·의·에' 같은 토씨로 끝나면 받는다 ('버전 관리 시스템에서 커밋은 …'). 한글 낱말만 본다."""
+    if not re.search(r"[가-힣]", term):
+        return True
+    m = re.search(re.escape(term).replace(r"\ ", r"\s*"), text or "")
+    if not m:
+        return True                                       # 다른 표기로 쓰인 문장은 여기서 판단하지 않는다
+    before = re.search(r"([가-힣]+)(\s*)$", text[:m.start()])
+    return not before or bool(re.search(r"(에서|에게|에는|에|의|로|으로|은|는|이|가|을|를|와|과)$", before.group(1)))
+
+
+def wikipedia_tech(term, lang="ko"):
+    """제목에 분야가 괄호로 붙은 문서: 커밋 → 커밋 (버전 관리). 괄호 앞이 낱말과 같고 괄호가 기술 분야일 때만 받는다.
+    낚시·기관처럼 다른 뜻의 문서를 받지 않으려고 다른 제목은 모두 버린다."""
+    key = re.sub(r"[\s\-_/]+", "", term.lower())
+    q = urllib.parse.quote(term)
+    hits = json.loads(_get(f"https://{lang}.wikipedia.org/w/api.php?action=opensearch&search={q}&limit=8&namespace=0&format=json"))
+    for title in hits[1]:
+        m = TECH_PAREN.search(title)
+        if not m or re.sub(r"[\s\-_/]+", "", title[:m.start()].lower()) != key:
+            continue
+        j = json.loads(_get(f"https://{lang}.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(title.replace(' ', '_'))}"))
+        if j.get("type") != "disambiguation" and j.get("extract"):
+            url = j.get("content_urls", {}).get("desktop", {}).get("page", "")
+            return [{"url": url, "text": j["extract"], "src": "wikipedia", "title": title}]
+    return []
+
+
 def searxng(term, base="http://localhost:8888", n=3, context=()):
     """context: 뜻을 가르려고 검색어에 함께 넣는 개념 이름 (torch → torch GPU 뜻)"""
     q = urllib.parse.quote(" ".join([term, *context, "뜻"]))

@@ -43,8 +43,14 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - serve 확장(0.3.1~0.3.6): 정의 수집(위키백과 → SearXNG, `kit/searxng/`), 화면은 한 줄 + "더 알아보기", 근거가 없으면 내 대화 문장, 질문 원문 저장·개념 연결(질문은 분석 안 함), 답변당 개념 1행, Kiwi 자식 프로세스 분리, 숫자·단위·주소 조각 제외, 작업 폴더별 보기(`--project`)
 - 사용자 흐름 데모 디자인(캔버스, 비공개): https://claude.ai/artifact/MrXdwFhQjyFokNCraw1Uz4
 
+- 공부 프로토타입(0.4.0, 사용자가 방향을 맡김 11-09): `python dev.py app`. 개념 관문(`kit/concept_gate.py`), 비용 없는 로컬 LLM(`kit/llm.py`, `qwen3:4b`), 별도 프로세스 모델 작업자(`kit/study_worker.py`), 근거 대조 통과 문장만 저장, 화면(`app/`)과 계약(`docs/API.md`) 분리, 입구 확장(`kit/concept_add.py`: 붙여넣기·파이프·내보내기 파일)
+- 표기 합치기 모델 실험 결론: 서비스에 켜지 않음 (`docs/DECISION_LOG.md` D1)
+
+읽을 것: `docs/WORKSHEET.md`(기획 5단계), `docs/DECISION_LOG.md`(결정 근거), `docs/CONSTRAINTS.md`(할루시네이션 방지 규칙, 새 기능은 이 규칙을 지킨다), `docs/API.md`(화면과 서버의 계약)
+
 다음 할 일 (합의된 순서)
-1. 웹 디자인 확정 (캔버스 기반). 데이터는 `/api/...`에서 받게 짜고(데모 모드 = 정적 JSON), `python dev.py serve --web <폴더>`로 띄운다.
+1. 사용자가 프로토타입을 확인한다. `data/eval/concept_sheet.csv`의 Claude 표시 정답을 검토하면 관문 수치를 다시 잰다.
+2. 디자인 확정, 설치 방식(플러그인 등) 확정은 그 뒤에 사용자 결정으로 진행한다.
 
 나중에 / 사용자 결정 필요
 - Gemini CLI·Codex CLI 입구(어댑터) 추가 — 범위 확장 포인트로만 둔 상태

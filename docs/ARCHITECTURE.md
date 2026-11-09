@@ -5,6 +5,14 @@
 
 ## 1. 구성 요소와 책임
 
+공부 기능의 구조·API는 `docs/API.md`, 기획은 `docs/WORKSHEET.md`, 규칙은 `docs/CONSTRAINTS.md`에 있다. 층은 세 개이고 서로의 내부를 모른다.
+
+- **화면 `app/`**: 서버와는 `app/api.js`만 통신한다. 서버 없이 `?demo=1`로도 돈다.
+- **서버 `kit/serve.py`·`study_api.py`·`concept_gate.py`**: API만 내준다. 화면 파일 이름을 모르고 모델을 불러오지 않는다.
+- **모델 `kit/study_worker.py`·`llm.py`**: 별도 프로세스. DB의 `jobs` 표로만 일을 받는다. 없거나 죽어도 서버와 화면은 응답한다. 판정·노트·진도 표(`judgments`, `study_notes`, `answer_summaries`, `progress`, `jobs`)는 색인을 다시 만들어도 남는다.
+
+입구 추가: `kit/concept_add.py`(붙여넣기·파이프·내보내기 파일)도 같은 인박스 형식을 쓴다.
+
 | 폴더 | 책임 | 들어오는 것 → 나가는 것 | 실행 |
 |---|---|---|---|
 | `kit/` | 실제 사용 코드 (입구·처리·저장·근거·검증) | Claude Code 훅 입력 → `~/.claude/concept-inbox.jsonl` → 카드·근거·검증 결과 | 사용자 PC |

@@ -1,0 +1,30 @@
+{
+ "지금 방식": {
+  "transl_auc": 0.692,
+  "transl_ap": 0.516,
+  "transl_recall": 0.789,
+  "rand_cross_fp": 0.436,
+  "hard_cross_fp": 0.786
+ },
+ "파인튜닝": {
+  "transl_auc": 0.878,
+  "transl_ap": 0.798,
+  "transl_recall": 0.741,
+  "rand_cross_fp": 0.037,
+  "hard_cross_fp": 0.403
+ },
+ "CNN": {
+  "transl_auc": 0.81,
+  "transl_ap": 0.662,
+  "transl_recall": 0.767,
+  "rand_cross_fp": 0.134,
+  "hard_cross_fp": 0.643
+ },
+ "BiLSTM": {
+  "transl_auc": 0.833,
+  "transl_ap": 0.669,
+  "transl_recall": 0.715,
+  "rand_cross_fp": 0.113,
+  "hard_cross_fp": 0.547
+ }
+}

@@ -43,12 +43,15 @@ def api(**p):
             time.sleep(wait)
 
 
-def crawl():
-    seen_cats, queue, pages = set(), [(c, 0) for c in ROOTS], {}
+def crawl(roots=ROOTS, max_depth=MAX_DEPTH, skip=SKIP_CATS, skip_re=None, max_pages=None):
+    seen_cats, queue, pages = set(), [(c, 0) for c in roots], {}
     while queue:
         cat, depth = queue.pop(0)
-        if cat in seen_cats or cat in SKIP_CATS:
+        if cat in seen_cats or cat in skip or (skip_re and skip_re.search(cat)):
             continue
+        if max_pages and len(pages) >= max_pages:
+            print(f"문서 {max_pages}개에 도달해 멈춤 (남은 분류 {len(queue)})", flush=True)
+            break
         seen_cats.add(cat)
         # 문서: 영어 링크 + 넘겨주기 (한 요청에 최대 50개, 부분 결과는 이어 받아 합친다)
         cont = {}
@@ -64,7 +67,7 @@ def crawl():
             if "continue" not in d:
                 break
             cont = d["continue"]
-        if depth < MAX_DEPTH:
+        if depth < max_depth:
             cont = {}
             while True:
                 d = api(action="query", list="categorymembers", cmtitle=cat, cmtype="subcat", cmlimit=200, **cont)

@@ -1,0 +1,14 @@
+{
+  "/api/health": {"llm": {"name": "demo", "available": false}, "jobs": {}, "study_worker": false, "turns": 2, "sessions": 1, "web": true},
+  "/api/study/today": {"project": null, "counts": {"shown": 2, "known": 0, "left": 2, "hidden": 5}, "items": [
+    {"id": "브랜치", "label": "브랜치", "rank": 1, "sessions": 1, "turns": 2, "last_seen": "2026-11-09T10:00:00+09:00", "gate": {"show": true, "candidate": false, "by": "terms", "rule": "likely"}, "progress": "new", "line": "데모용 예시 문장입니다. 실제 화면에서는 출처 문장이나 근거 대조를 통과한 요약이 나옵니다.", "line_kind": "source"},
+    {"id": "docker", "label": "Docker", "rank": 2, "sessions": 1, "turns": 1, "last_seen": "2026-11-09T10:00:00+09:00", "gate": {"show": true, "candidate": false, "by": "rule", "rule": "accept"}, "progress": "new", "line": null, "line_kind": "none"}
+  ]},
+  "/api/study/concepts": {"project": null, "n_sessions": 1, "total_words": 7, "items": [
+    {"id": "브랜치", "label": "브랜치", "rank": 1, "sessions": 1, "turns": 2, "last_seen": "2026-11-09T10:00:00+09:00", "gate": {"show": true, "candidate": false, "by": "terms", "rule": "likely"}, "progress": "new", "line": "데모용 예시 문장입니다.", "line_kind": "source"}
+  ]},
+  "/api/study/concept/브랜치": {"concept": "브랜치", "label": "브랜치", "summary": "데모용 예시 문장입니다.", "definition": "데모용 예시 문장입니다. 실제 화면에서는 출처 문장이 나옵니다.", "chat_line": null, "sources": [], "note_status": "ready", "related": [{"id": "docker", "label": "Docker"}], "records": [{"ts": "2026-11-09T10:00:00+09:00", "role": "assistant", "snippet": "데모용 답변 문장입니다.", "question": "데모용 질문입니다."}], "next_cursor": null, "gate": {"show": true, "candidate": false, "by": "terms", "rule": "likely"}, "progress": "new", "forms": ["브랜치"], "note": {"status": "none"}},
+  "/api/study/concept/docker": {"concept": "docker", "label": "Docker", "summary": null, "definition": null, "chat_line": null, "sources": [], "note_status": "none", "related": [], "records": [], "next_cursor": null, "gate": {"show": true, "candidate": false, "by": "rule", "rule": "accept"}, "progress": "new", "forms": ["Docker"], "note": {"status": "none"}},
+  "/api/answers": {"items": [{"id": "demo1", "session": "demo", "ts": "2026-11-09T10:00:00+09:00", "source": "paste", "preview": "데모용 AI 답변입니다. 브랜치를 만든 뒤 Docker로 실행합니다.", "chars": 30}]},
+  "/api/answers/demo1": {"id": "demo1", "session": "demo", "ts": "2026-11-09T10:00:00+09:00", "source": "paste", "text": "데모용 AI 답변입니다. 브랜치를 만든 뒤 Docker로 실행합니다.", "question": "데모용 질문입니다.", "terms": [{"id": "브랜치", "label": "브랜치", "forms": ["브랜치"]}, {"id": "docker", "label": "Docker", "forms": ["Docker"]}], "summary": {"status": "none"}}
+}

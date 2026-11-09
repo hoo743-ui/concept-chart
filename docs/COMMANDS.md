@@ -3,6 +3,34 @@
 설명은 `SETUP.md`(세팅)와 `docs/TRAINING.md`(학습)에 있다. 여기는 순서대로 복사해서 쓰는 명령만 모았다.
 `#` 뒤는 설명이다. Windows는 `python3` 대신 `python`, 1단계는 `SETUP.md`의 Windows 항목을 따른다.
 
+## 프로토타입 쓰기
+
+```bash
+python dev.py app                                  # 켜기 → http://localhost:8765 (끄기: Ctrl+C)
+```
+
+AI 답변을 넣는 방법:
+
+| 어디서 온 답변 | 방법 |
+|---|---|
+| Claude Code | 훅을 설치해 두면 자동 (`python kit/install_concept_hook.py`) |
+| Claude·ChatGPT 앱 한 건 | 화면 → 답변 읽기 → 붙여넣기 |
+| 다른 CLI·터미널 | `어떤-명령 \| python dev.py add --source 이름` |
+| 파일 | `python dev.py add 답변.txt` |
+| Windows 클립보드 | `Get-Clipboard \| python dev.py add` (PowerShell) |
+| Claude·ChatGPT 앱 전체 | 앱에서 데이터를 내보낸 뒤 `python dev.py import conversations.json` |
+
+AI 요약 없이 쓰려면 `python dev.py app --llm off`. 출처 문장만 보여 준다.
+
+로컬 LLM 설치·삭제:
+
+```bash
+winget install Ollama.Ollama          # Windows. Mac: brew install ollama
+ollama pull qwen3:4b                  # 약 2.5GB
+ollama rm qwen3:4b                    # 모델 지우기
+winget uninstall Ollama.Ollama        # Ollama 지우기
+```
+
 ## 0. 맨 처음 — 터미널에서 `#` 설명 켜기 (Mac 한 번)
 
 Mac 터미널(zsh)은 기본 설정에서 `#`를 설명으로 보지 않고 명령의 일부로 넘긴다. 이 두 줄을 **먼저 따로** 실행하면, 그다음부터 `#` 설명이 붙은 줄을 그대로 붙여넣어도 된다.

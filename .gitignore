@@ -35,3 +35,7 @@ models/
 *.onnx
 *.gguf
 .venv-ml/
+
+# 내 대화 낱말이 그대로 든 측정 결과·실행 기록 (수치는 docs/DECISION_LOG.md에)
+experiments/2026-11-09-concept-gate/*.json
+experiments/2026-11-09-b-finetune/*.log

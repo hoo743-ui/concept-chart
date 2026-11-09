@@ -199,6 +199,14 @@ def model_boundary():
     return f"{sum(l.startswith('[OK]') for l in out)}개 항목 (의존 방향·모델 고장 시 규칙으로 계속)"
 
 
+def study_features():
+    r = subprocess.run([sys.executable, str(ROOT / "tests" / "test_study.py")], capture_output=True, timeout=300)
+    out = r.stdout.decode("utf-8", "replace").strip().splitlines()
+    if r.returncode != 0:
+        raise RuntimeError(" / ".join(l for l in out if l.startswith("[FAIL]"))[:400] or (r.stderr.decode("utf-8", "replace")[-400:]))
+    return f"{sum(l.startswith('[OK]') for l in out)}개 항목 (개념 관문·거짓 방지·화면 독립·입구)"
+
+
 def hook_fixtures():
     r = subprocess.run([sys.executable, str(ROOT / "tests" / "test_hook.py")], capture_output=True, timeout=300)
     out = r.stdout.decode("utf-8", "replace").strip().splitlines()
@@ -247,6 +255,7 @@ if __name__ == "__main__":
     check("훅 어댑터 fixture (tests/test_hook.py)", hook_fixtures)
     check("로컬 서버 serve (tests/test_serve.py)", serve_api)
     check("백본과 모델의 경계 (tests/test_boundary.py)", model_boundary)
+    check("공부 기능 (tests/test_study.py)", study_features)
     check("페이지 데이터 재현 (make_page_data)", page_data)
     check("페이지 빌드 재현", page_build)
     check("페이지 자동 점검 도구 (선택)", node_jsdom, required=False)

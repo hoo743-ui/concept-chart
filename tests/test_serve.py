@@ -323,6 +323,7 @@ st.stop.set()
 
         # 위키백과 응답 흉내: 동음이의 문서 제외, 띄어쓰기만 다른 제목 허용, 다른 제목 거부 (네트워크 없음)
         import fetch_sources as fs
+        fs.wikipedia_tech = lambda term, lang="ko": []     # 네트워크 없이: 괄호 제목 찾기는 tests/test_study.py에서 따로 본다
         real_wiki = fs.wikipedia
         pages = {"파인튜닝": [{"url": "https://example.org/f", "text": "딥 러닝에서 파인 튜닝은 모델을 새로운 작업에 특화시키는 과정이다.", "title": "파인 튜닝", "src": "wikipedia"}],
                  "에이피": [{"url": "https://example.org/a", "text": "AP 통신은 미국의 통신사이다.", "title": "AP 통신", "src": "wikipedia"}]}
