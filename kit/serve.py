@@ -857,7 +857,7 @@ def tail_loop(st, interval=1.0, idle=WORKER_IDLE):
 
 
 MAX_POST = 256 * 1024          # 붙여넣기 등 요청 본문 상한 (바이트)
-WARM_TOP = 200                 # 뒤에서 미리 준비할 상위 개념 수. 30개만 준비하면 나머지는 처음 열 때까지 설명이 비어 있었다
+WARM_TOP = 50                  # 뒤에서 미리 준비할 상위 개념 수. 나머지는 열 때 준비한다 (개념 하나에 모델 약 12초: 많이 잡으면 GPU를 오래 쓴다)
 
 
 def study_get(st, con, path, q):
