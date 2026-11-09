@@ -199,7 +199,9 @@ st.stop.set()
     con = serve.open_db(db2)
     note = con.execute("SELECT definition FROM notes WHERE concept='lora'").fetchone()
     con.close()
-    ok("모델을 켜고 끄면 색인을 다시 만들고 결과가 원래대로", "새 턴 2개" in b and "새 턴 2개" in c and "2세션" in b and [l for l in a.splitlines()[1:]] == [l for l in c.splitlines()[1:]])
+    def ranks(out):                                         # 점수는 시간이 지나면 줄어든다. 몇 초 사이 반올림 경계를 넘으면 달라지므로 비교에서 뺀다 (0.8651 → 0.865)
+        return [re.sub(r"  \d+(\.\d+)?  ", "  ", l) for l in out.splitlines()[1:]]
+    ok("모델을 켜고 끄면 색인을 다시 만들고 결과가 원래대로", "새 턴 2개" in b and "새 턴 2개" in c and "2세션" in b and ranks(a) == ranks(c) and len(ranks(a)) > 0)
     ok("모델을 바꿔도 저장된 정의는 남음", note is not None and note[0] == "저장된 정의")
 
 

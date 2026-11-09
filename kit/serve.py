@@ -526,10 +526,13 @@ def fetch_note(term, aliases=(), searx=None, context=()):
         ev = [e for e in ev if str(e["url"]).startswith(("http://", "https://"))]   # 외부에서 온 링크: 화면에 넣기 전에 거른다
         ev = [e for e in ev if not hasattr(fs, "subject_ok") or fs.subject_ok(term, e["text"])]   # '이동 기준선은…'처럼 다른 낱말을 설명하는 문장은 받지 않는다
         return (ev[0]["text"], [{"text": e["text"], "url": e["url"]} for e in ev]) if ev else None
+    got = result(fs.wikipedia_lead(term))                  # 먼저 이름이 정확히 맞는 문서의 첫 문장 (문서 첫 문장이 곧 정의문이다)
+    if got:
+        return got
     for lang in NOTE_LANGS:
-        srcs = fs.wikipedia(term, lang)
-        # 띄어쓰기만 다른 문서 제목(파인튜닝 → 파인 튜닝)은 같은 개념의 표기로 본다. 다른 제목은 받지 않는다 (AP → AP 통신)
-        titles = [s["title"] for s in srcs if norm_key(s.get("title", "")) == norm_key(term)]
+        # 띄어쓰기만 다른 문서 제목(파인튜닝 → 파인 튜닝)은 같은 개념의 표기로 본다. 다른 제목의 문서는 문장을 고르지 않는다 (AP → AP 통신, Chrome → Chrome OS)
+        srcs = [s for s in fs.wikipedia(term, lang) if norm_key(s.get("title", "")) == norm_key(term)]
+        titles = [s["title"] for s in srcs]
         got = result(fs.pick(term, list(aliases) + titles, srcs))
         if got:
             return got
@@ -854,7 +857,7 @@ def tail_loop(st, interval=1.0, idle=WORKER_IDLE):
 
 
 MAX_POST = 256 * 1024          # 붙여넣기 등 요청 본문 상한 (바이트)
-WARM_TOP = 30                  # 뒤에서 미리 준비할 상위 개념 수
+WARM_TOP = 200                 # 뒤에서 미리 준비할 상위 개념 수. 30개만 준비하면 나머지는 처음 열 때까지 설명이 비어 있었다
 
 
 def study_get(st, con, path, q):

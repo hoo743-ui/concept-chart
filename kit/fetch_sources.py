@@ -1,9 +1,11 @@
 # fetch_sources.py : 개념 1개 → 근거 문장 최대 3개 + 출처 URL
 # 원칙: 캐시 먼저 → 무료·키 없는 위키백과 → (선택) 셀프호스팅 SearXNG 스니펫 → 그래도 부족할 때만 본문 1개 추출
 # 무거운 크롤링·WebSocket 없이 HTTP GET 몇 번으로 끝낸다. 결과는 SQLite에 30일 캐시.
-import json, re, sqlite3, time, urllib.parse, urllib.request
+import json, re, sqlite3, time, urllib.error, urllib.parse, urllib.request
 
 UA = "concept-chart/0.1 (personal study tool)"
+MIN_GAP = 1.5                                             # 같은 사이트 호출 간격 (초). 1초 간격은 위키백과가 429로 막는 것을 확인했다
+MAX_RETRY_WAIT = 60
 TTL = 30 * 86400
 MAX_SENT, MAX_CHARS = 3, 600
 DEF_END = re.compile(r"(것|방법|기법|현상|과정|구조|모델|알고리즘|지표|단위|함수|값|메커니즘|플랫폼|방식|표현|비율|신경망|기술|도구)[을를]?\s*(말한다|뜻한다|가리킨다|의미한다|이다|다)[.]?\s*$")
@@ -14,13 +16,20 @@ _last = {}
 
 def _get(url, timeout=6, max_bytes=400_000):
     host = urllib.parse.urlparse(url).netloc
-    wait = 1.0 - (time.time() - _last.get(host, 0))      # 같은 사이트는 1초에 1번
-    if wait > 0:
-        time.sleep(wait)
-    _last[host] = time.time()
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read(max_bytes).decode("utf-8", errors="replace")
+    for retry in (True, False):
+        wait = MIN_GAP - (time.time() - _last.get(host, 0))
+        if wait > 0:
+            time.sleep(wait)
+        _last[host] = time.time()
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read(max_bytes).decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or not retry:
+                raise
+            after = str(e.headers.get("Retry-After") or "")      # 너무 많이 불렀다: 사이트가 말한 만큼 쉬고 한 번만 다시 시도한다
+            time.sleep(min(int(after) if after.isdigit() else 30, MAX_RETRY_WAIT))
 
 
 def open_cache(path="concept_cache.sqlite"):
@@ -52,7 +61,7 @@ def wikipedia(term, lang="ko"):
     return [{"url": url, "text": j.get("extract", ""), "src": "wikipedia", "title": j.get("title", hits[1][0])}] if j.get("extract") else []
 
 
-TECH_PAREN = re.compile(r"\((?:[^()]*(?:컴퓨팅|컴퓨터|소프트웨어|프로그래밍|프로그램|버전 관리|기계 학습|통계학|운영 체제|데이터베이스|네트워크|인터넷|웹|자료 구조|computing|software|programming|computer|version control|machine learning|statistics|operating system|database|network)[^()]*)\)\s*$", re.I)
+TECH_PAREN = re.compile(r"\((?:[^()]*(?:컴퓨팅|컴퓨터|소프트웨어|프로그래밍|프로그램|버전 관리|기계 학습|통계학|운영 체제|데이터베이스|네트워크|인터넷|웹|자료 구조|가상화|인공지능|computing|software|programming|computer|version control|machine learning|statistics|operating system|database|network|virtualization)[^()]*)\)\s*$", re.I)
 
 
 def subject_ok(term, text):
@@ -81,6 +90,66 @@ def wikipedia_tech(term, lang="ko"):
         if j.get("type") != "disambiguation" and j.get("extract"):
             url = j.get("content_urls", {}).get("desktop", {}).get("page", "")
             return [{"url": url, "text": j["extract"], "src": "wikipedia", "title": title}]
+    return []
+
+
+def wikipedia_exact(term, lang="ko"):
+    """이름과 정확히 같은 문서 또는 위키백과 편집자가 만든 넘겨주기(GPU → 그래픽 처리 장치). 검색이 아니라서 비슷한 제목이 끌려오지 않는다"""
+    try:
+        j = json.loads(_get(f"https://{lang}.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(term.replace(' ', '_'), safe='')}"))
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return []
+        raise
+    if j.get("type") == "disambiguation" or not j.get("extract"):
+        return []
+    return [{"url": j.get("content_urls", {}).get("desktop", {}).get("page", ""), "text": j["extract"], "src": "wikipedia", "title": j.get("title", term)}]
+
+
+def korean_version(en_title):
+    """영어 문서와 언어 연결된 한국어 문서의 제목 (Git → 깃 (소프트웨어)). 없으면 None"""
+    q = urllib.parse.quote(en_title)
+    j = json.loads(_get(f"https://en.wikipedia.org/w/api.php?action=query&prop=langlinks&lllang=ko&redirects=1&format=json&titles={q}"))
+    for page in j.get("query", {}).get("pages", {}).values():
+        for link in page.get("langlinks", []):
+            return link.get("*")
+    return None
+
+
+NOT_DEFINITION = re.compile(r"(다음을 가리킨다|다음과 같은 뜻|may refer to|can refer to)")
+
+
+def lead_sents(src):
+    """위키백과 문서의 맨 앞 문장들을 순서 그대로. 문서 첫 문장이 곧 정의문이다.
+    낱말이 든 문장만 고르면 '그래픽 처리 장치는 …'이 버려지고 'GPU는 점점 더 많이 쓰인다'가 남는다"""
+    sents = split_sents(src["text"])
+    if not sents or NOT_DEFINITION.search(sents[0]):
+        return []
+    out, used = [], 0
+    for s in sents[:MAX_SENT]:
+        if used + len(s) > MAX_CHARS and out:
+            break
+        out.append({"text": s, "url": src["url"]})
+        used += len(s)
+    return out
+
+
+def wikipedia_lead(term):
+    """개념 이름 → 정의 문장들. 기술 문서를 먼저 본다: 함수 → 함수 (컴퓨터 과학)가 있으면 수학의 함수보다 앞선다.
+    영어 문서만 맞으면 언어 연결로 한국어 문서를 찾아 쓴다. 찾지 못하면 빈 목록 (검색 단계로 넘어간다)"""
+    for src in wikipedia_tech(term, "ko") or wikipedia_exact(term, "ko"):
+        got = lead_sents(src)
+        if got:
+            return got
+    for src in wikipedia_tech(term, "en") or wikipedia_exact(term, "en"):
+        ko_title = korean_version(src["title"])
+        for ko in wikipedia_exact(ko_title, "ko") if ko_title else []:
+            got = lead_sents(ko)
+            if got:
+                return got
+        got = lead_sents(src)
+        if got:
+            return got
     return []
 
 

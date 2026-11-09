@@ -324,13 +324,16 @@ st.stop.set()
         # 위키백과 응답 흉내: 동음이의 문서 제외, 띄어쓰기만 다른 제목 허용, 다른 제목 거부 (네트워크 없음)
         import fetch_sources as fs
         fs.wikipedia_tech = lambda term, lang="ko": []     # 네트워크 없이: 괄호 제목 찾기는 tests/test_study.py에서 따로 본다
+        fs.wikipedia_lead = lambda term: []                # 정확한 이름 찾기도 tests/test_study.py에서 따로 본다
         real_wiki = fs.wikipedia
         pages = {"파인튜닝": [{"url": "https://example.org/f", "text": "딥 러닝에서 파인 튜닝은 모델을 새로운 작업에 특화시키는 과정이다.", "title": "파인 튜닝", "src": "wikipedia"}],
+                 "Chrome": [{"url": "https://example.org/c", "text": "Chrome OS는 구글이 설계한 운영 체제이다.", "title": "Chrome OS", "src": "wikipedia"}],
                  "에이피": [{"url": "https://example.org/a", "text": "AP 통신은 미국의 통신사이다.", "title": "AP 통신", "src": "wikipedia"}]}
         fs.wikipedia = lambda term, lang="ko": pages.get(term, []) if lang == "ko" else []
         try:
             d, s = serve.fetch_note("파인튜닝")
             ok("띄어쓰기만 다른 문서 제목은 받음", "파인 튜닝" in d and len(s) == 1, d)
+            ok("낱말이 들어 있어도 제목이 다르면 받지 않음", serve.fetch_note("Chrome") == ("", []))
             d, s = serve.fetch_note("에이피")
             ok("이름이 다른 문서는 받지 않음", d == "" and s == [], d)
             d, s = serve.fetch_note("없는말")

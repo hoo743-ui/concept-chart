@@ -122,6 +122,27 @@ def check_grounding(tmp):
     ok("다른 낱말 설명은 거절: 이동 기준선", not fs.subject_ok("기준선", "이동 기준선 은 일반적으로 시스템을 측정한다."))
     ok("분야 앞말은 허용: 시스템에서 커밋", fs.subject_ok("커밋", "버전 관리 시스템에서 커밋은 변경을 기록한다."))
     ok("문장 시작 낱말은 허용", fs.subject_ok("함수", "함수는 입력을 받아 출력한다."))
+    # 출처 고르기: 실제로 나온 오류를 고정한다. 'GPU는 점점 더 많이 쓰인다'처럼 뜻을 말하지 않는 문장이 정의 자리에 들어갔다
+    page = lambda title, text: {"url": "https://example.org/" + title, "text": text, "src": "wikipedia", "title": title}
+    gpu = page("그래픽 처리 장치", "그래픽 처리 장치는 컴퓨터 그래픽스 가속을 위해 설계된 전자 회로이다. GPU는 인공지능 처리 용도로도 점점 더 많이 사용되고 있다.")
+    ok("문서 첫 문장을 정의로", fs.lead_sents(gpu)[0]["text"].startswith("그래픽 처리 장치는"))
+    ok("동음이의 안내문은 정의가 아님", fs.lead_sents(page("Git", "Git 또는 GIT는 다음을 가리킨다. 분산 버전 관리 시스템이다.")) == [])
+    saved = fs.wikipedia_tech, fs.wikipedia_exact, fs.korean_version
+    try:
+        fs.wikipedia_tech = lambda t, lang="ko": [page("함수 (컴퓨터 과학)", "함수는 어떤 일을 수행하는 코드의 묶음이다.")] if (t, lang) == ("함수", "ko") else []
+        fs.wikipedia_exact = lambda t, lang="ko": {("함수", "ko"): [page("함수", "수학에서 함수는 원소를 대응시키는 것이다.")],
+                                                   ("GPU", "ko"): [gpu],
+                                                   ("Git", "en"): [page("Git", "Git is a distributed version control system.")],
+                                                   ("깃 (소프트웨어)", "ko"): [page("깃 (소프트웨어)", "깃은 분산 버전 관리 시스템이다.")],
+                                                   ("SearXNG", "en"): [page("SearXNG", "SearXNG is a metasearch engine forked from searX.")]}.get((t, lang), [])
+        fs.korean_version = lambda title: "깃 (소프트웨어)" if title == "Git" else None
+        ok("기술 문서가 일반 문서보다 먼저", "코드의 묶음" in fs.wikipedia_lead("함수")[0]["text"])
+        ok("넘겨주기로 찾은 문서의 정의", fs.wikipedia_lead("GPU")[0]["text"].startswith("그래픽 처리 장치는"))
+        ok("영어 문서만 맞으면 한국어 문서를 찾아 씀", fs.wikipedia_lead("Git")[0]["text"].startswith("깃은"))
+        ok("한국어 문서가 없으면 영어 문장", fs.wikipedia_lead("SearXNG")[0]["text"].startswith("SearXNG is"))
+        ok("맞는 문서가 없으면 빈 목록", fs.wikipedia_lead("없는말") == [])
+    finally:
+        fs.wikipedia_tech, fs.wikipedia_exact, fs.korean_version = saved
     ok("마크다운·인라인 코드를 살린 문장", serve.extract("**핵심:** `main`에 커밋합니다.")[0][0] == "핵심: main에 커밋합니다.", str(serve.extract("**핵심:** `main`에 커밋합니다.")[0][0]))
     ok("표 줄은 칸으로 나눔", serve.plain_line("| 커밋 | 저장 |") == "커밋 · 저장" and serve.plain_line("|---|---|") == "")
     ok("도구 알림은 내 질문이 아님", bool(serve.SYSTEM_MSG.match("<task-notification>x")) and not serve.SYSTEM_MSG.match("커밋이 뭐야?"))
