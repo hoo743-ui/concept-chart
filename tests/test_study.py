@@ -130,6 +130,8 @@ def check_grounding(tmp):
     gpu = page("그래픽 처리 장치", "그래픽 처리 장치는 컴퓨터 그래픽스 가속을 위해 설계된 전자 회로이다. GPU는 인공지능 처리 용도로도 점점 더 많이 사용되고 있다.")
     ok("문서 첫 문장을 정의로", fs.lead_sents(gpu)[0]["text"].startswith("그래픽 처리 장치는"))
     ok("동음이의 안내문은 정의가 아님", fs.lead_sents(page("Git", "Git 또는 GIT는 다음을 가리킨다. 분산 버전 관리 시스템이다.")) == [])
+    ok("분야 괄호: 셸·AI는 기술", all(fs.TECH_PAREN.search(t) for t in ("Bash (Unix shell)", "Claude (AI)")))
+    ok("분야 괄호: 낱말 일부는 아님", not any(fs.TECH_PAREN.search(t) for t in ("Thai (Thailand)", "Sea (seashell)", "Host (패러다이스 로스트의 음반)")))
     saved = fs.wikipedia_tech, fs.wikipedia_exact, fs.korean_version
     try:
         fs.wikipedia_tech = lambda t, lang="ko": [page("함수 (컴퓨터 과학)", "함수는 어떤 일을 수행하는 코드의 묶음이다.")] if (t, lang) == ("함수", "ko") else []
