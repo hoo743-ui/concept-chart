@@ -21,5 +21,8 @@ korean_romanizer==0.28.0
 RapidFuzz==3.14.6
 rank-bm25==0.2.2
 
+# 분야 사전 만들기 (python dev.py lexicon — 우리말샘 parquet 읽기)
+pyarrow==26.0.1
+
 # 웹 본문 추출 (kit/fetch_sources.py의 마지막 단계에서만 사용)
 trafilatura==2.3.1

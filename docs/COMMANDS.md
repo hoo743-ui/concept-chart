@@ -22,6 +22,12 @@ AI 답변을 넣는 방법:
 
 AI 요약 없이 쓰려면 `python dev.py app --llm off`. 출처 문장만 보여 준다.
 
+분야 사전(경제·의학·법 등 개발 밖 분야의 개념을 가르는 데 씀, 한 번만):
+
+```bash
+python dev.py lexicon                 # 우리말샘 약 200MB 받기 → kit/data/lexicon/lexicon.sqlite (20MB). 없으면 사전 없이 동작
+```
+
 로컬 LLM 설치·삭제:
 
 ```bash

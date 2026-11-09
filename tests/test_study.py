@@ -54,6 +54,38 @@ def check_gate():
     ok("LLM이 없으면 사전만으로 공부 목록에 넣지 않음", gate.final("likely", None) == "candidate")
     ok("사전과 LLM이 엇갈리면 숨김", gate.final("likely", False) == "hide")
     ok("사전과 LLM이 함께 인정하면 보여 줌", gate.final("likely", True) == "show")
+    ok("LLM + 이름이 맞는 위키백과 문서면 보여 줌", gate.final("unknown", True, True) == "show")
+
+
+def check_lexicon():
+    """분야 사전(우리말샘 등)을 합쳐 읽고, 전문 뜻만 / 섞임 / 일상 뜻만으로 가른다. 임시 사전으로만 시험한다 (CI에는 사전 파일이 없다)"""
+    d = pathlib.Path(tempfile.mkdtemp())
+    try:
+        (d / "a.tsv").write_text("# 머리말\n삼투압\t삼투압\t1\t0\t물리\n변이\t변이\t2\t0\t생명\n통과\t통과\t0\t5\t\n", encoding="utf-8")
+        (d / "b.tsv").write_text("변이\t변이\t0\t3\t\n", encoding="utf-8")       # 두 번째 사전이 일상 뜻을 더한다
+        gate.load_lexicons(d)
+        ok("전문 뜻만 있는 낱말", gate.lexicon_verdict("삼투압") == "special")
+        ok("사전을 합치면 뜻 수를 더한다 (변이 → 섞임)", gate.lexicon_verdict("변이") == "mixed")
+        ok("일상 뜻만 있는 낱말", gate.lexicon_verdict("통과") == "general")
+        ok("사전에 없는 낱말", gate.lexicon_verdict("리베이스") is None)
+        ok("전문 뜻만 + LLM 인정이면 보여 줌", gate.final("unknown", True, None, "special") == "show")
+        ok("일상 뜻도 있으면 LLM이 인정해도 후보까지만", gate.final("unknown", True, True, "mixed") == "candidate")
+        ok("일상 뜻만 있으면 숨김", gate.final("unknown", True, True, "general") == "hide")
+        ok("규칙이 확신하면 사전과 상관없이 보여 줌", gate.final("accept", None, None, "general") == "show")
+        ok("AI 없음: 전문 뜻만 + 위키백과 문서면 보여 줌", gate.final_no_ai("unknown", True, "special") == "show")
+        ok("AI 없음: 전문 뜻만이어도 문서가 없으면 후보", gate.final_no_ai("unknown", False, "special") == "candidate")
+        ok("AI 없음: 사전에 없는 낱말은 숨김", gate.final_no_ai("unknown", True, None) == "hide")
+        con = sqlite3.connect(":memory:")
+        con.execute("CREATE TABLE notes (concept TEXT PRIMARY KEY, definition TEXT, sources TEXT, updated TEXT)")
+        con.execute("INSERT INTO notes VALUES ('a','정의','[{\"text\":\"정의\",\"url\":\"https://ko.wikipedia.org/wiki/A\"}]','')")
+        con.execute("INSERT INTO notes VALUES ('b','정의','[{\"text\":\"정의\",\"url\":\"https://blog.example.com/b\"}]','')")
+        con.execute("INSERT INTO notes VALUES ('c','','[]','')")
+        ok("위키백과 출처는 두 번째 근거", study_api.sourced(con, "a"))
+        ok("검색(SearXNG) 출처는 근거가 아님", not study_api.sourced(con, "b"))
+        ok("정의가 없으면 근거가 아님", not study_api.sourced(con, "c") and not study_api.sourced(con, "zz"))
+    finally:
+        gate.load_lexicons(d / "없음")                       # 다른 시험에는 사전 없이
+        shutil.rmtree(d, ignore_errors=True)
 
 
 class FakeLLM:
@@ -305,8 +337,11 @@ def check_server(tmp):
 
 def main():
     tmp = pathlib.Path(tempfile.mkdtemp())
+    os.environ["CONCEPT_CHART_LEXICON"] = str(tmp / "no-lexicon")   # 개발 PC에 사전이 있어도 CI와 같게 (띄우는 서버에도 전해진다)
+    gate.load_lexicons(tmp / "no-lexicon")
     try:
         check_gate()
+        check_lexicon()
         check_grounding(tmp)
         check_llm_slot()
         check_inputs(tmp)

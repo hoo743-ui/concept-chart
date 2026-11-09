@@ -36,6 +36,11 @@ models/
 *.gguf
 .venv-ml/
 
+# 분야 사전 (파생 자료, 35MB — python dev.py lexicon 으로 만든다. 출처·라이선스는 experiments/DATA.md)
+kit/data/lexicon/
+
 # 내 대화 낱말이 그대로 든 측정 결과·실행 기록 (수치는 docs/DECISION_LOG.md에)
 experiments/2026-11-09-concept-gate/*.json
+experiments/2026-11-10-general-gate/rounds.json
+experiments/2026-11-10-general-gate/dashboard.html
 experiments/2026-11-09-b-finetune/*.log

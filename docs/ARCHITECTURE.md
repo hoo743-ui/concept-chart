@@ -27,6 +27,7 @@
 - `web/build_page.py` → `kit/*.py`(글자 그대로 읽기), `sim/results/page_data.json` — 둘 다 읽기만 한다.
 - `sim/make_page_data.py` → `sim/concepts.py`, `sim/pipeline.py`, `sim/results/*` — `kit/`를 import하지 않는다.
 - `kit/` → 다른 폴더에 의존하지 않는다 (사용자 PC에 파일 하나씩 복사해도 돌아가야 함). 특히 훅 설치기는 파일 하나로 완결된다.
+- `lexicons/`(분야 사전 변환기: 원본 받기·해시 확인·변환) → `kit/concept_gate.py`를 읽기만 하고, 결과를 `kit/data/lexicon/lexicon.sqlite`(git 제외, `python dev.py lexicon`)에 쓴다. `kit/`는 그 파일만 읽고 `lexicons/`를 import하지 않는다. 파일이 없으면 관문은 분야 사전 없이 동작한다.
 - `experiments/`(학습 실험, 첫 실험 때 생김) → `sim/`·`kit/`를 읽기만 한다. 아무것도 `experiments/`를 import하지 않는다. 데이터는 `data/`(git 제외), 규칙은 `docs/TRAINING.md`.
 
 ## 2. 데이터 계약

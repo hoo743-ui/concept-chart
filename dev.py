@@ -201,6 +201,7 @@ def main():
     sub.add_parser("app", help="프로토타입 켜기: 화면 + 서버 + 로컬 LLM (옵션은 kit/serve.py로 전달)")
     sub.add_parser("add", help="AI 답변 추가: 어떤-CLI | python dev.py add, 또는 python dev.py add 파일")
     sub.add_parser("import", help="Claude 앱·ChatGPT 내보내기 가져오기: python dev.py import conversations.json")
+    sub.add_parser("lexicon", help="분야 사전 받기·만들기 → kit/data/lexicon/ (우리말샘 약 200MB, pyarrow 필요)")
     s = sub.add_parser("searx", help="정의 검색용 SearXNG 켜기·끄기 (Docker 필요)")
     s.add_argument("action", choices=["up", "down"])
     a, extra = ap.parse_known_args()
@@ -218,6 +219,9 @@ def main():
         rc = import_chats(extra)
     elif a.cmd == "searx":
         rc = searx(a.action)
+    elif a.cmd == "lexicon":
+        step("분야 사전 (lexicons/build.py)")
+        rc = run([sys.executable, "lexicons/build.py"])
     else:
         rc = {"check": check, "build": build, "sim": sim}[a.cmd]()
     sys.exit(rc)

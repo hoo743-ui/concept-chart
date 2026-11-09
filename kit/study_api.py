@@ -22,15 +22,35 @@ def answer_id(session, ts):
     return hashlib.sha1(f"{session}|{ts}".encode("utf-8")).hexdigest()[:16]
 
 
+AI = True          # 서버가 --llm off로 켜지면 False: AI 없는 판정(concept_gate.final_no_ai)을 쓴다
+
+
+def sourced(con, cid):
+    """이름이 맞는 위키백과 문서에서 정의를 찾았는가 (관문의 두 번째 근거). 검색(SearXNG) 결과는 근거로 치지 않는다"""
+    row = con.execute("SELECT definition, sources FROM notes WHERE concept=?", (cid,)).fetchone()
+    if not (row and row[0] and row[1]):
+        return False
+    try:
+        return any("wikipedia.org/" in str(s.get("url", "")) for s in json.loads(row[1]))
+    except (ValueError, AttributeError):
+        return False
+
+
 def gate_of(con, cid, label):
     row = con.execute("SELECT llm, user FROM judgments WHERE concept=?", (cid,)).fetchone()
     llm, user = (row[0], row[1]) if row else (None, None)
     rule = gate.rule_verdict(label)
     if user in ("concept", "not_concept"):
         return {"show": user == "concept", "candidate": False, "by": "user", "rule": rule}
-    verdict = gate.final(rule, None if llm is None else bool(llm))
-    by = "rule" if rule in ("accept", "reject") else "llm" if llm is not None else "terms" if rule == "likely" else "unjudged"
-    return {"show": verdict == "show", "candidate": verdict == "candidate", "by": by, "rule": rule}
+    lex = gate.lexicon_verdict(label)
+    src = sourced(con, cid) if rule == "unknown" and lex not in ("general", "mixed") else False
+    if AI:
+        verdict = gate.final(rule, None if llm is None else bool(llm), src, lex)
+    else:
+        verdict = gate.final_no_ai(rule, src, lex)
+    by = ("rule" if rule in ("accept", "reject") else "lexicon" if rule == "unknown" and lex in ("general", "mixed") and llm is None
+          else "llm" if llm is not None else "terms" if rule == "likely" else "unjudged")
+    return {"show": verdict == "show", "candidate": verdict == "candidate", "by": by, "rule": rule, "lexicon": lex}
 
 
 def progress_of(con, cid):

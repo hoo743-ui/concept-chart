@@ -927,21 +927,36 @@ def study_post(st, con, path, body):
     return None
 
 
-def warm_targets(con):
-    """뒤에서 준비할 것: 사전으로 못 가른 낱말 판정 → 상위 개념의 정의·노트 (작업자가 하나씩 처리)"""
+CHECK_TOP = 30                 # 한 번에 위키백과 문서를 확인할 낱말 수 (관문의 두 번째 근거). 수집 일꾼이 하나씩, 사이트 규칙대로 천천히
+
+
+def warm_targets(con, ai=True):
+    """뒤에서 준비할 것: 사전으로 못 가른 낱말 판정 → 두 번째 근거(위키백과 문서) 확인 → 상위 개념의 정의·노트 (작업자가 하나씩 처리).
+    분야 사전에 일상 뜻이 있는 낱말은 묻지도 찾지도 않는다 (어차피 공부 목록에 들어가지 않는다)"""
     import concept_gate as gate
     import study_api as api
+    check = []
     for x in leaderboard(con, k=100000)["items"]:
+        rule, lex = gate.rule_verdict(x["label"]), gate.lexicon_verdict(x["label"])
+        if rule == "unknown" and lex in ("general", "mixed") and not ai:
+            continue
         row = con.execute("SELECT llm, user FROM judgments WHERE concept=?", (x["id"],)).fetchone()
-        if gate.rule_verdict(x["label"]) in ("likely", "unknown") and not (row and (row[0] is not None or row[1])):
-            api.enqueue(con, "judge", x["id"], 8)
+        if row and row[1]:
+            continue
+        if ai and rule == "likely" or (ai and rule == "unknown" and lex != "general"):
+            if not (row and row[0] is not None):
+                api.enqueue(con, "judge", x["id"], 8)
+        wants_source = rule == "unknown" and lex in (None, "special") and (lex == "special" if not ai else bool(row and row[0]))
+        if wants_source and len(check) < CHECK_TOP and not con.execute("SELECT 1 FROM notes WHERE concept=?", (x["id"],)).fetchone():
+            check.append(x["id"])
     shown = api.concepts(con, leaderboard, "show", WARM_TOP)["items"]
-    return [x["id"] for x in shown]
+    return check + [x["id"] for x in shown]
 
 
 def study_loop(st, interval=5.0):
     """모델 작업자 관리: 할 일이 있을 때만 별도 프로세스를 띄운다. LLM이 없거나 작업자가 죽어도 서버는 그대로"""
     con = open_db(st.db)
+    ai = st.llm != "off"                                    # AI가 꺼져 있으면 정의 확인만 하고 모델 작업자는 띄우지 않는다
     last_warm, backoff_until, seen_version = 0.0, 0.0, -1
     while not st.stop.is_set():
         try:
@@ -949,11 +964,15 @@ def study_loop(st, interval=5.0):
             if now - last_warm > 120 or (st.version != seen_version and now - last_warm > 15):   # 새 기록이 오면 곧바로 준비한다
                 last_warm, seen_version = now, st.version
                 import study_api as api
-                for cid in warm_targets(con):
+                for cid in warm_targets(con, ai):
                     note_status(st, con, cid)               # 정의 수집 예약 (이미 있으면 그대로)
                     has_def = con.execute("SELECT 1 FROM notes WHERE concept=? AND definition<>''", (cid,)).fetchone()
-                    if has_def and not con.execute("SELECT 1 FROM study_notes WHERE concept=?", (cid,)).fetchone():
+                    if ai and has_def and not con.execute("SELECT 1 FROM study_notes WHERE concept=?", (cid,)).fetchone():
                         api.enqueue(con, "note", cid, 5)
+            if not ai:
+                st.wake.wait(interval)
+                st.wake.clear()
+                continue
             pending = con.execute("SELECT COUNT(*) FROM jobs WHERE status='queued'").fetchone()[0]
             if pending and st.study_proc is None and now >= backoff_until:
                 st.study_proc = subprocess.Popen([sys.executable, str(pathlib.Path(__file__).with_name("study_worker.py")), "--db", str(pathlib.Path(st.db).expanduser()), "--llm", st.llm],
@@ -1170,8 +1189,9 @@ def main():
     threading.Thread(target=tail_loop, args=(st,), daemon=True).start()
     searx = None if a.searx.lower() == "off" else a.searx
     threading.Thread(target=note_loop, args=(st, lambda t, al=(), ctx=(): fetch_note(t, al, searx, ctx)), daemon=True).start()
-    if st.llm != "off":
-        threading.Thread(target=study_loop, args=(st,), daemon=True).start()
+    import study_api
+    study_api.AI = st.llm != "off"                         # AI가 없으면 관문은 규칙·사전·위키백과만으로 판정한다
+    threading.Thread(target=study_loop, args=(st,), daemon=True).start()
     print(f"열림: http://localhost:{srv.server_address[1]}  (끝내려면 Ctrl+C)", flush=True)
     try:
         srv.serve_forever()
