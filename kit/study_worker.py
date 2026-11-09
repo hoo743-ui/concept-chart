@@ -100,7 +100,7 @@ def source_of(con, cid):
 
 def sense_prompt(label, definition):
     """개념은 이미 기술 용어로 판정됐다. 출처가 기술 분야를 설명하는지만 본다"""
-    return f"""아래 설명문은 어느 분야의 내용인가? 낱말 '{label}'이 컴퓨터, 프로그래밍, 소프트웨어, 인터넷, 인공지능, 데이터, 통계, 전자기기와 관련된 뜻으로 설명되면 "{TECH}"를 고른다. 동물, 음식, 음악, 의학, 건설, 스포츠, 지리, 금융, 미술, 언론처럼 그 밖의 뜻이면 "다른 분야"를 고른다.
+    return f"""아래 설명문은 어느 분야의 내용인가? 낱말 '{label}'이 컴퓨터, 프로그래밍, 소프트웨어, 인터넷, 인공지능, 데이터, 통계, 전자기기와 관련된 뜻으로 설명되면 "{TECH}"를 고른다. 동물, 음식, 음악, 의학, 건설, 스포츠, 지리, 금융, 미술, 언론, 기계·자동차, 대학·학교처럼 그 밖의 뜻이면 "다른 분야"를 고른다.
 설명문: {definition[:600]}
 JSON으로만 답한다."""
 
@@ -150,6 +150,9 @@ def noun_tokens(text):
     return {t.form.lower() for t in v.kiwi.tokenize(text) if t.tag in ("NNG", "NNP", "NR", "SN", "SL", "SH")}
 
 
+BROKEN_END = re.compile(r"(다|요)입니다")
+
+
 def strict_ok(claim, sentence):
     """명사·숫자·영문이 근거 한 문장에 모두 있는가. 깨진 낱말(마이크로소과프트)과 없는 사실이 여기서 걸린다"""
     src = re.sub(r"\s+", "", sentence).lower()
@@ -158,6 +161,10 @@ def strict_ok(claim, sentence):
 
     def ok(n):                                              # 붙여 쓴 복합어(파인 튜닝 → 파인튜닝)는 허용하되, 낱말의 앞부분만 맞는 경우(스크립트 → 스크립)는 거절
         return n in src_nouns or (n in src and not any(s != n and s.startswith(n) for s in src_nouns))
+    if not set(re.findall(r"\d+", claim)) <= set(re.findall(r"\d+", sentence)):
+        return False                                        # 원문에 없는 숫자 ('리눅스 운영체제는 1: 1991년')
+    if BROKEN_END.search(claim):
+        return False                                        # 어미가 겹친 문장 ('일컫는다입니다')
     return bool(nouns) and all(ok(n) for n in nouns)
 
 
