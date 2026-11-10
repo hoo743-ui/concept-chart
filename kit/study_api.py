@@ -218,6 +218,30 @@ def answer_detail(con, aid):
             "summary": dict(json.loads(s[0]) if s[0] else {}, status=s[1], model=s[2]) if s else {"status": "none"}}
 
 
+VIEWS_KEEP = 5000              # 열어 본 기록은 최근 이만큼만 남긴다
+
+
+def record_view(con, cid):
+    """개념 노트를 연 시각 (사용자가 '저번에 무엇을 봤지?'를 물을 수 있게)"""
+    con.execute("INSERT INTO views VALUES (?,?)", (cid, now()))
+    con.execute("DELETE FROM views WHERE rowid <= (SELECT MAX(rowid) FROM views) - ?", (VIEWS_KEEP,))
+    con.commit()
+
+
+def history(con, k=50):
+    """최근 공부 기록: 노트를 연 것(opened)과 진도를 표시한 것(marked, status = 지금 상태). 개념마다 가장 최근 것 하나씩, 최근 순"""
+    rows = {}
+    for cid, ts in con.execute("SELECT concept, MAX(ts) FROM views GROUP BY concept"):
+        rows[(cid, "opened")] = {"id": cid, "kind": "opened", "status": None, "ts": ts}
+    for cid, status, ts in con.execute("SELECT concept, status, updated FROM progress"):
+        rows[(cid, "marked")] = {"id": cid, "kind": "marked", "status": status, "ts": ts}
+    items = sorted(rows.values(), key=lambda x: x["ts"] or "", reverse=True)[:k]
+    for x in items:
+        top = con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (x["id"],)).fetchone()
+        x["label"] = top[0] if top else x["id"]
+    return {"items": items}
+
+
 def set_progress(con, cid, status):
     if status not in STATUSES:
         raise ValueError("status는 known·review·new")

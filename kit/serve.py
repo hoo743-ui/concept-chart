@@ -274,6 +274,10 @@ def open_db(path):
     if "everyday" not in {r[1] for r in con.execute("PRAGMA table_info(judgments)")}:    # 0.5.4: 두 번째 질문 답 (판정 표는 지우지 않으므로 열만 더한다)
         con.execute("ALTER TABLE judgments ADD COLUMN everyday INTEGER")
         con.commit()
+    if not con.execute("SELECT 1 FROM sqlite_master WHERE name='views'").fetchone():    # 0.6.0: 개념 노트를 열어 본 기록 ('내 공부 기록에 묻기'용, 색인을 다시 만들어도 남는다)
+        con.execute("CREATE TABLE views (concept TEXT, ts TEXT)")
+        con.execute("CREATE INDEX ix_v ON views (ts DESC)")
+        con.commit()
     return con
 
 
@@ -874,11 +878,15 @@ def study_get(st, con, path, q):
         view = q.get("view", "show")
         if view not in ("show", "hidden", "all"):
             raise ValueError("view는 show·hidden·all")
-        return api.concepts(con, board, view, max(1, min(int(q.get("k", 50)), 500)), project)
+        return api.concepts(con, board, view, max(1, min(int(q.get("k", 50)), 5000)), project)
+    if path == "/api/study/history":
+        return api.history(con, max(1, min(int(q.get("k", 50)), 500)))
     if path.startswith("/api/study/concept/"):
         cid = urllib.parse.unquote(path[len("/api/study/concept/"):])
         if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
             return {"__status": 404, "error": "없는 개념", "id": cid}
+        if not q.get("cursor"):                             # 기록 더 보기(다음 쪽)는 새로 연 것으로 세지 않는다
+            api.record_view(con, cid)
         out = api.detail(con, card_response(st, con, cid, q.get("cursor"), project), cid)
         if out["note"]["status"] == "none" and out["note_status"] != "pending" and st.llm != "off":
             api.enqueue(con, "note", cid, 1)                # 연 개념을 먼저

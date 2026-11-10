@@ -18,6 +18,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
   → `make_page_data.py`(+ `results/badge_eval.json` 기록값, `concepts.py`) → `results/page_data.json`
 - `web/`: `build_page.py`(+ `page_template.html`, `kit/*.py`, `sim/results/page_data.json`) → `dist/index.html`
 - `kit/`: 실제 쓰는 코드. 로컬 서버(`serve.py`, API 계약은 `docs/ARCHITECTURE.md`), 훅 설치기(`install_concept_hook.py`, 훅 본문은 `HOOK_TEMPLATE` 안의 `normalize()`가 어댑터), 노트북 첫 셀, 클릭 카드, 근거 수집, 검증 에이전트.
+- `chat/`: 내 공부 기록에 묻기 (따로 도는 앱, 포트 8766). 개념 차트와는 `docs/API.md`의 읽기 API로만 만나고, `kit/`에서는 `llm.py`만 쓴다. `kit/`는 `chat/`을 모른다.
 - `tests/`: `check_env.py`(전체 점검), `test_hook.py`(훅 fixture), `test_serve.py`(서버), `check_page.js`·`check_setup.js`(jsdom).
 
 ## 규칙

@@ -8,8 +8,9 @@
 | 경로 | 돌려주는 것 |
 |---|---|
 | `/api/study/today?k=7` | `{groups:[{answer, question, ts, items:[개념 요약], more:[{id, label, extra}]}], items, counts:{shown, known, left, hidden, questions, extra}}` 아직 '이해함'이 아닌 개념을 처음 만난 내 질문별로 묶는다 (`k` = 묶음 수). 묶음 순서는 '다시 볼 것'이 있는 질문 → 최근 질문, 묶음마다 `items`는 3개까지이고 나머지는 `more`. `extra: true`는 관문이 기본 목록에는 넣지 않고 접힌 칸에만 내놓은 낱말(`gate.extra`)로, `more` 끝에 오고 `shown`·`left`에는 세지 않는다 (`counts.extra`). 맨 바깥 `items`는 펼친 개념을 이어 붙인 것 |
-| `/api/study/concepts?view=show\|hidden\|all&k=50` | `{items:[개념 요약], n_sessions, total_words}` `hidden`은 후보가 먼저 |
-| `/api/study/concept/{id}` | 개념 노트 (아래). 처음 열면 정의 수집과 노트 작성을 뒤에서 예약한다 |
+| `/api/study/concepts?view=show\|hidden\|all&k=50` | `{items:[개념 요약], n_sessions, total_words}` `hidden`은 후보가 먼저. `k`는 5000까지 |
+| `/api/study/history?k=50` | `{items:[{id, label, kind, status, ts}]}` 최근 공부 기록. `kind` = `opened`(개념 노트를 열어 봄) · `marked`(진도 표시, `status` = 지금 진도). 개념마다 종류별 가장 최근 것 하나, 최근 순. `k`는 500까지 |
+| `/api/study/concept/{id}` | 개념 노트 (아래). 처음 열면 정의 수집과 노트 작성을 뒤에서 예약한다. 열 때마다 '열어 본 기록'을 남긴다 (`cursor`로 다음 쪽을 볼 때는 남기지 않음) |
 | `/api/answers?k=20` | `{items:[{id, session, ts, source, preview, chars}]}` 최근 답변 |
 | `/api/answers/{id}` | `{id, ts, source, text, question, terms:[{id, label, forms}], summary}` 답변 원문과 그 안의 공부 개념 |
 | `/api/health` | `{llm:{name, available}, jobs:{queued, done, failed}, study_worker, turns, sessions, web}` |
@@ -46,6 +47,10 @@
 | `/api/answers/{id}/summary` | `{}` | `{queued, reason?}` 요약 예약 |
 
 기존 API(`/api/leaderboard`, `/api/concept/{id}`, `/api/projects`, `/api/status`)는 `docs/ARCHITECTURE.md`에 있고 그대로 유지한다.
+
+## 이 API를 쓰는 다른 앱: 내 공부 기록에 묻기 (`chat/`)
+
+`chat/chat_server.py`(`http://localhost:8766`)는 따로 도는 앱이다. 이 문서의 읽기 API 중 `/api/study/today`·`/api/study/concepts`·`/api/study/history`만 쓰고, 개념 차트에 아무것도 기록하지 않는다 (개념 노트 API를 부르지 않아 열어 본 기록도 남기지 않는다). DB를 열지 않고, `kit/`에서는 `llm.py`만 쓴다. LLM은 질문 종류만 고르고, 답은 기록 값으로만 만든다. `tests/test_chat.py`가 강제한다.
 
 ## 모델을 바꾸는 방법
 

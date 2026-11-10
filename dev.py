@@ -163,8 +163,29 @@ def app(extra):
         print(f"AI 요약: {LLM}" if ollama else "AI 요약: 꺼짐 (Ollama 없음). 출처 문장만 보여 줍니다")
     if "--searx" not in extra and not port_open(8888):
         args += ["--searx", "off"]
+    chat_proc = None                                        # '내 공부 기록에 묻기'(chat/)는 따로 도는 앱: 못 켜거나 죽어도 개념 차트는 그대로
+    if not port_open(8766):
+        given = args + extra
+        chat_llm = given[given.index("--llm") + 1] if "--llm" in given[:-1] else "off"   # 앱과 같은 LLM (없으면 낱말 규칙)
+        try:
+            chat_proc = subprocess.Popen([sys.executable, str(ROOT / "chat" / "chat_server.py"), "--llm", chat_llm],
+                                         cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print("내 공부 기록에 묻기: http://localhost:8766")
+        except OSError as e:
+            print("참고: 기록에 묻기 앱을 켜지 못했다 —", e)
     try:
         return run([sys.executable, "kit/serve.py"] + args + extra)
+    except KeyboardInterrupt:
+        return 0
+    finally:
+        if chat_proc:
+            chat_proc.terminate()
+
+
+def chat(extra):
+    step("내 공부 기록에 묻기 (chat/chat_server.py) — 개념 차트(python dev.py app)가 켜져 있어야 답한다. 끝내려면 Ctrl+C")
+    try:
+        return run([sys.executable, "chat/chat_server.py"] + extra)
     except KeyboardInterrupt:
         return 0
 
@@ -199,16 +220,19 @@ def main():
     sub.add_parser("sim", help="시뮬레이터 다시 실행 + build")
     sub.add_parser("serve", help="로컬 서버 (뒤에 붙인 옵션은 kit/serve.py로 전달: --port, --once, --rebuild ...)")
     sub.add_parser("app", help="프로토타입 켜기: 화면 + 서버 + 로컬 LLM (옵션은 kit/serve.py로 전달)")
+    sub.add_parser("chat", help="내 공부 기록에 묻기만 따로 켜기 (app이 함께 켠다. 옵션은 chat/chat_server.py로 전달: --port, --api, --llm)")
     sub.add_parser("add", help="AI 답변 추가: 어떤-CLI | python dev.py add, 또는 python dev.py add 파일")
     sub.add_parser("import", help="Claude 앱·ChatGPT 내보내기 가져오기: python dev.py import conversations.json")
     sub.add_parser("lexicon", help="분야 사전 받기·만들기 → kit/data/lexicon/ (우리말샘 약 200MB, pyarrow 필요)")
     s = sub.add_parser("searx", help="정의 검색용 SearXNG 켜기·끄기 (Docker 필요)")
     s.add_argument("action", choices=["up", "down"])
     a, extra = ap.parse_known_args()
-    if extra and a.cmd not in ("serve", "app", "add", "import"):
+    if extra and a.cmd not in ("serve", "app", "add", "import", "chat"):
         ap.error("알 수 없는 옵션: " + " ".join(extra))
     if a.cmd == "setup":
         rc = setup_venv() if a.venv else setup_conda()
+    elif a.cmd == "chat":
+        rc = chat(extra)
     elif a.cmd == "serve":
         rc = serve(extra)
     elif a.cmd == "app":

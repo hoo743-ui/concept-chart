@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 공부 기록에 묻기</title>
+<style>
+  :root { --bg: #fafaf8; --fg: #1d1d1b; --muted: #6b6b66; --line: #e3e2dc; --me: #e8eefc; --bot: #ffffff; --accent: #2f5bd3; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171716; --fg: #ecebe6; --muted: #a09f98; --line: #34332f; --me: #22304f; --bot: #201f1d; --accent: #8fb0ff; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; min-height: 100vh; }
+  h1 { font-size: 20px; margin: 8px 0 4px; }
+  .muted { color: var(--muted); font-size: 14px; }
+  #log { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 12px 0; }
+  .msg { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); max-width: 92%; }
+  .me { align-self: flex-end; background: var(--me); }
+  .bot { align-self: flex-start; background: var(--bot); }
+  .bot p { margin: 0 0 6px; }
+  .links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .links a { color: var(--accent); font-size: 14px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; text-decoration: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .chips button { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--bot); color: var(--fg); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+  form { display: flex; gap: 8px; position: sticky; bottom: 0; background: var(--bg); padding: 10px 0 16px; }
+  input { flex: 1; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bot); color: var(--fg); min-width: 0; }
+  form button { font: inherit; padding: 10px 16px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <h1>내 공부 기록에 묻기</h1>
+  <p class="muted">내 진도·열어 본 노트·처음 만난 질문으로만 답해요. 개념의 뜻은 출처가 붙은 개념 노트로 안내해요. <span id="how"></span></p>
+  <div class="chips" id="chips"></div>
+  <div id="log" aria-live="polite"></div>
+  <form id="f"><input id="q" autocomplete="off" placeholder="예: 내가 저번에 공부했던 게 뭐였지?" maxlength="500"><button>묻기</button></form>
+</main>
+<script src="/chat.js"></script>
+</body>
+</html>
