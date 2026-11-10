@@ -327,6 +327,9 @@ def check_server(tmp):
         ok("오늘 공부에 기술 이름만", "Docker" in labels and "GitHub" in labels and not {"추천", "통과", "설치", "Actions"} & set(labels), ", ".join(labels))
         o = d["items"][0].get("origin") or {}
         ok("카드에 처음 만난 질문 (누르면 그 답변이 열림)", o.get("question") == "도커가 뭐야?" and get("/api/answers/" + urllib.parse.quote(o.get("answer", "x")))["question"] == "도커가 뭐야?", str(o))
+        gs = d.get("groups") or [{}]
+        ok("오늘 공부는 질문별 묶음 (질문 하나에 개념, 펼친 것은 3개까지)", gs[0].get("question") == "도커가 뭐야?" and {"Docker", "GitHub"} <= {x["label"] for g in gs for x in g["items"]}
+           and all(len(g["items"]) <= study_api.CORE for g in gs) and d["counts"]["questions"] == 1, str([(g.get("question"), len(g.get("items", []))) for g in gs]))
         cid = d["items"][0]["id"]
         c = get("/api/study/concept/" + urllib.parse.quote(cid))
         ok("개념 노트에도 처음 만난 질문과 분야 칸", (c.get("origin") or {}).get("question") == "도커가 뭐야?" and "field" in c)

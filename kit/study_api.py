@@ -126,13 +126,31 @@ def concepts(con, board, view="show", k=50, project=None, origin=True):
     return {"project": project, "n_sessions": data["n_sessions"], "total_words": data["n_concepts"], "items": items}
 
 
+CORE = 3                       # 질문 묶음 하나에 바로 보여 줄 개념 수 (나머지는 접어 둔다. 사용자 결정 11-10: 첫 화면은 질문별)
+
+
 def today(con, board, k=7, project=None):
-    """오늘 볼 것: 아직 '이해함'이 아닌 개념을 중요도 순으로. 다시 볼 것을 앞에"""
+    """오늘 볼 것: 아직 '이해함'이 아닌 개념을, 처음 만난 내 질문별로 묶는다 (k = 질문 묶음 수).
+    묶음 순서: 다시 볼 것이 있는 질문 → 최근 질문. 묶음 안: 다시 볼 것 → 설명이 준비된 것 → 중요도. 묶음마다 CORE개만 펼친다.
+    items는 펼친 개념을 이어 붙인 것 (예전 화면·도구용)"""
     data = concepts(con, board, "show", 100000, project, origin=False)
     todo = [x for x in data["items"] if x["progress"] != "known"]
     todo.sort(key=lambda x: (x["progress"] != "review", not x["line"], x["rank"]))     # 다시 볼 것 → 설명이 준비된 것 먼저
     known = sum(1 for x in data["items"] if x["progress"] == "known")
-    return {"project": project, "items": with_origin(con, todo[:k]), "counts": {"shown": len(data["items"]), "known": known, "left": len(todo), "hidden": data["total_words"] - len(data["items"])}}
+    groups = {}
+    for x in with_origin(con, todo):
+        o = x["origin"] or {}
+        g = groups.setdefault(o.get("answer"), {"answer": o.get("answer"), "question": o.get("question"), "ts": o.get("ts"), "items": [], "more": []})
+        (g["items"] if len(g["items"]) < CORE else g["more"]).append(x)
+    def has_review(g):
+        return any(x["progress"] == "review" for x in g["items"] + g["more"])
+    order = sorted(groups.values(), key=lambda g: (g["ts"] is not None, g["ts"] or ""), reverse=True)    # 최근 질문 먼저 (기록 없는 묶음은 맨 뒤)
+    order.sort(key=lambda g: not has_review(g))                                                          # 안정 정렬: 다시 볼 것이 있는 질문을 앞으로
+    picked = order[:k]
+    for g in picked:
+        g["more"] = [{"id": x["id"], "label": x["label"]} for x in g["more"]]
+    return {"project": project, "groups": picked, "items": [x for g in picked for x in g["items"]],
+            "counts": {"shown": len(data["items"]), "known": known, "left": len(todo), "hidden": data["total_words"] - len(data["items"]), "questions": len(groups)}}
 
 
 def detail(con, card, cid):

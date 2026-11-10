@@ -67,3 +67,11 @@ main:focus-visible { outline: none; }
 .md th, .md td { overflow-wrap: normal; min-width: 64px; }
 .md pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-x: auto; font-size: .86rem; margin: 0 0 10px; }
 .md blockquote { margin: 0 0 10px; padding-left: 10px; border-left: 3px solid var(--line); color: var(--muted); }
+/* 오늘 공부: 질문별 묶음 */
+.groups { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 22px; }
+.group > .list { margin-top: 8px; }
+.qhead { display: block; font-weight: 600; color: var(--ink); text-decoration: none; border-left: 3px solid var(--accent); padding-left: 10px; }
+a.qhead:hover, a.qhead:focus-visible { color: var(--accent); }
+.group .when { display: block; padding-left: 13px; font-size: .82rem; }
+.group details.more { margin-top: 8px; }
+.group details.more .chips { margin-top: 6px; }

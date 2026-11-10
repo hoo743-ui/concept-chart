@@ -22,7 +22,7 @@ const wait = () => new Promise((r) => setTimeout(r, 30));
   const go = async (hash) => { window.location.hash = hash; window.dispatchEvent(new window.HashChangeEvent('hashchange')); await wait(); };
 
   await wait();
-  ok('오늘 공부: 개념 목록', text().includes('오늘 볼 개념 2개') && text().includes('브랜치') && text().includes('Docker'));
+  ok('오늘 공부: 질문별 묶음', text().includes('브랜치랑 Docker를 같이 쓰는 법 알려줘') && text().includes('브랜치') && text().includes('Docker') && text().includes('내 질문 1개'));
   ok('오늘 공부: 설명 없음을 지어내지 않음', text().includes('믿을 만한 설명을 찾지 못했어요'));
   ok('데모 표시', window.document.getElementById('status').textContent.includes('데모'));
 

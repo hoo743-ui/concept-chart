@@ -7,7 +7,7 @@
 
 | 경로 | 돌려주는 것 |
 |---|---|
-| `/api/study/today?k=7` | `{items:[개념 요약], counts:{shown, known, left, hidden}}` 아직 '이해함'이 아닌 개념. '다시 볼 것'이 먼저 |
+| `/api/study/today?k=7` | `{groups:[{answer, question, ts, items:[개념 요약], more:[{id, label}]}], items, counts:{shown, known, left, hidden, questions}}` 아직 '이해함'이 아닌 개념을 처음 만난 내 질문별로 묶는다 (`k` = 묶음 수). 묶음 순서는 '다시 볼 것'이 있는 질문 → 최근 질문, 묶음마다 `items`는 3개까지이고 나머지는 `more`. 맨 바깥 `items`는 펼친 개념을 이어 붙인 것 |
 | `/api/study/concepts?view=show\|hidden\|all&k=50` | `{items:[개념 요약], n_sessions, total_words}` `hidden`은 후보가 먼저 |
 | `/api/study/concept/{id}` | 개념 노트 (아래). 처음 열면 정의 수집과 노트 작성을 뒤에서 예약한다 |
 | `/api/answers?k=20` | `{items:[{id, session, ts, source, preview, chars}]}` 최근 답변 |

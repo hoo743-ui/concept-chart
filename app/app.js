@@ -29,20 +29,32 @@ function originText(o) {
   return (o.question ? '“' + o.question + '” 질문에서' : '붙여 넣은 답변에서') + ' · ' + when(o.ts);
 }
 
-function conceptItem(x) {
+function conceptItem(x, showOrigin = true) {
   return h('li', {}, h('a', { class: 'item', href: cHash(x.id) },
     h('b', {}, x.label, x.field ? h('span', { class: 'tag field' }, x.field) : null, x.progress === 'review' ? h('span', { class: 'tag warn' }, '다시 볼 것') : null, x.progress === 'known' ? h('span', { class: 'tag ok' }, '이해함') : null),
     h('span', { class: 'line' }, x.line || '아직 믿을 만한 설명을 찾지 못했어요.'), ' ', lineTag(x.line_kind),
-    x.origin ? h('span', { class: 'origin' }, originText(x.origin)) : null));
+    showOrigin && x.origin ? h('span', { class: 'origin' }, originText(x.origin)) : null));
 }
 
 // ---------- 오늘 공부 ----------
+// 질문 하나 = 묶음 하나: 내 질문(누르면 그 답변) → 핵심 개념 몇 개 → 나머지는 접어 둔다
+function questionGroup(g) {
+  const head = g.answer
+    ? h('a', { class: 'qhead', href: '#/a/' + encodeURIComponent(g.answer) }, g.question ? '“' + g.question + '”' : '붙여 넣은 답변')
+    : h('span', { class: 'qhead' }, '기록이 남지 않은 대화');
+  return h('li', { class: 'group' }, head, g.ts ? h('span', { class: 'muted when' }, when(g.ts)) : null,
+    h('ul', { class: 'list' }, g.items.map((x) => conceptItem(x, false))),
+    g.more && g.more.length ? h('details', { class: 'more' }, h('summary', {}, `이 질문에서 나온 개념 ${g.more.length}개 더`),
+      h('div', { class: 'chips' }, g.more.map((m) => h('a', { href: cHash(m.id) }, m.label)))) : null);
+}
+
 async function pageToday() {
   const d = await API.today(7);
   const c = d.counts;
-  const body = [h('h1', {}, d.items.length ? `오늘 볼 개념 ${d.items.length}개` : '오늘 볼 개념이 없어요'),
-    h('p', { class: 'muted' }, `AI 답변에서 찾은 개념 ${c.shown}개 중 이해함 ${c.known}개 · 남은 것 ${c.left}개`)];
-  if (d.items.length) body.push(h('ul', { class: 'list' }, d.items.map(conceptItem)));
+  const groups = d.groups || [];
+  const body = [h('h1', {}, groups.length ? '오늘 볼 개념' : '오늘 볼 개념이 없어요'),
+    h('p', { class: 'muted' }, `내 질문 ${c.questions ?? groups.length}개에서 찾은 개념 ${c.shown}개 · 이해함 ${c.known}개 · 남은 것 ${c.left}개`)];
+  if (groups.length) body.push(h('ul', { class: 'groups' }, groups.map(questionGroup)));
   else if (!c.shown) body.push(h('div', { class: 'box' }, h('p', {}, 'AI 답변이 쌓이면 여기에 공부할 개념이 나타나요.'), h('p', {}, h('a', { href: '#/answers' }, 'AI 답변 붙여넣기'), '로 바로 시작할 수 있어요.')));
   else body.push(h('p', { class: 'box' }, '지금까지 나온 개념을 모두 이해했다고 표시했어요.'));
   return body;
