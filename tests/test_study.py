@@ -83,6 +83,11 @@ def check_lexicon():
         ok("AI 없음: 전문 뜻만 + 위키백과 문서면 보여 줌", gate.final_no_ai("unknown", True, "special") == "show")
         ok("AI 없음: 전문 뜻만이어도 문서가 없으면 후보", gate.final_no_ai("unknown", False, "special") == "candidate")
         ok("AI 없음: 사전에 없는 낱말은 숨김", gate.final_no_ai("unknown", True, None) == "hide")
+        ok("더 보기로 살림: 전문 뜻만 + LLM 아님 + 문서 + 일상어 아님", gate.rescue("unknown", False, True, "special", False))
+        ok("일상어라고 답하면 살리지 않음", not gate.rescue("unknown", False, True, "special", True))
+        ok("두 번째 질문 전이면 살리지 않음", not gate.rescue("unknown", False, True, "special", None))
+        ok("문서가 없거나 일상 뜻도 있으면 살리지 않음", not gate.rescue("unknown", False, False, "special", False) and not gate.rescue("unknown", False, True, "mixed", False))
+        ok("살리는 낱말은 기본 목록에 들어가지 않음", gate.final("unknown", False, True, "special") == "hide")
         con = sqlite3.connect(":memory:")
         con.execute("CREATE TABLE notes (concept TEXT PRIMARY KEY, definition TEXT, sources TEXT, updated TEXT)")
         con.execute("INSERT INTO notes VALUES ('a','정의','[{\"text\":\"정의\",\"url\":\"https://ko.wikipedia.org/wiki/A\"}]','')")
@@ -192,6 +197,10 @@ def check_grounding(tmp):
     d = study_api.detail(con, {"label": "트랜스포머", "definition": "x", "summary": "x", "sources": [{"text": "x", "url": "u"}]}, "트랜스포머")
     ok("다른 뜻이면 정의·출처를 화면에 내지 않음", d["definition"] is None and not d["sources"])
     con.execute("DELETE FROM study_notes")
+    w.run_judge(con, FakeLLM({"is_term": False}), "트랜스포머")
+    w.run_everyday(con, FakeLLM({"everyday": False}), "트랜스포머")
+    ok("두 번째 질문 답은 LLM 판정을 덮지 않고 따로 저장", con.execute("SELECT llm, everyday FROM judgments WHERE concept='트랜스포머'").fetchone() == (0, 0))
+    con.execute("DELETE FROM judgments")
     import fetch_sources as fs
     ok("다른 낱말 설명은 거절: 이동 기준선", not fs.subject_ok("기준선", "이동 기준선 은 일반적으로 시스템을 측정한다."))
     ok("분야 앞말은 허용: 시스템에서 커밋", fs.subject_ok("커밋", "버전 관리 시스템에서 커밋은 변경을 기록한다."))
@@ -380,6 +389,34 @@ def check_server(tmp):
     con.close()
 
 
+def check_today_extra(tmp):
+    """관문이 '더 보기'에만 내놓은 낱말(gate.extra)은 펼친 칸에 들어가지 않고, 그런 낱말만 있는 질문은 묶음이 되지 않는다"""
+    old = sqlite3.connect(tmp / "x.sqlite")
+    old.execute("CREATE TABLE judgments (concept TEXT PRIMARY KEY, llm INTEGER, user TEXT, updated TEXT)")   # 0.5.3까지의 판정 표
+    old.execute("INSERT INTO judgments VALUES ('k', 1, NULL, 't')")
+    old.commit()
+    old.close()
+    con = serve.open_db(tmp / "x.sqlite")
+    ok("예전 판정은 남음", con.execute("SELECT llm FROM judgments WHERE concept='k'").fetchone() == (1,))
+    ok("예전 DB에도 두 번째 질문 열이 생김", "everyday" in {r[1] for r in con.execute("PRAGMA table_info(judgments)")})
+    words = [("a", "q1"), ("b", "q1"), ("민법", "q1"), ("세균", "q2")]       # 세균은 q2에서만 나옴
+    for w, s in words:                                                     # 같은 답변 = 같은 세션·시각
+        con.execute("INSERT INTO mentions VALUES (?,?,?, 'assistant', 'x', NULL)", (w, "2026-11-10T00:00:00+00:00", s))
+    board = lambda con, k, project=None: {"items": [{"id": w, "label": w, "sessions": 1, "turns": 1, "last_seen": ""} for w, _ in words], "n_sessions": 2, "n_concepts": 4}
+    saved = study_api.gate_of
+    try:
+        study_api.gate_of = lambda con, cid, label: {"show": cid in ("a", "b"), "candidate": False, "extra": cid in ("민법", "세균"), "by": "llm", "rule": "unknown"}
+        d = study_api.today(con, board, k=10)
+        items = [x["id"] for g in d["groups"] for x in g["items"]]
+        more = [m for g in d["groups"] for m in g["more"]]
+        ok("살린 낱말은 펼친 칸에 없음", sorted(items) == ["a", "b"], str(items))
+        ok("살린 낱말은 같은 질문의 더 보기에 extra로", [m["id"] for m in more] == ["민법"] and more[0]["extra"] is True, str(more))
+        ok("살린 낱말만 있는 질문은 묶음이 아님, 숫자는 따로", len(d["groups"]) == 1 and d["counts"]["shown"] == 2 and d["counts"]["extra"] == 2, str(d["counts"]))
+    finally:
+        study_api.gate_of = saved
+        con.close()
+
+
 def main():
     tmp = pathlib.Path(tempfile.mkdtemp())
     os.environ["CONCEPT_CHART_LEXICON"] = str(tmp / "no-lexicon")   # 개발 PC에 사전이 있어도 CI와 같게 (띄우는 서버에도 전해진다)
@@ -393,6 +430,7 @@ def main():
         check_inputs(tmp)
         check_independence()
         check_server(tmp)
+        check_today_extra(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print(f"\n결과: {'정상' if not FAILS else '실패 ' + str(len(FAILS)) + '개: ' + ', '.join(FAILS)}")

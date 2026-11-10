@@ -94,6 +94,22 @@ JSON으로만 답한다. is_term은 true 또는 false."""
 JUDGE_SCHEMA = {"type": "object", "properties": {"is_term": {"type": "boolean"}}, "required": ["is_term"]}
 
 
+def everyday_prompt(form, sentences):
+    """두 번째 질문 (분야 사전에 전문 뜻만 있는 낱말에만): 보통 성인이 이미 뜻을 아는 일상어인가. judge_prompt는 엄격해서 민법·세균도 떨어뜨린다"""
+    joined = "\n".join("- " + s for s in sentences[:2]) or "- (문장 없음)"
+    return f"""아래 낱말을 보통의 성인(전공 공부를 하지 않은 사람)이 이미 정확한 뜻을 알고 일상에서 쓰는지 판단한다.
+true: 대부분의 성인이 뜻을 알고 평소에 쓰는 말. 예: 칫솔, 우산, 냉장고, 편의점, 버스.
+false: 뜻을 정확히 알려면 따로 배워야 하는 개념, 제도, 이론, 물질, 사건 이름. 예: 삼투압, 판례, 내력벽.
+사람·나라·도시 이름이나 학문 이름 자체는 true로 답한다.
+낱말: {form}
+문장:
+{joined}
+JSON으로만 답한다. everyday는 true 또는 false."""
+
+
+EVERYDAY_SCHEMA = {"type": "object", "properties": {"everyday": {"type": "boolean"}}, "required": ["everyday"]}
+
+
 LEXICON_DIR = pathlib.Path(__file__).resolve().parent / "data" / "lexicon"   # 사전 파일은 git에 없다: python dev.py lexicon 으로 만든다
 _lex = None
 
@@ -179,3 +195,10 @@ def final(rule, llm=None, sourced=None, lex=None):
     if rule == "likely":                                    # 사전만으로는 부족하다 (처음 보는 낱말에서 정밀도 0.66)
         return "show" if llm is True else "candidate" if llm is None else "hide"
     return "candidate" if llm else "hide"
+
+
+def rescue(rule, llm=None, sourced=None, lex=None, everyday=None):
+    """final이 숨긴 낱말 중 '더 보기'에만 내놓을 것 (사용자 결정 11-10: 기본 목록의 정밀도는 그대로 두고 질문 묶음의 접힌 칸에만).
+    분야 사전에 전문 뜻만 + LLM은 아니라 함 + 이름이 맞는 위키백과 문서 + 두 번째 질문(everyday_prompt)이 '일상어 아님'.
+    judge_prompt가 엄격해 떨어뜨린 민법·세균·산업혁명 같은 개념을 살린다 (실험 V3: 조정용 재현율 0.597 → 0.688, 정밀도 0.754 → 0.746)"""
+    return rule == "unknown" and lex == "special" and llm is False and bool(sourced) and everyday is False

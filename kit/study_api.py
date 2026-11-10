@@ -46,20 +46,23 @@ def rule_of(con, cid, label):
 
 
 def gate_of(con, cid, label):
-    row = con.execute("SELECT llm, user FROM judgments WHERE concept=?", (cid,)).fetchone()
-    llm, user = (row[0], row[1]) if row else (None, None)
+    row = con.execute("SELECT llm, user, everyday FROM judgments WHERE concept=?", (cid,)).fetchone()
+    llm, user, everyday = (row[0], row[1], row[2]) if row else (None, None, None)
     rule = rule_of(con, cid, label)
     if user in ("concept", "not_concept"):
-        return {"show": user == "concept", "candidate": False, "by": "user", "rule": rule}
+        return {"show": user == "concept", "candidate": False, "extra": False, "by": "user", "rule": rule}
     lex = gate.lexicon_verdict(label)
     src = sourced(con, cid) if rule == "unknown" and lex not in ("general", "mixed") else False
+    llm = None if llm is None else bool(llm)
+    extra = False
     if AI:
-        verdict = gate.final(rule, None if llm is None else bool(llm), src, lex)
+        verdict = gate.final(rule, llm, src, lex)
+        extra = verdict != "show" and gate.rescue(rule, llm, src, lex, None if everyday is None else bool(everyday))
     else:
         verdict = gate.final_no_ai(rule, src, lex)
     by = ("rule" if rule in ("accept", "reject") else "lexicon" if rule == "unknown" and lex in ("general", "mixed") and llm is None
           else "llm" if llm is not None else "terms" if rule == "likely" else "unjudged")
-    return {"show": verdict == "show", "candidate": verdict == "candidate", "by": by, "rule": rule, "lexicon": lex}
+    return {"show": verdict == "show", "candidate": verdict == "candidate", "extra": extra, "by": by, "rule": rule, "lexicon": lex}
 
 
 def progress_of(con, cid):
@@ -105,13 +108,13 @@ def with_origin(con, items):
     return items
 
 
-def concepts(con, board, view="show", k=50, project=None, origin=True):
-    """view: show(공부할 개념) · hidden(숨겨진 낱말) · all"""
+def concepts(con, board, view="show", k=50, project=None, origin=True, extra=False):
+    """view: show(공부할 개념) · hidden(숨겨진 낱말) · all. extra=True면 show에 '더 보기'에만 낼 낱말(gate.extra)도 넣는다 (today용)"""
     data = board(con, k=100000, project=project)
     items = []
     for x in data["items"]:
         g = gate_of(con, x["id"], x["label"])
-        if view == "all" or (view == "show") == g["show"]:
+        if view == "all" or (view == "show") == g["show"] or (view == "show" and extra and g["extra"]):
             line, kind = summary_line(con, x["id"])
             items.append({"id": x["id"], "label": x["label"], "rank": len(items) + 1, "sessions": x["sessions"], "turns": x["turns"], "last_seen": x["last_seen"],
                           "gate": g, "progress": progress_of(con, x["id"]), "line": line, "line_kind": kind})
@@ -132,25 +135,31 @@ CORE = 3                       # 질문 묶음 하나에 바로 보여 줄 개�
 def today(con, board, k=7, project=None):
     """오늘 볼 것: 아직 '이해함'이 아닌 개념을, 처음 만난 내 질문별로 묶는다 (k = 질문 묶음 수).
     묶음 순서: 다시 볼 것이 있는 질문 → 최근 질문. 묶음 안: 다시 볼 것 → 설명이 준비된 것 → 중요도. 묶음마다 CORE개만 펼친다.
+    관문이 '더 보기'에만 내놓은 낱말(gate.extra)은 펼치지 않고 more 끝에 extra=True로 붙인다. 그런 낱말만 있는 질문은 묶음을 만들지 않는다.
     items는 펼친 개념을 이어 붙인 것 (예전 화면·도구용)"""
-    data = concepts(con, board, "show", 100000, project, origin=False)
+    data = concepts(con, board, "show", 100000, project, origin=False, extra=True)
+    shown = [x for x in data["items"] if x["gate"]["show"]]
     todo = [x for x in data["items"] if x["progress"] != "known"]
-    todo.sort(key=lambda x: (x["progress"] != "review", not x["line"], x["rank"]))     # 다시 볼 것 → 설명이 준비된 것 먼저
-    known = sum(1 for x in data["items"] if x["progress"] == "known")
+    todo.sort(key=lambda x: (x["gate"]["extra"], x["progress"] != "review", not x["line"], x["rank"]))     # 다시 볼 것 → 설명이 준비된 것 먼저, 덧붙일 낱말은 맨 뒤
+    known = sum(1 for x in shown if x["progress"] == "known")
     groups = {}
     for x in with_origin(con, todo):
         o = x["origin"] or {}
+        if x["gate"]["extra"] and o.get("answer") not in groups:
+            continue
         g = groups.setdefault(o.get("answer"), {"answer": o.get("answer"), "question": o.get("question"), "ts": o.get("ts"), "items": [], "more": []})
-        (g["items"] if len(g["items"]) < CORE else g["more"]).append(x)
+        (g["items"] if len(g["items"]) < CORE and not x["gate"]["extra"] else g["more"]).append(x)
     def has_review(g):
         return any(x["progress"] == "review" for x in g["items"] + g["more"])
     order = sorted(groups.values(), key=lambda g: (g["ts"] is not None, g["ts"] or ""), reverse=True)    # 최근 질문 먼저 (기록 없는 묶음은 맨 뒤)
     order.sort(key=lambda g: not has_review(g))                                                          # 안정 정렬: 다시 볼 것이 있는 질문을 앞으로
     picked = order[:k]
     for g in picked:
-        g["more"] = [{"id": x["id"], "label": x["label"]} for x in g["more"]]
+        g["more"] = [{"id": x["id"], "label": x["label"], "extra": x["gate"]["extra"]} for x in g["more"]]
+    left = sum(1 for x in todo if x["gate"]["show"])
     return {"project": project, "groups": picked, "items": [x for g in picked for x in g["items"]],
-            "counts": {"shown": len(data["items"]), "known": known, "left": len(todo), "hidden": data["total_words"] - len(data["items"]), "questions": len(groups)}}
+            "counts": {"shown": len(shown), "known": known, "left": left, "hidden": data["total_words"] - len(shown), "questions": len(groups),
+                       "extra": len(todo) - left}}
 
 
 def detail(con, card, cid):

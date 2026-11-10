@@ -230,10 +230,23 @@ def run_judge(con, client, cid):
                 (cid, int(verdict), datetime.now(timezone.utc).isoformat()))
 
 
+def run_everyday(con, client, cid):
+    """두 번째 질문: 보통 성인이 아는 일상어인가 (concept_gate.rescue가 '더 보기'에 살릴지 정할 때 쓴다)"""
+    row = con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (cid,)).fetchone()
+    if not row:
+        return
+    sents = [r[0] for r in con.execute("SELECT snippet FROM mentions WHERE concept=? ORDER BY ts DESC LIMIT 3", (cid,))]
+    everyday = bool(client.json(gate.everyday_prompt(row[0], sents), gate.EVERYDAY_SCHEMA, 20)["everyday"])
+    con.execute("INSERT INTO judgments (concept, everyday, updated) VALUES (?,?,?) ON CONFLICT(concept) DO UPDATE SET everyday=excluded.everyday, updated=excluded.updated",
+                (cid, int(everyday), datetime.now(timezone.utc).isoformat()))
+
+
 def run_job(con, client, kind, target):
     t = datetime.now(timezone.utc).isoformat()
     if kind == "judge":
         run_judge(con, client, target)
+    elif kind == "everyday":
+        run_everyday(con, client, target)
     elif kind == "note":
         status, body = run_note(con, client, target)
         con.execute("REPLACE INTO study_notes VALUES (?,?,?,?,?)", (target, json.dumps(body, ensure_ascii=False) if body else None, status, client.name, t))

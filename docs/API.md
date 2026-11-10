@@ -7,7 +7,7 @@
 
 | 경로 | 돌려주는 것 |
 |---|---|
-| `/api/study/today?k=7` | `{groups:[{answer, question, ts, items:[개념 요약], more:[{id, label}]}], items, counts:{shown, known, left, hidden, questions}}` 아직 '이해함'이 아닌 개념을 처음 만난 내 질문별로 묶는다 (`k` = 묶음 수). 묶음 순서는 '다시 볼 것'이 있는 질문 → 최근 질문, 묶음마다 `items`는 3개까지이고 나머지는 `more`. 맨 바깥 `items`는 펼친 개념을 이어 붙인 것 |
+| `/api/study/today?k=7` | `{groups:[{answer, question, ts, items:[개념 요약], more:[{id, label, extra}]}], items, counts:{shown, known, left, hidden, questions, extra}}` 아직 '이해함'이 아닌 개념을 처음 만난 내 질문별로 묶는다 (`k` = 묶음 수). 묶음 순서는 '다시 볼 것'이 있는 질문 → 최근 질문, 묶음마다 `items`는 3개까지이고 나머지는 `more`. `extra: true`는 관문이 기본 목록에는 넣지 않고 접힌 칸에만 내놓은 낱말(`gate.extra`)로, `more` 끝에 오고 `shown`·`left`에는 세지 않는다 (`counts.extra`). 맨 바깥 `items`는 펼친 개념을 이어 붙인 것 |
 | `/api/study/concepts?view=show\|hidden\|all&k=50` | `{items:[개념 요약], n_sessions, total_words}` `hidden`은 후보가 먼저 |
 | `/api/study/concept/{id}` | 개념 노트 (아래). 처음 열면 정의 수집과 노트 작성을 뒤에서 예약한다 |
 | `/api/answers?k=20` | `{items:[{id, session, ts, source, preview, chars}]}` 최근 답변 |
@@ -17,7 +17,7 @@
 
 **개념 요약** `{id, label, rank, sessions, turns, last_seen, gate, progress, line, line_kind, origin, field}`
 
-- `gate`: `{show, candidate, by, rule}` 보여 줄지. `by` = `user`·`rule`·`llm`·`terms`·`unjudged`
+- `gate`: `{show, candidate, extra, by, rule}` 보여 줄지. `extra` = 질문 묶음의 '더 보기'에만 낼 낱말 (`concept_gate.rescue`). `by` = `user`·`rule`·`llm`·`terms`·`unjudged`
 - `progress`: `new`·`review`·`known`
 - `line_kind`: `ai_checked`(근거 대조를 통과한 AI 문장) · `source`(출처 문장 그대로) · `none`(설명 없음)
 - `origin`: `{question, ts, answer}` 이 개념을 처음 만난 자리. `question`은 그 답변 앞의 내 질문 첫 줄(80자까지, 없으면 `null`), `answer`는 `/api/answers/{id}`의 id. 기록이 없으면 `origin` 자체가 `null`
