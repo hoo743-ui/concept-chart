@@ -52,7 +52,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 읽을 것: `docs/WORKSHEET.md`(기획 5단계), `docs/DECISION_LOG.md`(결정 근거), `docs/CONSTRAINTS.md`(할루시네이션 방지 규칙, 새 기능은 이 규칙을 지킨다), `docs/API.md`(화면과 서버의 계약)
 
 다음 할 일 (합의된 순서)
-1. 사용자가 프로토타입을 확인한다. `data/eval/concept_sheet.csv`의 Claude 표시 정답을 검토하면 관문 수치를 다시 잰다.
+1. 사용자가 프로토타입을 확인한다. 관문 판정과 엇갈린 낱말 165개만 모은 `data/eval/review_sheet.csv`(만들기·다시 재기: `experiments/2026-11-10-general-gate/review_sheet.py [--apply]`)를 사용자가 검토하면 관문 수치를 다시 잰다.
 2. 디자인 확정, 설치 방식(플러그인 등) 확정은 그 뒤에 사용자 결정으로 진행한다.
 
 나중에 / 사용자 결정 필요
