@@ -36,7 +36,7 @@
 | 출처 | 한국어 위키백과 API `https://ko.wikipedia.org/w/api.php` (분류의 문서 제목, 영어 링크, 넘겨주기) |
 | 범위 | `분류:기계 학습`과 하위 2단계, 39개 분류. 행사·소프트웨어 분류 2개 제외 |
 | 받은 날 | 2026-11-09 |
-| 라이선스 | 위키백과 본문은 CC BY-SA 4.0. 제목·링크를 데이터로 재배포할 때의 조건은 확인하지 않았다. 재배포 전에 확인하고, 지금은 재배포하지 않는다 |
+| 라이선스 | 위키백과 본문은 CC BY-SA 4.0. 저장소를 공개하면서(2026-11-10) 저장소에 든 제목 목록(`experiments/splits/B.json`, `kit/data/tech_terms.txt`의 일부)은 출처를 밝히고 CC BY-SA 4.0으로 배포한다 (README '데이터 라이선스'). `data/` 아래 원본·가공 파일은 저장소에 넣지 않는다 |
 | 원본 | `data/raw/kowiki_ml/pages.jsonl`, 472개 문서, SHA-256 `e03dfbcf7ff326a49f47a4563a2615304406669970062a8aebbc750feeb18e96` |
 | 가공 | `data/processed/B_pairs.jsonl`, 1,698쌍, SHA-256 `09f7a91baa34f77d46c69b1e4044c80b9438842ed77cc3d5446969623c6be3fc` |
 | 검토 대기 | `data/processed/B_review.jsonl`, 넘겨주기 841개. 정답으로 쓰지 않음 |
