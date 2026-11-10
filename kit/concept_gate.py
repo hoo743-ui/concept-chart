@@ -181,11 +181,11 @@ def final(rule, llm=None, sourced=None, lex=None):
     """→ "show"(공부 목록) | "candidate"(숨기되 사용자가 올릴 수 있는 후보) | "hide". 오탐을 먼저 막는다:
     LLM 혼자 인정한 낱말은 정밀도가 낮아(실측 0.72) 공부 목록에 넣지 않는다. 두 번째 근거가 있을 때만 넣는다:
     사전(개발 용어), 분야 사전에 전문 뜻만 있음(lex="special"), 또는 sourced = 이름이 맞는 위키백과 문서가 있음.
-    분야 사전에 일상 뜻만 있으면 숨기고(LLM에 묻지 않아도 된다), 일상 뜻도 있으면 후보까지만 둔다."""
+    분야 사전에 일상 뜻만 있으면 숨기고(LLM에 묻지 않아도 된다), 일상 뜻도 있으면 LLM과 위키백과 문서가 함께 인정할 때만 보여 준다."""
     if rule == "unknown" and lex == "general":
         return "hide"
-    if rule == "unknown" and lex == "mixed":                # 위키백과 문서까지 있으면 보여 주는 안은 버렸다 (r5d: 금리·혈액·재판도 문서가 있어 조정용 정밀도 0.754 → 0.531)
-        return "candidate" if llm else "hide"
+    if rule == "unknown" and lex == "mixed":                # 일상 뜻도 있는 말: LLM 인정 + 이름이 맞는 위키백과 문서가 둘 다 있어야 보여 준다
+        return "show" if llm is True and sourced else "candidate" if llm else "hide"   # (사용자 정답 기준 11-10: 금리·혈액·재판도 개념. 예전 기준에서는 r5d로 버렸던 안)
     if rule == "unknown" and llm is True and (lex == "special" or sourced):
         return "show"
     if rule == "accept":

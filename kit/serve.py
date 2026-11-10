@@ -951,7 +951,7 @@ def warm_targets(con, ai=True):
                 api.enqueue(con, "judge", x["id"], 8)
         if ai and rule == "unknown" and lex == "special" and row and row[0] == 0 and row[2] is None and api.sourced(con, x["id"]):
             api.enqueue(con, "everyday", x["id"], 9)        # '더 보기'에 살릴지 묻는 두 번째 질문 (gate.rescue)
-        wants_source = rule == "unknown" and (lex == "special" or (ai and lex is None and bool(row and row[0])))
+        wants_source = rule == "unknown" and (lex == "special" or (ai and lex in (None, "mixed") and bool(row and row[0])))
         if wants_source and len(check) < CHECK_TOP and not con.execute("SELECT 1 FROM notes WHERE concept=?", (x["id"],)).fetchone():
             check.append(x["id"])
     shown = api.concepts(con, leaderboard, "show", WARM_TOP, origin=False)["items"]

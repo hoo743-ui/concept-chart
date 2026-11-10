@@ -52,7 +52,7 @@ def gate_of(con, cid, label):
     if user in ("concept", "not_concept"):
         return {"show": user == "concept", "candidate": False, "extra": False, "by": "user", "rule": rule}
     lex = gate.lexicon_verdict(label)
-    src = sourced(con, cid) if rule == "unknown" and lex not in ("general", "mixed") else False
+    src = sourced(con, cid) if rule == "unknown" and lex != "general" else False
     llm = None if llm is None else bool(llm)
     extra = False
     if AI:
