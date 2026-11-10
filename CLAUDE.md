@@ -46,6 +46,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - 공부 프로토타입(0.4.0, 사용자가 방향을 맡김 11-09): `python dev.py app`. 개념 관문(`kit/concept_gate.py`), 비용 없는 로컬 LLM(`kit/llm.py`, `qwen3:4b`), 별도 프로세스 모델 작업자(`kit/study_worker.py`), 근거 대조 통과 문장만 저장, 화면(`app/`)과 계약(`docs/API.md`) 분리, 입구 확장(`kit/concept_add.py`: 붙여넣기·파이프·내보내기 파일)
 - 표기 합치기 모델 실험 결론: 서비스에 켜지 않음 (`docs/DECISION_LOG.md` D1)
 - 분야 무관 개념 관문(0.5.0, 11-10): 분야 사전(`lexicons/` → `python dev.py lexicon`) + 위키백과를 두 번째 근거로 (D8). 평가·대시보드는 `experiments/2026-11-10-general-gate/`
+- 화학식 조각 거르기 + 새 분야 세트 측정(0.5.1, 11-10): `--set=fresh`. 화면 정리 방향(11-10 사용자 결정): 첫 화면은 질문별 묶음. 먼저 카드에 출처 질문(`origin`)·분야 꼬리표(`field`, `kit/fields.py`)를 넣었다
 - 배포 방향(11-10 사용자 결정, D7): 작은 설치 파일 하나 + 앱 창(로컬 서버 + OS 웹뷰) + AI는 첫 실행에서 선택 받기, Claude Code 플러그인은 입구. 디자인·UI/UX는 사용자가 나중에 직접
 
 읽을 것: `docs/WORKSHEET.md`(기획 5단계), `docs/DECISION_LOG.md`(결정 근거), `docs/CONSTRAINTS.md`(할루시네이션 방지 규칙, 새 기능은 이 규칙을 지킨다), `docs/API.md`(화면과 서버의 계약)

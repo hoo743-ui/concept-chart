@@ -937,7 +937,7 @@ def warm_targets(con, ai=True):
     import study_api as api
     check = []
     for x in leaderboard(con, k=100000)["items"]:
-        rule, lex = gate.rule_verdict(x["label"]), gate.lexicon_verdict(x["label"])
+        rule, lex = api.rule_of(con, x["id"], x["label"]), gate.lexicon_verdict(x["label"])
         if rule == "unknown" and lex in ("general", "mixed") and not ai:
             continue
         row = con.execute("SELECT llm, user FROM judgments WHERE concept=?", (x["id"],)).fetchone()
@@ -949,7 +949,7 @@ def warm_targets(con, ai=True):
         wants_source = rule == "unknown" and lex in (None, "special") and (lex == "special" if not ai else bool(row and row[0]))
         if wants_source and len(check) < CHECK_TOP and not con.execute("SELECT 1 FROM notes WHERE concept=?", (x["id"],)).fetchone():
             check.append(x["id"])
-    shown = api.concepts(con, leaderboard, "show", WARM_TOP)["items"]
+    shown = api.concepts(con, leaderboard, "show", WARM_TOP, origin=False)["items"]
     return check + [x["id"] for x in shown]
 
 

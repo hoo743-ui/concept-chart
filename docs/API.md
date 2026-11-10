@@ -15,13 +15,15 @@
 | `/api/health` | `{llm:{name, available}, jobs:{queued, done, failed}, study_worker, turns, sessions, web}` |
 | `/api/events` | SSE. 내용이 바뀌면 `update` 이벤트 |
 
-**개념 요약** `{id, label, rank, sessions, turns, last_seen, gate, progress, line, line_kind}`
+**개념 요약** `{id, label, rank, sessions, turns, last_seen, gate, progress, line, line_kind, origin, field}`
 
 - `gate`: `{show, candidate, by, rule}` 보여 줄지. `by` = `user`·`rule`·`llm`·`terms`·`unjudged`
 - `progress`: `new`·`review`·`known`
 - `line_kind`: `ai_checked`(근거 대조를 통과한 AI 문장) · `source`(출처 문장 그대로) · `none`(설명 없음)
+- `origin`: `{question, ts, answer}` 이 개념을 처음 만난 자리. `question`은 그 답변 앞의 내 질문 첫 줄(80자까지, 없으면 `null`), `answer`는 `/api/answers/{id}`의 id. 기록이 없으면 `origin` 자체가 `null`
+- `field`: 분야 꼬리표(`물리`, `법률`, `정보·통신` …) 또는 `null`. 우리말샘 전문 분야 중 함께 나온 개념 2개 이상과 겹치는 것, 기술 용어집이면 `정보·통신` (`kit/fields.py`). 화면 표시용이고 공부 목록 판정에는 쓰지 않는다
 
-**개념 노트**: 개념 요약의 `id` 대신 `concept`, 그리고 `summary, definition, sources:[{text, url}], note_status, chat_line, related:[{id, label}], records:[{ts, role, snippet, question}], next_cursor, forms, note, practice`.
+**개념 노트**: 개념 요약의 `id` 대신 `concept`, 그리고 `summary, definition, sources:[{text, url}], origin, field, note_status, chat_line, related:[{id, label}], records:[{ts, role, snippet, question}], next_cursor, forms, note, practice`.
 
 **`note`**(쉬운 설명): `{status, model, updated, easy, easy_evidence, checked:{total, passed}, has_source}`
 

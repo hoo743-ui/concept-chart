@@ -36,6 +36,20 @@ def main():
     return built
 
 
+def read_fields(folder):
+    """TSV 다섯째 열(분야, ;로 구분)을 낱말별로 합친다 → {key: "물리;화학"}"""
+    out = {}
+    for path in sorted(folder.glob("*.tsv")):
+        with path.open(encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("#"):
+                    continue
+                p = line.rstrip("\n").split("\t")
+                if len(p) >= 5 and p[4]:
+                    out[p[0]] = ";".join(sorted(set(out.get(p[0], "").split(";") + p[4].split(";")) - {""}))
+    return out
+
+
 def install(names):
     """앱에는 합친 SQLite 하나만 넣는다 (필요한 낱말만 찾아 메모리를 거의 쓰지 않는다). 새로 만든 뒤 바꿔 끼운다"""
     import sqlite3
@@ -49,6 +63,8 @@ def install(names):
     con.execute("CREATE TABLE lex (key TEXT PRIMARY KEY, spec INTEGER, gen INTEGER) WITHOUT ROWID")
     con.execute("CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT)")
     con.executemany("INSERT INTO lex VALUES (?,?,?)", ((k, s, n) for k, (s, n) in lex.items()))
+    con.execute("CREATE TABLE field (key TEXT PRIMARY KEY, fields TEXT) WITHOUT ROWID")     # 화면의 분야 꼬리표용 (판정에는 쓰지 않는다)
+    con.executemany("INSERT INTO field VALUES (?,?)", read_fields(ROOT / "data" / "processed" / "lexicon").items())
     con.execute("INSERT INTO meta VALUES ('sources', ?)", (", ".join(names),))
     con.commit()
     con.close()

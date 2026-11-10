@@ -4,6 +4,7 @@
     python experiments/2026-11-10-general-gate/evaluate.py words            # 1) 색인 → 낱말 목록 (정답 표시용)
     python experiments/2026-11-10-general-gate/evaluate.py score r0         # 2) 조정용 분야 + 개발 대화 측정, rounds.json에 기록
     python experiments/2026-11-10-general-gate/evaluate.py score final --holdout   # 마지막에 한 번: 처음 보는 분야
+    python experiments/2026-11-10-general-gate/evaluate.py words --set=fresh / score r4-fresh --holdout --set=fresh   # 새 분야 세트 (data/eval/fresh/)
 
 할루시네이션·과적합 방지
 - 정답(data/eval/general/gold.json)은 관문 결과를 보기 전에 고정한다. 정답 파일이 바뀌면 지문(hash)이 달라져 기록에 남는다.
@@ -26,7 +27,9 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import concept_gate as g  # noqa: E402
 import llm  # noqa: E402
 
-D = ROOT / "data" / "eval" / "general"
+SET = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--set=")), "general")
+D = ROOT / "data" / "eval" / SET
+QUESTIONS = HERE / ("questions.json" if SET == "general" else f"questions_{SET}.json")
 IDX = D / "idx.sqlite"
 GOLD = D / "gold.json"
 ROUNDS = HERE / "rounds.json"
@@ -40,8 +43,8 @@ def index():
 
 def words():
     """(개념 id, 대표 표기, 분야, split, 문장들). 답변(assistant)에 나온 낱말만"""
-    qs = json.loads((HERE / "questions.json").read_text(encoding="utf-8"))
-    split_of = {f: s for s in ("tune", "holdout") for f in qs[s]}
+    qs = json.loads(QUESTIONS.read_text(encoding="utf-8"))
+    split_of = {f: s for s in ("tune", "holdout") for f in qs.get(s, {})}
     con = sqlite3.connect(IDX)
     out = []
     for c, form in con.execute("SELECT f.concept, (SELECT form FROM forms x WHERE x.concept=f.concept ORDER BY n DESC, form LIMIT 1) FROM freq f ORDER BY f.n DESC, f.concept"):
@@ -95,9 +98,9 @@ def judge_all(items, cache_path):
     client = llm.make("ollama:qwen3:4b")
     assert client.available(), "LLM 없음"
     for x in items:
-        if g.rule_verdict(x["form"]) in ("accept", "reject") or x["form"] in cache:
+        if g.rule_verdict(x["form"], x.get("sents")) in ("accept", "reject") or x["form"] in cache:
             continue
-        if g.rule_verdict(x["form"]) == "unknown" and g.lexicon_verdict(x["form"]) == "general":
+        if g.rule_verdict(x["form"], x.get("sents")) == "unknown" and g.lexicon_verdict(x["form"]) == "general":
             continue                                   # 일상 뜻만 있는 낱말은 묻지 않아도 숨긴다
         gentle()
         cache[x["form"]] = bool(client.json(g.judge_prompt(x["form"], x["sents"]), g.JUDGE_SCHEMA, 20)["is_term"])
@@ -108,22 +111,24 @@ def judge_all(items, cache_path):
 
 
 WIKI = D / "wiki.json"
+DEV_D = ROOT / "data" / "eval" / "general"     # 개발 대화 회귀 점검의 캐시는 어느 세트를 재든 여기 하나 (다시 묻지 않게)
 
 
-def sourced_all(items, cache):
+def sourced_all(items, cache, path=None):
     """LLM이 인정했지만 사전에 없는 낱말만: 앱과 같은 코드(serve.fetch_note)로 이름이 맞는 위키백과 문서가 있는지. 저장해 두고 다시 묻지 않는다"""
     import serve
-    wiki = json.loads(WIKI.read_text(encoding="utf-8")) if WIKI.exists() else {}
+    path = path or WIKI
+    wiki = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     want = (lambda f: g.lexicon_verdict(f) == "special") if NO_LLM else (lambda f: cache.get(f) is True)
-    todo = [x["form"] for x in items if g.rule_verdict(x["form"]) == "unknown" and want(x["form"]) and x["form"] not in wiki]
+    todo = [x["form"] for x in items if g.rule_verdict(x["form"], x.get("sents")) == "unknown" and want(x["form"]) and x["form"] not in wiki]
     for i, f in enumerate(todo, 1):
         try:
             wiki[f] = bool(serve.fetch_note(f)[0])
         except Exception as e:  # noqa: BLE001 — 네트워크 오류는 저장하지 않고 다음에 다시
             print("위키 조회 실패", f, type(e).__name__, flush=True)
         if i % 20 == 0:
-            WIKI.write_text(json.dumps(wiki, ensure_ascii=False), encoding="utf-8")
-    WIKI.write_text(json.dumps(wiki, ensure_ascii=False), encoding="utf-8")
+            path.write_text(json.dumps(wiki, ensure_ascii=False), encoding="utf-8")
+    path.write_text(json.dumps(wiki, ensure_ascii=False), encoding="utf-8")
     return wiki
 
 
@@ -133,10 +138,12 @@ LEX = ROOT / "data" / "processed" / "lexicon"     # 분야 사전 (lexicon_*.py�
 def score(name, items, gold, cache, wiki=None):
     items = [x for x in items if x["form"] in gold]
     wiki = wiki or {}
+    sents = {x["form"]: x.get("sents") for x in items}
+
     def verdict(f):
         if NO_LLM:
-            return g.final_no_ai(g.rule_verdict(f), wiki.get(f), g.lexicon_verdict(f))
-        return g.final(g.rule_verdict(f), cache.get(f), wiki.get(f), g.lexicon_verdict(f))
+            return g.final_no_ai(g.rule_verdict(f, sents.get(f)), wiki.get(f), g.lexicon_verdict(f))
+        return g.final(g.rule_verdict(f, sents.get(f)), cache.get(f), wiki.get(f), g.lexicon_verdict(f))
     shown = [x["form"] for x in items if verdict(x["form"]) == "show"]
     pos = [x["form"] for x in items if gold[x["form"]]]
     tp = sum(gold[w] for w in shown)
@@ -155,7 +162,7 @@ def dev_regression(cache_path):
     for c, f in con.execute("SELECT f.concept, (SELECT form FROM forms x WHERE x.concept=f.concept ORDER BY n DESC LIMIT 1) FROM freq f ORDER BY f.n DESC, f.concept"):
         items.append({"form": f, "sents": [r[0] for r in con.execute("SELECT snippet FROM mentions WHERE concept=? ORDER BY ts DESC LIMIT 3", (c,))]})
     cache = judge_all(items, cache_path)
-    return score("개발 대화 (전체 낱말)", items, {x["form"]: x["form"] in gold_pos for x in items}, cache, sourced_all(items, cache))
+    return score("개발 대화 (전체 낱말)", items, {x["form"]: x["form"] in gold_pos for x in items}, cache, sourced_all(items, cache, DEV_D / "wiki.json"))
 
 
 def main():
@@ -170,6 +177,8 @@ def main():
     holdout = "--holdout" in sys.argv
     gold = json.loads(GOLD.read_text(encoding="utf-8"))
     leaked = guard_prompt(gold, "--allow-leak" in sys.argv)
+    if leaked and SET != "general":                     # 새 분야 세트: 질문 예시와 겹친 낱말은 채점에서 뺀다 (기록의 leaked에 남는다)
+        gold = {w: v for w, v in gold.items() if w not in leaked}
     ws = json.loads((D / "words.json").read_text(encoding="utf-8"))
     lex_files = sorted(LEX.glob("*.tsv")) if "--no-lex" not in sys.argv else []
     g.load_lexicons(LEX if lex_files else ROOT / "__none__")
@@ -177,14 +186,14 @@ def main():
     ask = hashlib.sha1(g.judge_prompt("@@", ["@@"]).encode("utf-8")).hexdigest()[:10]   # LLM 질문이 같으면 답도 같다: 캐시는 질문 기준
     cache_path = D / f"llm_q{ask}.json"
     t0 = time.time()
-    sets = ["tune", "both"] + (["holdout"] if holdout else [])
+    sets = (["tune", "both"] if SET == "general" else []) + (["holdout"] if holdout else [])
     cache = judge_all([x for x in ws if x["split"] in sets], cache_path)
     wiki = sourced_all([x for x in ws if x["split"] in sets], cache)
-    res = [score(f"일반 분야 {s}", [x for x in ws if x["split"] == s], gold, cache, wiki) for s in sets]
-    res.append(dev_regression(D / f"llm_dev_q{ask}.json"))
+    res = [score(f"{'새 분야' if SET != 'general' else '일반 분야'} {s}", [x for x in ws if x["split"] == s], gold, cache, wiki) for s in sets]
+    res.append(dev_regression(DEV_D / f"llm_dev_q{ask}.json"))
     log = json.loads(ROUNDS.read_text(encoding="utf-8")) if ROUNDS.exists() else []
     note = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--note=")), "")
-    log.append({"round": tag, "time": time.strftime("%Y-%m-%d %H:%M"), "gate_version": ver, "gold": fingerprint(GOLD), "lexicons": {p.name: fingerprint(p) for p in lex_files}, "no_llm": NO_LLM, "holdout": holdout, "seconds": round(time.time() - t0), "note": note, "leaked": leaked, "results": res})
+    log.append({"round": tag, "set": SET, "time": time.strftime("%Y-%m-%d %H:%M"), "gate_version": ver, "gold": fingerprint(GOLD), "lexicons": {p.name: fingerprint(p) for p in lex_files}, "no_llm": NO_LLM, "holdout": holdout, "seconds": round(time.time() - t0), "note": note, "leaked": leaked, "results": res})
     ROUNDS.write_text(json.dumps(log, ensure_ascii=False, indent=1), encoding="utf-8")
     import dashboard
     print("대시보드", dashboard.build())

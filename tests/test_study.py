@@ -49,6 +49,10 @@ def check_gate():
         ok(f"일상어·조각은 공부 목록에 없음: {w}", gate.final(gate.rule_verdict(w), True) != "show")
     for w in ["API", "GitHub", "SearXNG", "KeyError", "PyTorch", "macOS", "sentence-transformers"]:
         ok(f"기술 이름은 규칙으로 통과: {w}", gate.rule_verdict(w) == "accept")
+    for w, s in [("CH", "메탄(CH₄), 아세트산(CH₃COOH)"), ("SO", "황산(H₂SO₄)"), ("OH", "수산화 이온(OH⁻)")]:
+        ok(f"화학식 조각은 숨김: {w}", gate.rule_verdict(w, [s]) == "reject")
+    for w, s in [("NaOH", "수산화 나트륨(NaOH) 등"), ("COOH", "아세트산(CH₃COOH)"), ("GPU", "GPU₁ 아니고 GPU를 쓴다")]:
+        ok(f"완성된 화학식·약어는 남김: {w}", gate.rule_verdict(w, [s]) == "accept")
     ok("LLM 혼자 인정한 낱말은 후보까지만", gate.final("unknown", True) == "candidate")
     ok("LLM이 없으면 모르는 낱말을 숨김", gate.final("unknown", None) == "hide")
     ok("LLM이 없으면 사전만으로 공부 목록에 넣지 않음", gate.final("likely", None) == "candidate")
@@ -85,6 +89,37 @@ def check_lexicon():
         ok("정의가 없으면 근거가 아님", not study_api.sourced(con, "c") and not study_api.sourced(con, "zz"))
     finally:
         gate.load_lexicons(d / "없음")                       # 다른 시험에는 사전 없이
+        shutil.rmtree(d, ignore_errors=True)
+
+def check_fields():
+    """분야 꼬리표: 기술 용어집이면 정보·통신, 사전 분야는 함께 나온 개념 2개 이상이 같은 분야일 때만, 근거 없으면 None"""
+    import fields
+    d = pathlib.Path(tempfile.mkdtemp())
+    old = os.environ.get("CONCEPT_CHART_LEXICON")
+    try:
+        lx = sqlite3.connect(d / "lexicon.sqlite")
+        lx.execute("CREATE TABLE field (key TEXT PRIMARY KEY, fields TEXT)")
+        lx.executemany("INSERT INTO field VALUES (?,?)", [("전류", "전기·전자;식물"), ("전압", "전기·전자"), ("저항", "전기·전자;물리"), ("체크포인트", "체육")])
+        lx.commit()
+        lx.close()
+        os.environ["CONCEPT_CHART_LEXICON"] = str(d)
+        fields._con, fields._cache = None, {}
+        con = sqlite3.connect(":memory:")
+        con.execute("CREATE TABLE cooc (a TEXT, b TEXT, n INTEGER)")
+        con.execute("CREATE TABLE forms (concept TEXT, form TEXT, n INTEGER)")
+        con.executemany("INSERT INTO forms VALUES (?,?,1)", [("i", "전류"), ("v", "전압"), ("r", "저항"), ("c", "체크포인트"), ("x", "버그")])
+        con.executemany("INSERT INTO cooc VALUES (?,?,1)", [("i", "v"), ("i", "r"), ("c", "x"), ("v", "i")])
+        ok("분야가 여럿이면 함께 나온 개념으로 고름 (전류 → 전기·전자)", fields.field_of(con, "i", "전류") == "전기·전자")
+        ok("같은 분야 이웃이 하나뿐이면 달지 않음", fields.field_of(con, "v", "전압") is None)
+        ok("사전 분야가 대화와 안 맞으면 달지 않음 (체크포인트 = 체육)", fields.field_of(con, "c", "체크포인트") is None)
+        ok("사전에 없으면 None", fields.field_of(con, "x", "없는낱말") is None)
+        ok("기술 용어집에 있으면 정보·통신", fields.field_of(con, "x", "Docker") == fields.TECH or "docker" not in gate.terms())
+    finally:
+        if old is None:
+            os.environ.pop("CONCEPT_CHART_LEXICON", None)
+        else:
+            os.environ["CONCEPT_CHART_LEXICON"] = old
+        fields._con, fields._cache = None, {}
         shutil.rmtree(d, ignore_errors=True)
 
 
@@ -290,8 +325,11 @@ def check_server(tmp):
         d = get("/api/study/today?k=20")
         labels = [x["label"] for x in d["items"]]
         ok("오늘 공부에 기술 이름만", "Docker" in labels and "GitHub" in labels and not {"추천", "통과", "설치", "Actions"} & set(labels), ", ".join(labels))
+        o = d["items"][0].get("origin") or {}
+        ok("카드에 처음 만난 질문 (누르면 그 답변이 열림)", o.get("question") == "도커가 뭐야?" and get("/api/answers/" + urllib.parse.quote(o.get("answer", "x")))["question"] == "도커가 뭐야?", str(o))
         cid = d["items"][0]["id"]
         c = get("/api/study/concept/" + urllib.parse.quote(cid))
+        ok("개념 노트에도 처음 만난 질문과 분야 칸", (c.get("origin") or {}).get("question") == "도커가 뭐야?" and "field" in c)
         ok("개념 노트 계약", all(k in c for k in ("label", "gate", "progress", "note", "forms", "records", "related", "sources")))
         ok("LLM이 없어도 노트 화면이 응답", c["note"]["status"] in ("none", "rejected"))
         ok("근거가 없으면 설명을 만들지 않음", not c.get("definition") and not c["note"].get("easy"))
@@ -342,6 +380,7 @@ def main():
     try:
         check_gate()
         check_lexicon()
+        check_fields()
         check_grounding(tmp)
         check_llm_slot()
         check_inputs(tmp)

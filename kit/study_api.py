@@ -9,6 +9,7 @@ import re
 from datetime import datetime, timezone
 
 import concept_gate as gate
+import fields
 
 STATUSES = {"known", "review", "new"}
 VERDICTS = {"concept", "not_concept", "clear"}
@@ -36,10 +37,18 @@ def sourced(con, cid):
         return False
 
 
+def rule_of(con, cid, label):
+    """규칙 판정. 영문 표기는 대화 문장을 함께 넘겨 화학식 조각(CH₄의 CH)을 거른다"""
+    sents = None
+    if gate.ASCII_FORM.fullmatch(label.strip()):
+        sents = [r[0] for r in con.execute("SELECT snippet FROM mentions WHERE concept=? LIMIT 20", (cid,))]
+    return gate.rule_verdict(label, sents)
+
+
 def gate_of(con, cid, label):
     row = con.execute("SELECT llm, user FROM judgments WHERE concept=?", (cid,)).fetchone()
     llm, user = (row[0], row[1]) if row else (None, None)
-    rule = gate.rule_verdict(label)
+    rule = rule_of(con, cid, label)
     if user in ("concept", "not_concept"):
         return {"show": user == "concept", "candidate": False, "by": "user", "rule": rule}
     lex = gate.lexicon_verdict(label)
@@ -77,7 +86,26 @@ def summary_line(con, cid):
     return None, "none"
 
 
-def concepts(con, board, view="show", k=50, project=None):
+def origin_of(con, cid):
+    """이 개념을 처음 만난 자리: 처음 나온 답변과 그 앞의 내 질문 (질문 없이 붙여 넣은 답변이면 question은 None)"""
+    r = con.execute("SELECT m.ts, m.session, q.text FROM mentions m LEFT JOIN questions q ON q.id = m.question "
+                    "WHERE m.concept=? ORDER BY m.ts LIMIT 1", (cid,)).fetchone()
+    if not r:
+        return None
+    line = next((x.strip() for x in (r[2] or "").splitlines() if x.strip()), "")
+    line = re.sub(r"\s+", " ", line)
+    return {"question": (line[:80] + "…" if len(line) > 80 else line) or None, "ts": r[0], "answer": answer_id(r[1], r[0])}
+
+
+def with_origin(con, items):
+    """화면에 나갈 개념에만 출처 질문과 분야 꼬리표를 붙인다 (전체 개념에 붙이면 느리다)"""
+    for x in items:
+        x["origin"] = origin_of(con, x["id"])
+        x["field"] = fields.field_of(con, x["id"], x["label"])
+    return items
+
+
+def concepts(con, board, view="show", k=50, project=None, origin=True):
     """view: show(공부할 개념) · hidden(숨겨진 낱말) · all"""
     data = board(con, k=100000, project=project)
     items = []
@@ -93,16 +121,18 @@ def concepts(con, board, view="show", k=50, project=None):
     items = items[:k]
     for i, x in enumerate(items, 1):
         x["rank"] = i
+    if origin:
+        with_origin(con, items)
     return {"project": project, "n_sessions": data["n_sessions"], "total_words": data["n_concepts"], "items": items}
 
 
 def today(con, board, k=7, project=None):
     """오늘 볼 것: 아직 '이해함'이 아닌 개념을 중요도 순으로. 다시 볼 것을 앞에"""
-    data = concepts(con, board, "show", 100000, project)
+    data = concepts(con, board, "show", 100000, project, origin=False)
     todo = [x for x in data["items"] if x["progress"] != "known"]
     todo.sort(key=lambda x: (x["progress"] != "review", not x["line"], x["rank"]))     # 다시 볼 것 → 설명이 준비된 것 먼저
     known = sum(1 for x in data["items"] if x["progress"] == "known")
-    return {"project": project, "items": todo[:k], "counts": {"shown": len(data["items"]), "known": known, "left": len(todo), "hidden": data["total_words"] - len(data["items"])}}
+    return {"project": project, "items": with_origin(con, todo[:k]), "counts": {"shown": len(data["items"]), "known": known, "left": len(todo), "hidden": data["total_words"] - len(data["items"])}}
 
 
 def detail(con, card, cid):
@@ -118,7 +148,7 @@ def detail(con, card, cid):
             related.append({"id": b, "label": label[0]})
         if len(related) >= 6:
             break
-    return dict(card, related=related, gate=gate_of(con, cid, card["label"]), progress=progress_of(con, cid), note=note, forms=forms, practice=practice(card.get("definition"), forms or [card["label"]]))
+    return dict(card, related=related, gate=gate_of(con, cid, card["label"]), progress=progress_of(con, cid), note=note, origin=origin_of(con, cid), field=fields.field_of(con, cid, card["label"]), forms=forms, practice=practice(card.get("definition"), forms or [card["label"]]))
 
 
 def practice(definition, forms):

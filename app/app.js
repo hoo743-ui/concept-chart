@@ -23,10 +23,17 @@ function lineTag(kind) {
   return h('span', { class: 'tag warn' }, '출처 없음');
 }
 
+// 이 개념을 처음 만난 자리 (내 질문). 질문 없이 붙여 넣은 답변이면 날짜만
+function originText(o) {
+  if (!o) return null;
+  return (o.question ? '“' + o.question + '” 질문에서' : '붙여 넣은 답변에서') + ' · ' + when(o.ts);
+}
+
 function conceptItem(x) {
   return h('li', {}, h('a', { class: 'item', href: cHash(x.id) },
-    h('b', {}, x.label, x.progress === 'review' ? h('span', { class: 'tag warn' }, '다시 볼 것') : null, x.progress === 'known' ? h('span', { class: 'tag ok' }, '이해함') : null),
-    h('span', { class: 'line' }, x.line || '아직 믿을 만한 설명을 찾지 못했어요.'), ' ', lineTag(x.line_kind)));
+    h('b', {}, x.label, x.field ? h('span', { class: 'tag field' }, x.field) : null, x.progress === 'review' ? h('span', { class: 'tag warn' }, '다시 볼 것') : null, x.progress === 'known' ? h('span', { class: 'tag ok' }, '이해함') : null),
+    h('span', { class: 'line' }, x.line || '아직 믿을 만한 설명을 찾지 못했어요.'), ' ', lineTag(x.line_kind),
+    x.origin ? h('span', { class: 'origin' }, originText(x.origin)) : null));
 }
 
 // ---------- 오늘 공부 ----------
@@ -64,7 +71,8 @@ function explainBlock(c) {
 async function pageConcept(id) {
   const c = await API.concept(id);
   const n = c.note || {};
-  const body = [h('a', { class: 'back', href: '#/' }, '← 오늘 공부'), h('h1', {}, c.label)];
+  const body = [h('a', { class: 'back', href: '#/' }, '← 오늘 공부'), h('h1', {}, c.label, c.field ? h('span', { class: 'tag field' }, c.field) : null)];
+  if (c.origin) body.push(h('p', { class: 'origin' }, h('a', { href: '#/a/' + encodeURIComponent(c.origin.answer) }, originText(c.origin))));
   if (c.forms && c.forms.length > 1) body.push(h('p', { class: 'muted' }, '다른 표기: ' + c.forms.filter((f) => f !== c.label).join(', ')));
   body.push(h('h2', {}, '이 개념은'), ...explainBlock(c));
 

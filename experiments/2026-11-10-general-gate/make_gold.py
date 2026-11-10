@@ -7,10 +7,11 @@
 목록에 없는 낱말은 모두 '아님'이다.
 """
 import json
+import sys
 import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
-POS = """
+POS_GENERAL = """
 민법 유전자 단백질 면역계 미생물 변이 세균 실업률 억제제 인플레이션 진화 ACE Captopril Diuretics DNA enzyme GDP HDL LDL SGLT substrate defendant plaintiff AI
 강제추행 개체 개체군 광합성 국채 근로계약 기준금리 기질 내성 냉전 노동법 당뇨 당뇨병 동맥경화 면역 미토콘드리아 민사소송 배당금 백신 병원체 복합체
 산업혁명 산업화 세계대전 소멸시효 손해배상 스태그플레이션 신경병 유전자형 인슐린 임대인 임차인 임진왜란 자가면역 자연선택 재정정책 저항성 전세
@@ -23,8 +24,21 @@ POS = """
 """.split()
 
 
+# 새 분야 세트 (data/eval/fresh, 물리학·천문학·철학·언어학·환경과학). Claude 표시 2026-11-10, 관문 결과를 보기 전에 고정. 사용자 검토 전.
+# 같은 기준. 더해서: 화학식·영어 구절에서 잘린 조각(CO←CO₂, NO←NOₓ, PM←PM2.5, Fixation)은 아님, 큰 학문 이름(물리학·천문학)은 아님·세부 분야(열역학·통사론)는 개념.
+FRESH_POS = """
+입자 중력 생태계 연소 운동량 중력파 질량 천체 초신성 파동 파장 AQI Azotobacter Denitrification Nitrification Nitrobacter Nitrosomonas
+Pseudomonas Rhizobium morpheme phoneme 공리주의 관성 광자 광전현상 교착어 궤도 귀납 연역 메탄 면역계 명제 미생물 박테리아 부영양화
+블랙홀 산성 산성비 산성화 산화 서식지 세포 양자 양자역학 엔트로피 열역학 엽록체 온난화 온실가스 유기물 은하 음소 의무론 이데아 이데아론
+인공지능 자연어_처리 적색편이 적색이동 전류 전압 전위 전하 전자 전자기장 전자기파 주파수 진화 질산염 아질산염 질소_고정 질소산화물
+통사론 플랑크_상수 핵융합 형태소 형태학 환원 회로 단백질 알고리즘
+""".split()
+
+
 def main():
-    d = ROOT / "data" / "eval" / "general"
+    fresh = "--set=fresh" in sys.argv
+    d = ROOT / "data" / "eval" / ("fresh" if fresh else "general")
+    POS = FRESH_POS if fresh else POS_GENERAL
     words = [x["form"] for x in json.loads((d / "words.json").read_text(encoding="utf-8"))]
     pos = {w.replace("_", " ") for w in POS}
     missing = sorted(pos - set(words))

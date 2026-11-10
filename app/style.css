@@ -27,9 +27,13 @@ p { margin: 0 0 10px; }
 a.item:hover, a.item:focus-visible { border-color: var(--accent); }
 .item b { display: block; font-size: 1.05rem; }
 .item .line { display: block; color: var(--muted); font-size: .92rem; }
+.origin { display: block; margin-top: 4px; color: var(--muted); font-size: .82rem; }
+.origin a { color: inherit; }
 .tag { display: inline-block; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--line); font-size: .78rem; color: var(--muted); margin-left: 6px; font-weight: 400; vertical-align: 1px; }
 .tag.ok { color: var(--ok); border-color: currentColor; }
 .tag.warn { color: var(--warn); border-color: currentColor; }
+.tag.field { background: var(--bg); }
+h1 .tag { vertical-align: 4px; }
 .lead { font-size: 1.12rem; }
 .box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
 .q { border-left: 3px solid var(--line); padding-left: 10px; color: var(--muted); font-size: .92rem; margin-bottom: 6px; }

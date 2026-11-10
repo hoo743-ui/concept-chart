@@ -2,7 +2,7 @@
 """concept_gate.py : 이 낱말이 공부할 개념인가를 가르는 관문 (오탐을 막는 자리). 서버·화면을 모른다.
 
 순서: 사용자 판단 > 규칙 > LLM > 모름(숨김). LLM이 없거나 고장 나도 동작하고, 그때는 확실한 것만 보여 준다.
-    rule_verdict(표기) → "accept" | "reject" | "likely" | "unknown"
+    rule_verdict(표기, 문장들=None) → "accept" | "reject" | "likely" | "unknown"
     judge_prompt(표기, 문장들) → LLM에 줄 입력
     lexicon_verdict(표기) → "special" | "mixed" | "general" | None   (분야 사전: kit/data/lexicon/, 없으면 None)
     final(규칙, LLM 또는 None, 위키백과 문서 여부, 분야 사전) → "show" | "candidate" | "hide"   (AI 없음: final_no_ai)
@@ -33,14 +33,31 @@ def terms():
     return _terms
 
 
-def rule_verdict(form):
-    """accept = 규칙만으로 보여 줌, reject = 규칙만으로 숨김, likely = 사전에 있으니 LLM 확인, unknown = 판단 못 함"""
+ASCII_FORM = re.compile(r"[A-Za-z0-9.+#_\-]+")
+SCRIPT_AFTER = "₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻"    # 아래·위 첨자: 화학식(H₂SO₄, OH⁻)이 형태소 분석에서 잘린 자리
+
+
+def formula_fragment(form, sentences):
+    """화학식 조각인가: 문장 속 모든 자리에서 바로 뒤에 첨자가 붙어 있다 (CH₄ → CH, H₂SO₄ → SO, ZnSO₄ → ZnSO).
+    완성된 화학식(NaOH, KOH, COOH)은 첨자 없이 끝나므로 남는다. 문장이 없으면 판단하지 않는다"""
+    seen = cut = 0
+    for s in sentences or ():
+        for m in re.finditer(rf"(?<![A-Za-z]){re.escape(form)}(?![a-z])", s):
+            seen += 1
+            nxt = s[m.end():m.end() + 1]
+            cut += bool(nxt) and nxt in SCRIPT_AFTER
+    return seen > 0 and cut == seen
+
+
+def rule_verdict(form, sentences=None):
+    """accept = 규칙만으로 보여 줌, reject = 규칙만으로 숨김, likely = 사전에 있으니 LLM 확인, unknown = 판단 못 함.
+    sentences(그 낱말이 나온 문장)가 있으면 화학식 조각을 거른다"""
     f = form.strip()
     k = key(f)
     if len(k) < 2 or f.isdigit():
         return "reject"
-    if re.fullmatch(r"[A-Za-z0-9.+#_\-]+", f):
-        if f in ACRONYM_NOISE or f.lower() in COMMON_EN:
+    if ASCII_FORM.fullmatch(f):
+        if f in ACRONYM_NOISE or f.lower() in COMMON_EN or formula_fragment(f, sentences):
             return "reject"
         if re.fullmatch(r"[A-Z][A-Z0-9]{1,5}", f):            # CI, API, GPU
             return "accept"

@@ -23,8 +23,8 @@ def main():
         if len(p) >= 5 and p[2] == "명":
             w = re.sub(r"\d+$", "", p[1]).strip()
             words.setdefault(key(w), (w, p[4].strip()))
-    write("basicvocab", "국립국어원 한국어 학습용 어휘 목록(2003), 공공누리 제1유형. key\t표기\t전문뜻\t일상뜻\t분야(여기서는 등급)",
-          ((k, words[k][0], 0, 1, "등급" + words[k][1]) for k in sorted(words)))
+    write("basicvocab", "국립국어원 한국어 학습용 어휘 목록(2003), 공공누리 제1유형. key\t표기\t전문뜻\t일상뜻\t분야(없음: 일상어 목록)",
+          ((k, words[k][0], 0, 1, "") for k in sorted(words)))     # 등급(A·B·C)은 분야가 아니다 (넣으면 화면 분야 꼬리표에 섞인다)
     print("기초 어휘: 명사", len(words))
 
 

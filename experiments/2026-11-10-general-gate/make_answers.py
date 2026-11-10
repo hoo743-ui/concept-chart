@@ -2,6 +2,7 @@
 """분야별 질문에 로컬 LLM이 답한 글을 만든다 (비용 없음). 결과는 data/eval/general/ (git 제외).
 
     python experiments/2026-11-10-general-gate/make_answers.py
+    python experiments/2026-11-10-general-gate/make_answers.py --set=fresh    # 새 분야 세트: questions_fresh.json → data/eval/fresh/
 
 answers.jsonl: 질문·답변 / inbox.jsonl: 서버 색인용 인박스 (분야마다 세션 하나).
 이미 만든 질문은 건너뛴다. 메모리가 모자라면 기다린다.
@@ -18,7 +19,9 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import llm  # noqa: E402
 import study_worker as w  # noqa: E402
 
-OUT = ROOT / "data" / "eval" / "general"
+SET = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--set=")), "general")
+OUT = ROOT / "data" / "eval" / SET
+QUESTIONS = HERE / ("questions.json" if SET == "general" else f"questions_{SET}.json")
 SCHEMA = {"type": "object", "properties": {"answer": {"type": "string"}}, "required": ["answer"]}
 PROMPT = """너는 친절한 AI 도우미다. 아래 질문에 한국어로 답한다. 마크다운으로 제목, 목록, 굵은 글씨를 써서 600~900자로 설명한다.
 질문: {q}
@@ -26,13 +29,13 @@ JSON으로만 답한다. answer: 답변 전체."""
 
 
 def main():
-    qs = json.loads((HERE / "questions.json").read_text(encoding="utf-8"))
+    qs = json.loads(QUESTIONS.read_text(encoding="utf-8"))
     OUT.mkdir(parents=True, exist_ok=True)
     path = OUT / "answers.jsonl"
     done = {json.loads(l)["q"] for l in path.read_text(encoding="utf-8").splitlines()} if path.exists() else set()
     client = llm.make("ollama:qwen3:4b")
     assert client.available(), "LLM 없음"
-    for split in ("tune", "holdout"):
+    for split in [k for k in qs if not k.startswith("_")]:
         for field, items in qs[split].items():
             for q in items:
                 if q in done:
