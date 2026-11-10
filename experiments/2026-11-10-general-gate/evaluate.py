@@ -111,6 +111,8 @@ def judge_all(items, cache_path):
 
 
 WIKI = D / "wiki.json"
+# 개발 대화 정답(data/eval/concept_gold*.txt)을 만든 시각 (2026-11-09 20:28 KST). 그 뒤에 처음 나온 낱말은 정답이 없어 채점하지 않는다 (r5부터)
+DEV_CUTOFF = "2026-11-09T11:28:00+00:00"
 DEV_D = ROOT / "data" / "eval" / "general"     # 개발 대화 회귀 점검의 캐시는 어느 세트를 재든 여기 하나 (다시 묻지 않게)
 
 
@@ -159,7 +161,8 @@ def dev_regression(cache_path):
     gold_pos = set((d / "concept_gold.txt").read_text(encoding="utf-8").split()) | {x.replace("_", " ") for x in (d / "concept_gold_holdout.txt").read_text(encoding="utf-8").split()}
     con = sqlite3.connect(f"file:{pathlib.Path.home()}/.claude/concept-chart.sqlite?mode=ro", uri=True)
     items = []
-    for c, f in con.execute("SELECT f.concept, (SELECT form FROM forms x WHERE x.concept=f.concept ORDER BY n DESC LIMIT 1) FROM freq f ORDER BY f.n DESC, f.concept"):
+    for c, f in con.execute("SELECT f.concept, (SELECT form FROM forms x WHERE x.concept=f.concept ORDER BY n DESC LIMIT 1) FROM freq f "
+                            "WHERE (SELECT MIN(ts) FROM mentions m WHERE m.concept=f.concept) < ? ORDER BY f.n DESC, f.concept", (DEV_CUTOFF,)):
         items.append({"form": f, "sents": [r[0] for r in con.execute("SELECT snippet FROM mentions WHERE concept=? ORDER BY ts DESC LIMIT 3", (c,))]})
     cache = judge_all(items, cache_path)
     return score("개발 대화 (전체 낱말)", items, {x["form"]: x["form"] in gold_pos for x in items}, cache, sourced_all(items, cache, DEV_D / "wiki.json"))

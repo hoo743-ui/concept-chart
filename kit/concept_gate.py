@@ -34,7 +34,7 @@ def terms():
 
 
 ASCII_FORM = re.compile(r"[A-Za-z0-9.+#_\-]+")
-SCRIPT_AFTER = "₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻"    # 아래·위 첨자: 화학식(H₂SO₄, OH⁻)이 형태소 분석에서 잘린 자리
+SCRIPT_AFTER = "₀₁₂₃₄₅₆₇₈₉₊₋₍₎ₐₑₒₓₔₕₖₗₘₙₚₛₜ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ⁿⁱ"    # 아래·위 첨자: 화학식(H₂SO₄, OH⁻, NOₓ)이 형태소 분석에서 잘린 자리
 
 
 def formula_fragment(form, sentences):
@@ -45,7 +45,7 @@ def formula_fragment(form, sentences):
         for m in re.finditer(rf"(?<![A-Za-z]){re.escape(form)}(?![a-z])", s):
             seen += 1
             nxt = s[m.end():m.end() + 1]
-            cut += bool(nxt) and nxt in SCRIPT_AFTER
+            cut += bool(nxt) and nxt in SCRIPT_AFTER     # 일반 숫자는 보지 않는다: PM2.5의 PM과 SGLT2의 SGLT(개념)를 모양으로 가를 수 없다 (r5b)
     return seen > 0 and cut == seen
 
 
@@ -66,9 +66,17 @@ def rule_verdict(form, sentences=None):
         if k not in terms():
             return "unknown"
         return "accept" if f[0].isupper() else "likely"         # Docker는 사전으로 통과. 소문자(numpy, clean)는 일반 영어일 수 있어 LLM에게 확인
-    if f in GENERAL:
+    if f in GENERAL or adjective_form(f):
         return "reject"
     return "likely" if k in terms() else "unknown"
+
+
+def adjective_form(f):
+    """'-적' 꼴(열역학적·생화학적·유전적)은 개념 자체가 아니라 꾸미는 말이다. 앞말이 사전에 있는 낱말일 때만 (목적·표적·흔적은 남는다)"""
+    if len(f) < 3 or not f.endswith("적") or not re.fullmatch(r"[가-힣]+", f):
+        return False
+    stem = f[:-1]
+    return key(stem) in terms() or lexicon_verdict(stem) is not None
 
 
 def judge_prompt(form, sentences):
@@ -160,7 +168,7 @@ def final(rule, llm=None, sourced=None, lex=None):
     분야 사전에 일상 뜻만 있으면 숨기고(LLM에 묻지 않아도 된다), 일상 뜻도 있으면 후보까지만 둔다."""
     if rule == "unknown" and lex == "general":
         return "hide"
-    if rule == "unknown" and lex == "mixed":
+    if rule == "unknown" and lex == "mixed":                # 위키백과 문서까지 있으면 보여 주는 안은 버렸다 (r5d: 금리·혈액·재판도 문서가 있어 조정용 정밀도 0.754 → 0.531)
         return "candidate" if llm else "hide"
     if rule == "unknown" and llm is True and (lex == "special" or sourced):
         return "show"

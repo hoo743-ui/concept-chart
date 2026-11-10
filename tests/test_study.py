@@ -53,6 +53,8 @@ def check_gate():
         ok(f"화학식 조각은 숨김: {w}", gate.rule_verdict(w, [s]) == "reject")
     for w, s in [("NaOH", "수산화 나트륨(NaOH) 등"), ("COOH", "아세트산(CH₃COOH)"), ("GPU", "GPU₁ 아니고 GPU를 쓴다")]:
         ok(f"완성된 화학식·약어는 남김: {w}", gate.rule_verdict(w, [s]) == "accept")
+    ok("아래첨자 글자가 붙은 조각도 숨김: NO(NOₓ)", gate.rule_verdict("NO", ["질소산화물(NOₓ)"]) == "reject")
+    ok("숫자가 붙은 이름은 남김: SGLT(SGLT2)", gate.rule_verdict("SGLT", ["SGLT2 억제제"]) == "accept")
     ok("LLM 혼자 인정한 낱말은 후보까지만", gate.final("unknown", True) == "candidate")
     ok("LLM이 없으면 모르는 낱말을 숨김", gate.final("unknown", None) == "hide")
     ok("LLM이 없으면 사전만으로 공부 목록에 넣지 않음", gate.final("likely", None) == "candidate")
@@ -72,6 +74,8 @@ def check_lexicon():
         ok("사전을 합치면 뜻 수를 더한다 (변이 → 섞임)", gate.lexicon_verdict("변이") == "mixed")
         ok("일상 뜻만 있는 낱말", gate.lexicon_verdict("통과") == "general")
         ok("사전에 없는 낱말", gate.lexicon_verdict("리베이스") is None)
+        ok("'-적' 꼴은 앞말이 사전에 있으면 숨김 (삼투압적)", gate.rule_verdict("삼투압적") == "reject")
+        ok("두 글자 '-적'은 그대로 (목적)", gate.rule_verdict("목적") != "reject")
         ok("전문 뜻만 + LLM 인정이면 보여 줌", gate.final("unknown", True, None, "special") == "show")
         ok("일상 뜻도 있으면 LLM이 인정해도 후보까지만", gate.final("unknown", True, True, "mixed") == "candidate")
         ok("일상 뜻만 있으면 숨김", gate.final("unknown", True, True, "general") == "hide")
