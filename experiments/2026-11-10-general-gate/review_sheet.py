@@ -2,7 +2,7 @@
 """정답 검토 시트: Claude가 표시한 정답 중 관문 판정과 엇갈린 낱말만 모은다 (사용자가 고칠 곳만 보게).
 
     python experiments/2026-11-10-general-gate/review_sheet.py           # → data/eval/review_sheet.csv (git에 없음, 엑셀용 BOM)
-    python experiments/2026-11-10-general-gate/review_sheet.py --apply   # 시트의 '내 판단'을 반영한 정답으로 다시 잰다 (원래 정답 파일은 그대로)
+    python experiments/2026-11-10-general-gate/review_sheet.py --apply [시트 경로]   # 시트의 '내 판단'을 반영한 정답으로 다시 잰다 (원래 정답 파일은 그대로)
 
 넣는 낱말 (조정용·개발 대화·새 분야 세트)
 - 오탐: base·V3·V4·V4w 중 하나라도 보여 줬는데 Claude 정답이 '아님'
@@ -87,8 +87,8 @@ def write():
     print(f"{SHEET} : {len(rows)}개", dict(Counter((r[0], r[2]) for r in rows)))
 
 
-def apply():
-    with SHEET.open(encoding="utf-8-sig", newline="") as f:
+def apply(path=SHEET):
+    with pathlib.Path(path).open(encoding="utf-8-sig", newline="") as f:
         fixes = {(r[0], r[1]): r[4].strip() == "1" for r in list(csv.reader(f))[1:] if r[4].strip() in ("0", "1")}
     print(f"고친 낱말 {len(fixes)}개")
     for name, (items, gold, c, wk, ed, fh) in sets().items():
@@ -102,4 +102,8 @@ def apply():
 
 if __name__ == "__main__":
     g.load_lexicons(ev.LEX)
-    apply() if "--apply" in sys.argv else write()
+    if "--apply" in sys.argv:                                   # --apply [다른 시트 경로] (시트가 엑셀에 열려 있어 다른 이름으로 저장했을 때)
+        rest = sys.argv[sys.argv.index("--apply") + 1:]
+        apply(rest[0] if rest else SHEET)
+    else:
+        write()
