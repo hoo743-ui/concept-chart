@@ -88,6 +88,9 @@ def main():
         print("  관문은 보여 줬는데 '아니에요':", ", ".join(fb["wrong"][:30]))
     if fb["missed"]:
         print("  관문은 숨겼는데 '맞아요':", ", ".join(fb["missed"][:30]))
+    if fb.get("moved") or fb.get("gone"):
+        print("  이제 나오지 않는 낱말의 판단:", "옮겨 잼 " + (", ".join(fb.get("moved", [])) or "없음"),
+              "/ 재지 않음 " + (", ".join(fb.get("gone", [])) or "없음"))
     print(f"개발 대화: 공부 목록 {d['shown']}개, 정밀도 {d['precision']:.3f}, 재현율 {d['recall']:.3f} (피드백으로 바꾼 정답 {d['feedback_used']}개)")
     if cov and cov["shown"]:
         print(f"설명이 붙은 비율: 공부 목록 {cov['shown']}개 중 {cov['explained']:.3f} (근거 확인된 쉬운 설명 {cov['ai_checked']}, 출처 문장 {cov['source']}, 아직 없음 {cov['none']})")

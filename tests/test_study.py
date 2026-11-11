@@ -603,6 +603,18 @@ def check_feedback(tmp):
     con.execute("INSERT INTO study_notes VALUES ('추천', ?, 'ok', 'm', 't')", (json.dumps({"easy": "쉬운 설명"}),))
     cv = study_api.coverage(con)
     ok("설명 비율: 출처 문장·근거 확인된 설명을 셈", cv["source"] == 1 and cv["ai_checked"] == 1 and cv["explained"] == 1.0, cv)
+    # 꼬리 떼기(0.7.1) 전에 누른 판단: 에폭당·에폭별은 이제 나오지 않으니 에폭으로 옮겨 한 번만 잰다. 옮길 곳이 없으면 재지 않는다
+    con.execute("INSERT INTO forms VALUES ('에폭', '에폭', 1)")
+    con.commit()
+    for old in ("에폭당", "에폭별", "없는말별"):
+        study_api.set_feedback(con, old, "concept")
+    fb = study_api.feedback_check(con)
+    ok("지속 검증: 이제 나오지 않는 낱말의 판단은 꼬리를 뗀 낱말로 옮겨 한 번만 셈",
+       fb["moved"] == ["에폭당→에폭", "에폭별→에폭"] and fb["gone"] == ["없는말별"] and fb["n"] == 2 and "에폭" in fb["missed"]
+       and fb["gold"]["에폭당"] is True and fb["gold"]["에폭"] is True, fb)
+    study_api.set_feedback(con, "에폭", "not_concept")
+    fb = study_api.feedback_check(con)
+    ok("지속 검증: 뗀 낱말에 사용자 판단이 따로 있으면 그쪽이 앞섬", fb["moved"] == [] and "에폭" not in fb["missed"] and fb["n"] == 2 and len(fb["gone"]) == 3, fb)
     con.close()
 
 

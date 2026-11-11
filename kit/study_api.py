@@ -275,12 +275,28 @@ def feedback_check(con):
     → {"n", "shown", "shown_ok", "precision"(보여 준 것 중 사용자도 개념이라 한 비율, 보여 준 것이 없으면 None),
        "wrong": 관문은 보여 줬는데 사용자는 아니라 한 낱말, "missed": 관문은 숨겼는데 사용자는 개념이라 한 낱말, "gold": {낱말: 개념인가}}"""
     rows = con.execute("SELECT concept, user FROM judgments WHERE user IN ('concept','not_concept') ORDER BY concept").fetchall()
-    wrong, missed, gold, shown_ok, shown = [], [], {}, 0, 0
+    judged = {cid for cid, _ in rows}
+    top_form = lambda c: con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (c,)).fetchone()
+    wrong, missed, gold, shown_ok, shown, seen, moved, gone = [], [], {}, 0, 0, set(), [], []
     for cid, user in rows:
-        top = con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (cid,)).fetchone()
-        label = top[0] if top else cid
-        g = gate_of(con, cid, label, use_user=False)
         yes = user == "concept"
+        top = top_form(cid)
+        if not top:
+            # 이제 나오지 않는 낱말: 0.7.1 꼬리 떼기 전에 누른 판단(에폭당·에폭별 → 에폭)은 뗀 낱말에 옮겨 잰다.
+            # 뗀 낱말에 사용자 판단이 따로 있으면 그쪽이 앞서고, 옮길 곳이 없으면 재지 않는다 (지금 화면에 없는 낱말)
+            gold[cid] = yes                                  # 개발 대화 세트에는 옛 꼴이 남아 있을 수 있다
+            t = cid[:-1] if re.fullmatch(r"[가-힣]{3,}", cid) and cid[-1] in "별들당" else None
+            if not t or t in judged or not top_form(t):
+                gone.append(cid)
+                continue
+            moved.append(f"{cid}→{t}")
+            cid = t
+            top = top_form(t)
+        if cid in seen:
+            continue
+        seen.add(cid)
+        label = top[0]
+        g = gate_of(con, cid, label, use_user=False)
         gold[label] = yes
         if g["show"]:
             shown += 1
@@ -289,8 +305,8 @@ def feedback_check(con):
                 wrong.append(label)
         elif yes:
             missed.append(label)
-    return {"n": len(rows), "shown": shown, "shown_ok": shown_ok, "precision": round(shown_ok / shown, 3) if shown else None,
-            "wrong": wrong, "missed": missed, "gold": gold}
+    return {"n": len(seen), "shown": shown, "shown_ok": shown_ok, "precision": round(shown_ok / shown, 3) if shown else None,
+            "wrong": wrong, "missed": missed, "gold": gold, "moved": moved, "gone": gone}
 
 
 def coverage(con):
