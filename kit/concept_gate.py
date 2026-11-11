@@ -183,6 +183,13 @@ def load_lexicons(folder=None):
     return _lex
 
 
+def has_lexicon():
+    """분야 사전이 있는가 (사전은 선택 설치: python dev.py lexicon)"""
+    if _lex is None:
+        load_lexicons()
+    return bool(_lex) if isinstance(_lex, dict) else True
+
+
 def lexicon_verdict(form):
     """"special"(전문 뜻만) | "mixed"(전문 뜻과 일상 뜻) | "general"(일상 뜻만) | None(사전에 없음)"""
     if _lex is None:
@@ -195,15 +202,15 @@ def lexicon_verdict(form):
 
 
 def code_name(form, texts):
-    """(0.7.0, 실험 codenames.py, 사용자 결정 11-11 채택) 원 답변에서 코드로 쓰인 영어 이름인가: import X · from X import · pip/conda/npm install X · `X`.
-    정답 기준(11-10)의 '기술 도구 이름은 개념'을 규칙으로 옮긴 것 (ipykernel·pyarrow처럼 작은 LLM이 아니라 하는 라이브러리 이름). 글자가 없는 낱말('...')은 제외"""
+    """(0.7.0, 실험 codenames.py, 사용자 결정 11-11 채택) 원 답변에서 코드로 쓰인 영어 이름인가: import X · from X import · pip/conda/npm install X.
+    정답 기준(11-10)의 '기술 도구 이름은 개념'을 규칙으로 옮긴 것 (ipykernel·pyarrow처럼 작은 LLM이 아니라 하는 라이브러리 이름). 글자가 없는 낱말('...')은 제외.
+    (0.7.1) 인라인 코드 `X`는 뺐다: 실제 데이터에서 `verify`·`install`·`label`처럼 명령·옵션 이름이 들어왔다"""
     f = form.strip()
     if not ASCII_FORM.fullmatch(f) or not re.search(r"[A-Za-z]", f):
         return False
     e = re.escape(f)
     pats = (rf"(?m)^\s*(?:import\s+{e}(?![\w])|from\s+{e}(?:\.\w+)*\s+import)",
-            rf"(?:pip3?|conda|npm|uv pip)\s+install\s+(?:[-\w=.<>\[\]]+\s+)*{e}(?![\w-])",
-            rf"`{e}`")
+            rf"(?:pip3?|conda|npm|uv pip)\s+install\s+(?:[-\w=.<>\[\]]+\s+)*{e}(?![\w-])")
     return any(f in t and any(re.search(p, t) for p in pats) for t in texts or ())
 
 

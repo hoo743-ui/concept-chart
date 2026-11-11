@@ -203,9 +203,12 @@ def noun_groups(s):
 
 
 def strip_tail(w):
-    """분석기가 한 명사로 묶은 '단계별·사람들'의 꼬리(별·들)도 뗀다. 세 글자 이상이고 통째로 사전에 없을 때만.
-    '당'은 여기서 떼지 않는다 (민주당·공화당): 분석기가 접미사로 나눈 경우(noun_groups)만 뗀다"""
-    if len(w) >= 3 and re.fullmatch(r"[가-힣]+", w) and w[-1] in "별들" and not whole_word(w):
+    """분석기가 한 명사로 묶은 '단계별·사람들·에폭당'의 꼬리(별·들·당)도 뗀다. 세 글자 이상이고 통째로 전문 뜻이 있는 낱말이 아닐 때만
+    (포도당·민주당은 사전에 전문 뜻이 있어 그대로. 0.7.1: 실제 데이터의 에폭당·턴당은 분석기가 한 명사로 묶었다)"""
+    if len(w) >= 3 and re.fullmatch(r"[가-힣]+", w) and w[-1] in "별들당" and not whole_word(w):
+        import concept_gate as gate
+        if w[-1] == "당" and not gate.has_lexicon():         # 사전이 없으면 포도당·민주당을 가를 수 없다: '-당'은 떼지 않는다
+            return w
         return w[:-1]
     return w
 
@@ -276,7 +279,7 @@ CREATE TABLE IF NOT EXISTS progress (concept TEXT PRIMARY KEY, status TEXT, upda
 CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, kind TEXT, target TEXT, priority INTEGER, status TEXT, tries INTEGER DEFAULT 0, updated TEXT, UNIQUE (kind, target));
 """
 SYSTEM_MSG = re.compile(r"\s*<(?:task-notification|system-reminder|command-|local-command)")
-SCHEMA_VERSION = 7            # (7: 0.7.0 꼬리 당·별·들 떼기) 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
+SCHEMA_VERSION = 8            # (7: 0.7.0 꼬리 당·별·들 떼기, 8: 0.7.1 한 명사로 묶인 '-당'도 떼기) 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
 DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta", "answers")   # notes(웹 근거)·판정·노트·진도는 남긴다
 
 
@@ -290,6 +293,8 @@ def open_db(path):
             con.execute(f"DROP TABLE IF EXISTS {t}")
         con.commit()
         con.executescript(SCHEMA)
+        if con.execute("SELECT 1 FROM sqlite_master WHERE name='judgments'").fetchone() and "code" in {r[1] for r in con.execute("PRAGMA table_info(judgments)")}:
+            con.execute("UPDATE judgments SET code=NULL")      # 코드 이름 판정은 원 답변(색인)에서 나온다: 색인을 다시 만들면 다시 계산한다
         con.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
         con.commit()
     if "everyday" not in {r[1] for r in con.execute("PRAGMA table_info(judgments)")}:    # 0.5.4: 두 번째 질문 답 (판정 표는 지우지 않으므로 열만 더한다)

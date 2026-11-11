@@ -100,7 +100,7 @@ def main():
         got = terms("GPT4와 Python3를 쓰고 HTTPS와 HTTP와 API와 GPU 메모리를 본다.")
         ok("이름과 대문자 용어는 남음", {"gpt", "python", "https", "http", "api", "gpu", "메모리"} <= got, ", ".join(sorted(got)))
         got = terms("개발자들이 국가별 통계와 트랜잭션들을 본다. 포도당 수치도 본다.")     # 0.7.0: 당·별·들 꼬리는 떼고 기본 낱말로
-        ok("꼬리(별·들)를 뗀 기본 낱말로 합침", {"개발자", "국가", "트랜잭션", "포도당"} <= got and not ({"개발자들", "국가별", "트랜잭션들"} & got), ", ".join(sorted(got)))
+        ok("꼬리(별·들)를 뗀 기본 낱말로 합침", {"개발자", "국가", "트랜잭션"} <= got and not ({"개발자들", "국가별", "트랜잭션들"} & got), ", ".join(sorted(got)))
 
         # 질문: 분석하지 않고 원문 저장 → 뒤따르는 답변의 개념과 연결
         qinbox, qdb = tmp / "q.jsonl", tmp / "q.sqlite"

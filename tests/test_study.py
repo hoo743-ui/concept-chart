@@ -56,9 +56,9 @@ def check_gate():
     ok("아래첨자 글자가 붙은 조각도 숨김: NO(NOₓ)", gate.rule_verdict("NO", ["질소산화물(NOₓ)"]) == "reject")
     ok("숫자가 붙은 이름은 남김: SGLT(SGLT2)", gate.rule_verdict("SGLT", ["SGLT2 억제제"]) == "accept")
     code_doc = "```python\nimport pyarrow\nfrom ipykernel.kernelapp import App\n```\npip install -U matplotlib\n`torch`를 쓴다. 기본값은 ... 이다."
-    for w in ["pyarrow", "ipykernel", "matplotlib", "torch"]:
+    for w in ["pyarrow", "ipykernel", "matplotlib"]:
         ok(f"코드로 쓰인 영어 이름: {w}", gate.code_name(w, [code_doc]))
-    for w, why in [("pandas", "답변에 없음"), ("...", "글자 없음"), ("기본값", "한글")]:
+    for w, why in [("pandas", "답변에 없음"), ("...", "글자 없음"), ("기본값", "한글"), ("torch", "인라인 코드만 (0.7.1에서 뺌)")]:
         ok(f"코드 이름 아님: {w} ({why})", not gate.code_name(w, [code_doc]))
     ok("코드 이름은 LLM이 아니라 해도 보여 줌", gate.final("unknown", False, None, None, True) == "show" and gate.final_no_ai("unknown", None, None, True) == "show")
     ok("규칙이 거절한 낱말은 코드 이름이어도 숨김", gate.final("reject", None, None, None, True) == "hide")
@@ -74,17 +74,25 @@ def check_gate():
     ok("LLM + 이름이 맞는 위키백과 문서면 보여 줌", gate.final("unknown", True, True) == "show")
 
 
+def check_no_lexicon_tail():
+    """사전이 없으면 '-당'은 떼지 않는다 (포도당이 '포도'가 되지 않게). '-별·-들'은 뗀다"""
+    gate.load_lexicons(pathlib.Path(tempfile.mkdtemp()))
+    ok("꼬리 떼기(사전 없음): 포도당·에폭당은 그대로, 단계별 → 단계", (serve.strip_tail("포도당"), serve.strip_tail("에폭당"), serve.strip_tail("단계별")) == ("포도당", "에폭당", "단계"))
+
+
 def check_lexicon():
     """분야 사전(우리말샘 등)을 합쳐 읽고, 전문 뜻만 / 섞임 / 일상 뜻만으로 가른다. 임시 사전으로만 시험한다 (CI에는 사전 파일이 없다)"""
     d = pathlib.Path(tempfile.mkdtemp())
     try:
-        (d / "a.tsv").write_text("# 머리말\n삼투압\t삼투압\t1\t0\t물리\n변이\t변이\t2\t0\t생명\n통과\t통과\t0\t5\t\n", encoding="utf-8")
+        (d / "a.tsv").write_text("# 머리말\n삼투압\t삼투압\t1\t0\t물리\n변이\t변이\t2\t0\t생명\n통과\t통과\t0\t5\t\n포도당\t포도당\t1\t0\t화학\n단계별\t단계별\t0\t1\t\n", encoding="utf-8")
         (d / "b.tsv").write_text("변이\t변이\t0\t3\t\n", encoding="utf-8")       # 두 번째 사전이 일상 뜻을 더한다
         gate.load_lexicons(d)
         ok("전문 뜻만 있는 낱말", gate.lexicon_verdict("삼투압") == "special")
         ok("사전을 합치면 뜻 수를 더한다 (변이 → 섞임)", gate.lexicon_verdict("변이") == "mixed")
         ok("일상 뜻만 있는 낱말", gate.lexicon_verdict("통과") == "general")
         ok("사전에 없는 낱말", gate.lexicon_verdict("리베이스") is None)
+        ok("꼬리 떼기(사전 있음): 에폭당 → 에폭, 단계별(일상 뜻만) → 단계, 포도당(전문 뜻)은 그대로",
+           (serve.strip_tail("에폭당"), serve.strip_tail("단계별"), serve.strip_tail("포도당")) == ("에폭", "단계", "포도당"))
         ok("'-적' 꼴은 앞말이 사전에 있으면 숨김 (삼투압적)", gate.rule_verdict("삼투압적") == "reject")
         ok("두 글자 '-적'은 그대로 (목적)", gate.rule_verdict("목적") != "reject")
         ok("전문 뜻만 + LLM 인정이면 보여 줌", gate.final("unknown", True, None, "special") == "show")
@@ -486,6 +494,7 @@ def main():
     gate.load_lexicons(tmp / "no-lexicon")
     try:
         check_gate()
+        check_no_lexicon_tail()
         check_lexicon()
         check_fields()
         check_grounding(tmp)
