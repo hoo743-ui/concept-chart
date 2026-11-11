@@ -279,7 +279,7 @@ CREATE TABLE IF NOT EXISTS progress (concept TEXT PRIMARY KEY, status TEXT, upda
 CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, kind TEXT, target TEXT, priority INTEGER, status TEXT, tries INTEGER DEFAULT 0, updated TEXT, UNIQUE (kind, target));
 """
 SYSTEM_MSG = re.compile(r"\s*<(?:task-notification|system-reminder|command-|local-command)")
-NOTE_REFETCH = 3              # 정의 찾는 방법이 바뀌면 올린다 (1: 0.7.2 우리말샘·PyPI, 2: 0.7.8·0.7.9 오류 고침, 3: 0.7.11 같은 분야 여러 뜻)
+NOTE_REFETCH = 4              # 정의 찾는 방법이 바뀌면 올린다 (1: 0.7.2 우리말샘·PyPI, 2: 0.7.8·0.7.9 오류 고침, 3: 0.7.11 같은 분야 여러 뜻, 4: 0.7.12 언어 모델·챗봇 괄호)
 SCHEMA_VERSION = 8            # (7: 0.7.0 꼬리 당·별·들 떼기, 8: 0.7.1 한 명사로 묶인 '-당'도 떼기) 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
 DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta", "answers")   # notes(웹 근거)·판정·노트·진도는 남긴다
 
