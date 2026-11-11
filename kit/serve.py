@@ -279,7 +279,7 @@ CREATE TABLE IF NOT EXISTS progress (concept TEXT PRIMARY KEY, status TEXT, upda
 CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, kind TEXT, target TEXT, priority INTEGER, status TEXT, tries INTEGER DEFAULT 0, updated TEXT, UNIQUE (kind, target));
 """
 SYSTEM_MSG = re.compile(r"\s*<(?:task-notification|system-reminder|command-|local-command)")
-NOTE_REFETCH = 4              # 정의 찾는 방법이 바뀌면 올린다 (1: 0.7.2 우리말샘·PyPI, 2: 0.7.8·0.7.9 오류 고침, 3: 0.7.11 같은 분야 여러 뜻, 4: 0.7.12 언어 모델·챗봇 괄호)
+NOTE_REFETCH = 5              # 정의 찾는 방법이 바뀌면 올린다 (1: 0.7.2 우리말샘·PyPI, 2: 0.7.8·0.7.9 오류 고침, 3: 0.7.11 같은 분야 여러 뜻, 4: 0.7.12 언어 모델·챗봇 괄호, 5: 0.7.13 우리말샘 뜻 고르기 강화)
 SCHEMA_VERSION = 8            # (7: 0.7.0 꼬리 당·별·들 떼기, 8: 0.7.1 한 명사로 묶인 '-당'도 떼기) 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
 DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta", "answers")   # notes(웹 근거)·판정·노트·진도는 남긴다
 
@@ -312,6 +312,10 @@ def open_db(path):
     got = con.execute("SELECT v FROM settings WHERE k='note_refetch'").fetchone()
     if not got or int(got[0]) < NOTE_REFETCH:                 # 정의 찾는 방법이 바뀌면(NOTE_REFETCH) 정의 없는 개념을 한 번 더 찾는다
         con.execute("UPDATE notes SET updated='' WHERE definition=''")
+        if not got or int(got[0]) < 5:                        # 0.7.13: 예전 규칙으로 붙인 우리말샘 설명은 지우고 새 규칙으로 다시 (틀린 뜻이 섞였다)
+            ids = [r[0] for r in con.execute("SELECT concept FROM notes WHERE sources LIKE '%opendict.korean.go.kr%'")]
+            con.executemany("UPDATE notes SET definition='', sources='[]', updated='' WHERE concept=?", [(i,) for i in ids])
+            con.executemany("DELETE FROM study_notes WHERE concept=?", [(i,) for i in ids])
         con.execute("REPLACE INTO settings VALUES ('note_refetch', ?)", (str(NOTE_REFETCH),))
         con.commit()
     if not con.execute("SELECT 1 FROM settings WHERE k='sense_v2'").fetchone():
@@ -632,8 +636,11 @@ def one_line(text, limit=SUMMARY_MAX):
 
 
 def save_note(con, concept, definition, sources):
+    old = con.execute("SELECT definition FROM notes WHERE concept=?", (concept,)).fetchone()
     con.execute("REPLACE INTO notes VALUES (?,?,?,?)",
                 (concept, definition, json.dumps(sources, ensure_ascii=False), datetime.now(timezone.utc).isoformat()))
+    if old and (old[0] or "") != (definition or ""):
+        con.execute("DELETE FROM study_notes WHERE concept=?", (concept,))   # (0.7.13) 정의가 바뀌면 옛 정의로 만든 쉬운 설명을 지운다 (새 정의로 다시 만든다)
     con.commit()
 
 
@@ -793,9 +800,9 @@ PYPI_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._\-]{1,60}")
 
 
 def choose_sense(senses, field):
-    """우리말샘 뜻 고르기: 전문 뜻이 하나면 그것, 여럿이면 개념의 분야 꼬리표(field)와 같은 분야의 뜻이 정확히 하나일 때만. 아니면 None (추측하지 않는다)"""
-    if len(senses) == 1:
-        return senses[0]
+    """우리말샘 뜻 고르기: 개념의 분야 꼬리표(field)와 같은 분야의 뜻만. 분야를 모르면 None (추측하지 않는다).
+    (0.7.13) 예전에는 '전문 뜻이 하나면 그것'이었는데, 사전 표에는 전문 뜻만 있어서 일상 뜻이 따로 있는 낱말도 하나로 보였다
+    (유료 → 『공예』 도자기 약, 레포 → 『경제』 채권 거래, 트리거 → 『체육』 방아쇠)"""
     if not field:
         return None
     same = [s for s in senses if field in s[0]]
@@ -824,7 +831,12 @@ def fallback_note(con, cid, label):
     1) 우리말샘 전문 뜻풀이 (분야가 맞는 뜻 하나) 2) 코드 속 이름(judgments.code=1)이면 PyPI 패키지 한 줄 설명.
     출처 링크를 붙이고, 관문(study_api.sourced)은 위키백과만 근거로 세므로 판정은 바뀌지 않는다. 없으면 None"""
     import fields
-    sense = choose_sense(fields.definitions(label), fields.field_of(con, cid, label))
+    import concept_gate as gate
+    field = fields.field_of(con, cid, label)
+    # (0.7.13) 정보·통신이 아닌 분야 꼬리표는 함께 나온 개념들의 분야 투표라 흔한 낱말에서 엉뚱하게 나올 수 있다(로직 → 역사, 증가 → 경제):
+    # 그 분야에서는 일상 뜻 없이 전문 뜻만 있는 낱말일 때만 쓴다
+    trusted = field == fields.TECH or (field and gate.lexicon_verdict(label) == "special")
+    sense = choose_sense(fields.definitions(label), field) if trusted else None
     if sense:
         flds, d = sense
         return f"{label}: {d}", [{"text": f"{d} (우리말샘 『{'·'.join(flds)}』, 국립국어원, CC BY-SA 2.0 KR)", "url": OPENDICT + urllib.parse.quote(label)}]

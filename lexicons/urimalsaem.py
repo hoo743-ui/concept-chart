@@ -30,6 +30,7 @@ def parse(t):
 
 
 DEF = re.compile(r"뜻풀이: (.*?)(?:, (?:용례|전문 분야|관련 어휘|규범 정보|수어 정보|대역어|멀티미디어|어원|다중 의미|문형|문법|지역|분류|생물 분류 정보|학명|속담|관용구):|$)", re.S)
+NOT_DEF = re.compile(r"의 (?:북한어|방언|잘못|옛말|준말|본말|비표준어)[.,]?\s*$|^‘[^’]+’(?:의|과|와)")   # (0.7.13) 뜻풀이가 아니라 다른 표기 안내 ('노직'의 북한어)
 DEFS_OUT = OUT.parent / "lexicon_defs"     # (0.7.2) 설명 출처용 뜻풀이. 사용자 결정 11-11 '같이보내자'
 
 
@@ -64,7 +65,7 @@ def main():
                     spec[k] += 1
                     flds[k] |= set(fields) - PROPER
                     d = DEF.search(t)
-                    if _unit == "단어" and d:
+                    if _unit == "단어" and d and not NOT_DEF.search(d.group(1)) and "범주: 북한어" not in t:
                         defs.append((k, ";".join(f for f in fields if f not in PROPER), clean(d.group(1))))
     keys = sorted(set(spec) | set(gen))
     write("urimalsaem", "우리말샘(국립국어원) CC BY-SA 2.0 KR에서 만든 파생 자료. key\t표기\t전문뜻\t일상뜻\t분야",

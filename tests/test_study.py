@@ -450,7 +450,7 @@ def check_fallback(tmp):
     it, gen, mech = (["정보·통신"], "프로그램을 기능별로 분할한 논리적인 일부분."), (["건설"], "건축물의 기준 치수."), (["기계"], "톱니 크기를 나타낸 값.")
     big = '{"info":{"name":"pyarrow","summary":"Python library for Apache Arrow"},"releases":{"0.1":[' + '{"x":"' + "y" * 500 + '"},' * 50   # 잘린 응답
     ok("(0.7.9) 잘린 PyPI 응답에서도 info만 읽음", serve.pypi_info(big).get("summary") == "Python library for Apache Arrow" and serve.pypi_info("<html>") == {})
-    ok("뜻 고르기: 뜻이 하나면 그것", serve.choose_sense([it], None) == it)
+    ok("(0.7.13) 뜻 고르기: 뜻이 하나여도 분야가 맞아야", serve.choose_sense([it], "정보·통신") == it and serve.choose_sense([it], None) is None and serve.choose_sense([gen], "정보·통신") is None)
     ok("뜻 고르기: 여럿이면 분야가 맞는 하나", serve.choose_sense([gen, it, mech], "정보·통신") == it)
     ok("뜻 고르기: 분야를 모르면 고르지 않음", serve.choose_sense([gen, it], None) is None)
     ok("뜻 고르기: 맞는 분야가 없으면 고르지 않음", serve.choose_sense([gen, mech], "정보·통신") is None)
@@ -462,15 +462,36 @@ def check_fallback(tmp):
     lx.execute("CREATE TABLE lex (key TEXT PRIMARY KEY, spec INTEGER, gen INTEGER)")
     lx.execute("CREATE TABLE field (key TEXT PRIMARY KEY, fields TEXT)")
     lx.execute("CREATE TABLE defs (key TEXT, fields TEXT, def TEXT)")
-    lx.executemany("INSERT INTO defs VALUES (?,?,?)", [("버그", "정보·통신", "컴퓨터 프로그램이나 시스템의 착오."), ("모듈", "건설", "건축물의 기준 치수."), ("모듈", "정보·통신", "프로그램을 기능별로 분할한 논리적인 일부분.")])
+    lx.executemany("INSERT INTO defs VALUES (?,?,?)", [("버그", "정보·통신", "컴퓨터 프로그램이나 시스템의 착오."), ("모듈", "건설", "건축물의 기준 치수."), ("모듈", "정보·통신", "프로그램을 기능별로 분할한 논리적인 일부분."),
+                                                   ("유료", "공예", "도자기의 몸에 덧씌우는 약."), ("전문어", "언어", "특정한 전문 분야에서 주로 사용하는 용어.")])
+    lx.executemany("INSERT INTO lex VALUES (?,?,?)", [("유료", 1, 2), ("전문어", 1, 0)])     # 유료: 일상 뜻도 있음, 전문어: 전문 뜻만
     lx.commit()
     lx.close()
-    saved_env, saved_con = os.environ.get("CONCEPT_CHART_LEXICON"), fields._con
+    saved_env, saved_con, saved_field = os.environ.get("CONCEPT_CHART_LEXICON"), fields._con, fields.field_of
     os.environ["CONCEPT_CHART_LEXICON"] = str(d)
     fields._con = None
     fields._cache.clear()
+    gate.load_lexicons(d)
+    tags = {"버그": "정보·통신", "모듈": None, "유료": "공예", "전문어": "언어", "레포": None}
+    fields.field_of = lambda con, cid, label: tags.get(label)            # 분야 꼬리표는 함께 나온 개념 투표라 여기서는 정해 준다
     con = serve.open_db(tmp / "fb.sqlite")
     try:
+        ok("(0.7.13) 대체 출처: 정보·통신 밖 분야는 일상 뜻이 있으면 쓰지 않음 (유료 → 공예 '도자기 약')", serve.fallback_note(con, "유료", "유료") is None)
+        ok("(0.7.13) 대체 출처: 정보·통신 밖 분야도 전문 뜻만 있는 낱말이면 씀 (전문어 → 언어)", (serve.fallback_note(con, "전문어", "전문어") or ("",))[0].startswith("전문어:"))
+        serve.save_note(con, "유료", "유료: 도자기의 몸에 덧씌우는 약.", [{"text": "x", "url": serve.OPENDICT + "x"}])
+        con.execute("REPLACE INTO study_notes VALUES ('유료', '{}', 'ready', 'm', 't')")
+        serve.save_note(con, "유료", "유료: 도자기의 몸에 덧씌우는 약.", [{"text": "x", "url": serve.OPENDICT + "x"}])
+        ok("(0.7.13) 정의가 같으면 쉬운 설명은 그대로", con.execute("SELECT 1 FROM study_notes WHERE concept='유료'").fetchone() is not None)
+        con.execute("REPLACE INTO settings VALUES ('note_refetch', '4')")
+        con.commit()
+        con.close()
+        con = serve.open_db(tmp / "fb.sqlite")
+        ok("(0.7.13) 예전 규칙으로 붙인 우리말샘 설명과 그 쉬운 설명은 지우고 다시 찾음", con.execute("SELECT definition, updated FROM notes WHERE concept='유료'").fetchone() == ("", "")
+           and con.execute("SELECT 1 FROM study_notes WHERE concept='유료'").fetchone() is None)
+        serve.save_note(con, "버그", "옛 정의", [])
+        con.execute("REPLACE INTO study_notes VALUES ('버그', '{}', 'ready', 'm', 't')")
+        serve.save_note(con, "버그", "새 정의", [])
+        ok("(0.7.13) 정의가 바뀌면 옛 정의로 만든 쉬운 설명을 지움", con.execute("SELECT 1 FROM study_notes WHERE concept='버그'").fetchone() is None)
         ok("우리말샘 뜻풀이 읽기", fields.definitions("버그") == [(["정보·통신"], "컴퓨터 프로그램이나 시스템의 착오.")])
         got = serve.fallback_note(con, "버그", "버그")
         ok("대체 출처: 뜻이 하나면 우리말샘 뜻풀이 + 출처 링크", got and got[0] == "버그: 컴퓨터 프로그램이나 시스템의 착오." and got[1][0]["url"].startswith(serve.OPENDICT)
@@ -514,11 +535,13 @@ def check_fallback(tmp):
     finally:
         con.close()
         fields._con = saved_con
+        fields.field_of = saved_field
         fields._cache.clear()
         if saved_env is None:
             os.environ.pop("CONCEPT_CHART_LEXICON", None)
         else:
             os.environ["CONCEPT_CHART_LEXICON"] = saved_env
+        gate.load_lexicons(tmp / "no-lexicon")
 
 
 def check_redo(tmp):
