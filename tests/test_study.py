@@ -55,6 +55,10 @@ def check_gate():
         ok(f"완성된 화학식·약어는 남김: {w}", gate.rule_verdict(w, [s]) == "accept")
     ok("아래첨자 글자가 붙은 조각도 숨김: NO(NOₓ)", gate.rule_verdict("NO", ["질소산화물(NOₓ)"]) == "reject")
     ok("숫자가 붙은 이름은 남김: SGLT(SGLT2)", gate.rule_verdict("SGLT", ["SGLT2 억제제"]) == "accept")
+    for w, s in [("Server", "SQL Server는 관계형"), ("CROSS", "CROSS JOIN은 모든 조합")]:
+        ok(f"영어 이름 조각은 숨김: {w}", gate.rule_verdict(w, [s]) == "reject")
+    for w, s in [("ELB", "AWS ELB 등"), ("API", "REST API를 설계"), ("Server", "SQL Server 또는 Server 설정")]:
+        ok(f"약어 뒷조각·혼자 쓰인 자리가 있으면 남김: {w} ({s})", gate.rule_verdict(w, [s]) == "accept")
     ok("LLM 혼자 인정한 낱말은 후보까지만", gate.final("unknown", True) == "candidate")
     ok("LLM이 없으면 모르는 낱말을 숨김", gate.final("unknown", None) == "hide")
     ok("LLM이 없으면 사전만으로 공부 목록에 넣지 않음", gate.final("likely", None) == "candidate")

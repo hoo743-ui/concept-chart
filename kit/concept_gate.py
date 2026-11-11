@@ -49,9 +49,35 @@ def formula_fragment(form, sentences):
     return seen > 0 and cut == seen
 
 
+def occurrences(form, sentences):
+    """문장 속 그 영어 낱말의 자리마다 (앞 글, 뒤 글)"""
+    for s in sentences or ():
+        for m in re.finditer(rf"(?<![A-Za-z0-9]){re.escape(form)}(?![A-Za-z0-9])", s):
+            yield s[:m.start()], s[m.end():]
+
+
+def name_fragment(form, sentences):
+    """여러 낱말 영어 이름의 조각인가 (실험 rules.py, 사용자 결정 11-11 채택). 문장이 없으면 판단하지 않는다.
+    뒷조각: 첫 글자만 대문자이거나 소문자인 낱말 앞에 늘 대문자로 시작하는 영어 낱말이 있다 (Google Cloud의 Cloud, Loss Function의 Function).
+    앞조각: 대문자만인 낱말 뒤에 늘 대문자만인 낱말이 있다 (CROSS JOIN의 CROSS). 약어 뒷조각(AWS ELB의 ELB)은 남긴다"""
+    occ = list(occurrences(form, sentences))
+    if not occ:
+        return False
+    if re.fullmatch(r"[A-Za-z][a-z]+", form):
+        return all(re.search(r"(?<![A-Za-z0-9])[A-Z][A-Za-z0-9.+#]* $", before) for before, _ in occ)
+    if re.fullmatch(r"[A-Z]{2,}", form):
+        return all(re.match(r" [A-Z]{2,}(?![A-Za-z0-9])", after) for _, after in occ)
+    return False
+
+
 def rule_verdict(form, sentences=None):
     """accept = 규칙만으로 보여 줌, reject = 규칙만으로 숨김, likely = 사전에 있으니 LLM 확인, unknown = 판단 못 함.
-    sentences(그 낱말이 나온 문장)가 있으면 화학식 조각을 거른다"""
+    sentences(그 낱말이 나온 문장)가 있으면 화학식 조각과 영어 이름 조각을 거른다"""
+    v = _rule_verdict(form, sentences)
+    return "reject" if v == "accept" and ASCII_FORM.fullmatch(form.strip()) and name_fragment(form.strip(), sentences) else v
+
+
+def _rule_verdict(form, sentences=None):
     f = form.strip()
     k = key(f)
     if len(k) < 2 or f.isdigit():
