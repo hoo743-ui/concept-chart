@@ -116,12 +116,14 @@ def referent_prompt(label, definition, chat):
 JSON으로만 답한다."""
 
 
-def note_prompt(label, sentence):
+def note_prompt(label, sentence, careful=False):
+    """careful=True: 두 번째 시도 (0.7.4). 작은 모델이 낱말을 깨뜨린 경우(스크립트 → 스크립과)를 위해 철자를 그대로 옮기라고 덧붙인다"""
+    extra = "\n4. [원문]의 낱말은 철자를 한 글자도 바꾸지 말고 그대로 옮긴다. 숫자는 원문 그대로 쓴다." if careful else ""
     return f"""아래 [원문] 한 문장을 초보자가 읽기 쉽게 '{label}' 설명 한 문장으로 다듬는다.
 반드시 지킬 것:
 1. [원문]에 있는 낱말만 쓴다. 전문 용어, 이름, 숫자를 바꾸거나 더하지 않는다. 괄호 설명과 덜 중요한 부분은 빼도 된다.
 2. 문장 끝만 '~입니다'로 바꾼다.
-3. 한 문장으로 쓴다. 예: 원문 "NumPy(넘파이)는 대규모 다차원 배열을 쉽게 처리할 수 있도록 지원하는 파이썬의 라이브러리이다." → "NumPy는 대규모 다차원 배열을 쉽게 처리하는 파이썬 라이브러리입니다."
+3. 한 문장으로 쓴다. 예: 원문 "NumPy(넘파이)는 대규모 다차원 배열을 쉽게 처리할 수 있도록 지원하는 파이썬의 라이브러리이다." → "NumPy는 대규모 다차원 배열을 쉽게 처리하는 파이썬 라이브러리입니다."{extra}
 [원문]
 {sentence}
 JSON으로만 답한다. easy: 다듬은 문장."""
@@ -153,10 +155,11 @@ def noun_tokens(text):
 BROKEN_END = re.compile(r"(다|요)입니다")
 
 
-def strict_ok(claim, sentence):
-    """명사·숫자·영문이 근거 한 문장에 모두 있는가. 깨진 낱말(마이크로소과프트)과 없는 사실이 여기서 걸린다"""
+def strict_ok(claim, sentence, label=None):
+    """명사·숫자·영문이 근거 한 문장에 모두 있는가. 깨진 낱말(마이크로소과프트)과 없는 사실이 여기서 걸린다.
+    label = 개념 이름: 원문이 다른 표기(브랜칭)여도 개념 이름(브랜치)으로 부르는 것은 허용한다 (0.7.4)"""
     src = re.sub(r"\s+", "", sentence).lower()
-    src_nouns = noun_tokens(sentence)
+    src_nouns = noun_tokens(sentence) | (noun_tokens(label) | {label.lower()} if label else set())
     nouns = noun_tokens(claim)
 
     def ok(n):                                              # 붙여 쓴 복합어(파인 튜닝 → 파인튜닝)는 허용하되, 낱말의 앞부분만 맞는 경우(스크립트 → 스크립)는 거절
@@ -165,6 +168,9 @@ def strict_ok(claim, sentence):
         return False                                        # 원문에 없는 숫자 ('리눅스 운영체제는 1: 1991년')
     if BROKEN_END.search(claim):
         return False                                        # 어미가 겹친 문장 ('일컫는다입니다')
+    letters = re.findall(r"[A-Za-z가-힣]", claim)
+    if letters and sum(1 for c in letters if "가" <= c <= "힣") < 0.3 * len(letters):
+        return False                                        # (0.7.4) 영어 원문에 '입니다'만 붙인 문장은 쉬운 설명이 아니다 ('… system time입니다')
     return bool(nouns) and all(ok(n) for n in nouns)
 
 
@@ -191,8 +197,16 @@ def run_note(con, client, cid):
     if not sents:
         return "no_evidence", None
     sentence = sents[0]
-    claim = (client.json(note_prompt(label, sentence), NOTE_SCHEMA, 200).get("easy") or "").strip()
-    passed = bool(claim) and strict_ok(claim, sentence) and client.json(entail_prompt(claim, sentence), ENTAIL_SCHEMA, 20).get("supported") is True
+    for careful in (False, True):                           # (0.7.4) 탈락하면 철자를 그대로 옮기라는 지시를 더해 한 번 더 (확인 기준은 같다)
+        try:
+            claim = (client.json(note_prompt(label, sentence, careful), NOTE_SCHEMA, 200).get("easy") or "").strip()
+            passed = bool(claim) and strict_ok(claim, sentence, label) and client.json(entail_prompt(claim, sentence), ENTAIL_SCHEMA, 20).get("supported") is True
+        except llm_mod.LLMError:
+            if not careful:
+                raise                                       # 첫 시도의 오류는 예전처럼 작업 실패로 (나중에 다시)
+            claim, passed = "", False                       # 두 번째 시도의 오류(답이 잘림)는 탈락으로: 첫 시도 결과를 버리지 않게
+        if passed:
+            break
     return ("ready" if passed else "rejected"), {"easy": claim if passed else None, "easy_evidence": [sentence] if passed else [], "checked": {"total": 1, "passed": int(passed)}, "has_source": True}
 
 

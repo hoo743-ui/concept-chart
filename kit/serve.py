@@ -312,6 +312,10 @@ def open_db(path):
         con.execute("DELETE FROM study_notes WHERE status='wrong_sense'")    # 0.7.3: '기술 분야만' 확인으로 숨겼던 노트를 바뀐 기준으로 한 번 다시 만든다
         con.execute("INSERT INTO settings VALUES ('sense_v2', ?)", (datetime.now(timezone.utc).isoformat(),))
         con.commit()
+    if not con.execute("SELECT 1 FROM settings WHERE k='note_retry_v1'").fetchone():
+        con.execute("DELETE FROM study_notes WHERE status='rejected'")       # 0.7.4: 근거 대조에서 탈락한 쉬운 설명은 바뀐 방식(개념 이름 허용·한 번 더)으로 한 번 다시
+        con.execute("INSERT INTO settings VALUES ('note_retry_v1', ?)", (datetime.now(timezone.utc).isoformat(),))
+        con.commit()
     if not con.execute("SELECT 1 FROM sqlite_master WHERE name='views'").fetchone():    # 0.6.0: 개념 노트를 열어 본 기록 ('내 공부 기록에 묻기'용, 색인을 다시 만들어도 남는다)
         con.execute("CREATE TABLE views (concept TEXT, ts TEXT)")
         con.execute("CREATE INDEX ix_v ON views (ts DESC)")

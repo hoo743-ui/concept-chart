@@ -195,6 +195,27 @@ def check_grounding(tmp):
     ok("실제로 나왔던 오류 거절: 원문에 없는 숫자", not w.strict_ok("리눅스 운영체제는 1: 1991년 9월 17일 리누스 토르발스가 시작했습니다.", "리눅스 운영체제는 1991년 9월 17일 리누스 토르발스에 의해 시작되었다."))
     ok("실제로 나왔던 오류 거절: 겹친 어미", not w.strict_ok("난수는 무작위로 추출된 수를 일컫는다입니다.", "난수란 정의된 범위 내에서 무작위로 추출된 수를 일컫는다."))
     ok("원문 숫자는 허용", w.strict_ok("파이썬은 1991년 발표한 프로그래밍 언어입니다.", "파이썬은 1991년 발표한 프로그래밍 언어다."))
+    ok("(0.7.4) 원문 표기가 달라도 개념 이름으로 부르는 것은 허용", w.strict_ok("브랜치는 버전 관리 중인 객체를 복제하는 것입니다.", "브랜칭은 버전 관리 중인 객체를 복제하는 것이다.", "브랜치")
+       and not w.strict_ok("브랜치는 버전 관리 중인 객체를 복제하는 것입니다.", "브랜칭은 버전 관리 중인 객체를 복제하는 것이다."))
+    ok("(0.7.4) 영어 원문에 '입니다'만 붙인 문장은 거절", not w.strict_ok("An epoch is a fixed date used as a reference입니다.", "An epoch is a fixed date used as a reference."))
+
+    class Garble(FakeLLM):                                  # 첫 시도는 낱말을 깨뜨리고, 철자를 지키라는 두 번째 시도에서 바르게
+        def json(self, prompt, schema, max_tokens=400):
+            if "easy" in schema["properties"]:
+                return {"easy": "트랜스포머는 어텐셜 메커니즘만으로 단어들의 관계를 계산하는 신경망 구조입니다."} if "철자를 한 글자도" not in prompt else self.out
+            return FakeLLM.json(self, prompt, schema, max_tokens)
+    status, body = w.run_note(con, Garble(good), "트랜스포머")
+    ok("(0.7.4) 첫 시도가 깨지면 철자를 지키라고 한 번 더", status == "ready" and body["easy"] == good["easy"], status)
+
+    class Truncated(FakeLLM):                               # 두 번째 시도의 답이 잘려도(JSON 오류) 작업 전체를 실패시키지 않는다
+        def json(self, prompt, schema, max_tokens=400):
+            if "easy" in schema["properties"]:
+                if "철자를 한 글자도" in prompt:
+                    raise w.llm_mod.LLMError("JSON이 아닌 응답")
+                return {"easy": "트랜스포머는 어텐셜 메커니즘입니다."}
+            return FakeLLM.json(self, prompt, schema, max_tokens)
+    status, body = w.run_note(con, Truncated(good), "트랜스포머")
+    ok("(0.7.4) 두 번째 시도 오류는 탈락으로 (작업 실패가 아님)", status == "rejected" and not body["easy"], status)
     ok("실제로 나왔던 오류 거절: 지어낸 조합", not w.strict_ok("GPU 메모리 사용량이 2.36GB로 0.04GB의 온도를 보입니다.", "GPU 메모리는 최대 2.36GB를 썼습니다."))
 
     class No(FakeLLM):
