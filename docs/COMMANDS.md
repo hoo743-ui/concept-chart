@@ -28,6 +28,12 @@ AI 요약 없이 쓰려면 `python dev.py app --llm off`. 출처 문장만 보�
 python dev.py lexicon                 # 우리말샘 약 200MB 받기 → kit/data/lexicon/lexicon.sqlite (20MB). 없으면 사전 없이 동작
 ```
 
+지속 검증 (개념 노트 아래 "이 낱말이 공부할 개념인가요? 맞아요 · 아니에요"로 모은 판단을 정답에 더해 관문을 다시 잼):
+
+```bash
+python dev.py verify                  # 결과는 data/eval/scores/verify_log.jsonl에 한 줄씩. 하한 0.8 아래이거나 직전보다 0.02 넘게 떨어지면 '알림'
+```
+
 로컬 LLM 설치·삭제:
 
 ```bash

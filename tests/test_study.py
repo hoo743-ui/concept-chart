@@ -395,6 +395,23 @@ def check_server(tmp):
     con.close()
 
 
+def check_feedback(tmp):
+    """지속 검증: 사용자 판단('맞아요·아니에요')과 사용자 판단을 뺀 관문 판정을 비교한다 (dev.py verify가 쓰는 study_api.feedback_check)"""
+    con = serve.open_db(tmp / "f.sqlite")
+    con.executemany("INSERT INTO forms VALUES (?,?,1)", [("추천", "추천"), ("docker", "Docker")])
+    con.commit()
+    study_api.set_feedback(con, "추천", "concept")
+    ok("사용자 판단을 뺀 관문 판정: 추천은 관문만으로는 숨김", study_api.gate_of(con, "추천", "추천", use_user=False)["show"] is False and study_api.gate_of(con, "추천", "추천")["by"] == "user")
+    fb = study_api.feedback_check(con)
+    ok("지속 검증: 관문이 숨겼는데 사용자가 '맞아요'한 낱말을 셈", fb["n"] == 1 and fb["missed"] == ["추천"] and fb["precision"] is None and fb["gold"] == {"추천": True}, fb)
+    study_api.set_feedback(con, "docker", "not_concept")
+    fb = study_api.feedback_check(con)
+    ok("지속 검증: 관문이 보여 줬는데 '아니에요'한 낱말은 정밀도에 들어감", fb["n"] == 2 and fb["shown"] == 1 and fb["precision"] == 0.0 and fb["wrong"] == ["Docker"], fb)
+    study_api.set_feedback(con, "docker", "clear")
+    ok("판단 지우기 → 검증 대상에서 빠짐", study_api.feedback_check(con)["n"] == 1)
+    con.close()
+
+
 def check_today_extra(tmp):
     """관문이 '더 보기'에만 내놓은 낱말(gate.extra)은 펼친 칸에 들어가지 않고, 그런 낱말만 있는 질문은 묶음이 되지 않는다"""
     old = sqlite3.connect(tmp / "x.sqlite")
@@ -437,6 +454,7 @@ def main():
         check_independence()
         check_server(tmp)
         check_today_extra(tmp)
+        check_feedback(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print(f"\n결과: {'정상' if not FAILS else '실패 ' + str(len(FAILS)) + '개: ' + ', '.join(FAILS)}")

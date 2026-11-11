@@ -223,6 +223,7 @@ def main():
     sub.add_parser("chat", help="내 공부 기록에 묻기만 따로 켜기 (app이 함께 켠다. 옵션은 chat/chat_server.py로 전달: --port, --api, --llm)")
     sub.add_parser("add", help="AI 답변 추가: 어떤-CLI | python dev.py add, 또는 python dev.py add 파일")
     sub.add_parser("import", help="Claude 앱·ChatGPT 내보내기 가져오기: python dev.py import conversations.json")
+    sub.add_parser("verify", help="지속 검증: 개념 노트의 '맞아요·아니에요' 판단으로 관문을 다시 재고 기록, 떨어지면 알림 (개발용 평가 데이터 필요)")
     sub.add_parser("lexicon", help="분야 사전 받기·만들기 → kit/data/lexicon/ (우리말샘 약 200MB, pyarrow 필요)")
     s = sub.add_parser("searx", help="정의 검색용 SearXNG 켜기·끄기 (Docker 필요)")
     s.add_argument("action", choices=["up", "down"])
@@ -243,6 +244,9 @@ def main():
         rc = import_chats(extra)
     elif a.cmd == "searx":
         rc = searx(a.action)
+    elif a.cmd == "verify":
+        step("지속 검증 (experiments/2026-11-10-general-gate/verify.py)")
+        rc = run([sys.executable, "experiments/2026-11-10-general-gate/verify.py"])
     elif a.cmd == "lexicon":
         step("분야 사전 (lexicons/build.py)")
         rc = run([sys.executable, "lexicons/build.py"])

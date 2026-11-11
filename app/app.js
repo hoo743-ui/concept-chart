@@ -101,8 +101,20 @@ async function pageConcept(id) {
 
   const mark = async (status) => { await API.setProgress(c.concept, status); location.hash = '#/'; };
   body.push(h('div', { class: 'actions' }, h('button', { class: 'primary', onclick: () => mark('known') }, '이해했어요'), h('button', { onclick: () => mark('review') }, '다시 볼게요')));
-  body.push(h('p', { style: 'margin-top:12px' }, h('button', { class: 'link', onclick: async () => { await API.setFeedback(c.concept, 'not_concept'); location.hash = '#/'; } }, '공부할 개념이 아니에요 (목록에서 숨기기)')));
+  body.push(feedbackRow(c));
   return body;
+}
+
+// 지속 검증: 사용자 판단은 관문보다 앞서고, 관문을 다시 재는 정답이 된다 (python dev.py verify)
+function feedbackRow(c) {
+  const mine = c.gate && c.gate.by === 'user' ? (c.gate.show ? '공부할 개념' : '공부할 개념 아님') : null;
+  const send = async (verdict) => { await API.setFeedback(c.concept, verdict); if (verdict === 'not_concept') location.hash = '#/'; else render(); };
+  return h('div', { class: 'feedback', style: 'margin-top:12px' },
+    mine
+      ? h('p', { class: 'muted' }, `내 판단: ${mine}. `, h('button', { class: 'link', onclick: () => send('clear') }, '판단 지우기'))
+      : h('p', { class: 'muted' }, '이 낱말이 공부할 개념인가요? ',
+        h('button', { class: 'link', onclick: () => send('concept') }, '맞아요'), ' · ',
+        h('button', { class: 'link', onclick: () => send('not_concept') }, '아니에요 (목록에서 숨기기)')));
 }
 
 // ---------- 답변 읽기 ----------

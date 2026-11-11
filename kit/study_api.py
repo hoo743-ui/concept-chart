@@ -45,11 +45,12 @@ def rule_of(con, cid, label):
     return gate.rule_verdict(label, sents)
 
 
-def gate_of(con, cid, label):
+def gate_of(con, cid, label, use_user=True):
+    """use_user=False: 사용자 판단을 빼고 관문만의 판정 (지속 검증에서 사용자 판단과 비교할 때)"""
     row = con.execute("SELECT llm, user, everyday FROM judgments WHERE concept=?", (cid,)).fetchone()
     llm, user, everyday = (row[0], row[1], row[2]) if row else (None, None, None)
     rule = rule_of(con, cid, label)
-    if user in ("concept", "not_concept"):
+    if use_user and user in ("concept", "not_concept"):
         return {"show": user == "concept", "candidate": False, "extra": False, "by": "user", "rule": rule}
     lex = gate.lexicon_verdict(label)
     src = sourced(con, cid) if rule == "unknown" and lex != "general" else False
@@ -255,6 +256,29 @@ def set_feedback(con, cid, verdict):
     con.execute("INSERT INTO judgments (concept, user, updated) VALUES (?,?,?) ON CONFLICT(concept) DO UPDATE SET user=excluded.user, updated=excluded.updated",
                 (cid, None if verdict == "clear" else verdict, now()))
     con.commit()
+
+
+def feedback_check(con):
+    """지속 검증 (기획서 2절 4단계): 사용자가 '맞아요·아니에요'로 판단한 낱말에서 관문(사용자 판단을 뺀 판정)이 맞았는지.
+    → {"n", "shown", "shown_ok", "precision"(보여 준 것 중 사용자도 개념이라 한 비율, 보여 준 것이 없으면 None),
+       "wrong": 관문은 보여 줬는데 사용자는 아니라 한 낱말, "missed": 관문은 숨겼는데 사용자는 개념이라 한 낱말, "gold": {낱말: 개념인가}}"""
+    rows = con.execute("SELECT concept, user FROM judgments WHERE user IN ('concept','not_concept') ORDER BY concept").fetchall()
+    wrong, missed, gold, shown_ok, shown = [], [], {}, 0, 0
+    for cid, user in rows:
+        top = con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (cid,)).fetchone()
+        label = top[0] if top else cid
+        g = gate_of(con, cid, label, use_user=False)
+        yes = user == "concept"
+        gold[label] = yes
+        if g["show"]:
+            shown += 1
+            shown_ok += yes
+            if not yes:
+                wrong.append(label)
+        elif yes:
+            missed.append(label)
+    return {"n": len(rows), "shown": shown, "shown_ok": shown_ok, "precision": round(shown_ok / shown, 3) if shown else None,
+            "wrong": wrong, "missed": missed, "gold": gold}
 
 
 def enqueue(con, kind, target, priority=5):
