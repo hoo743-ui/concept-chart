@@ -279,6 +279,7 @@ CREATE TABLE IF NOT EXISTS progress (concept TEXT PRIMARY KEY, status TEXT, upda
 CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, kind TEXT, target TEXT, priority INTEGER, status TEXT, tries INTEGER DEFAULT 0, updated TEXT, UNIQUE (kind, target));
 """
 SYSTEM_MSG = re.compile(r"\s*<(?:task-notification|system-reminder|command-|local-command)")
+NOTE_REFETCH = 3              # 정의 찾는 방법이 바뀌면 올린다 (1: 0.7.2 우리말샘·PyPI, 2: 0.7.8·0.7.9 오류 고침, 3: 0.7.11 같은 분야 여러 뜻)
 SCHEMA_VERSION = 8            # (7: 0.7.0 꼬리 당·별·들 떼기, 8: 0.7.1 한 명사로 묶인 '-당'도 떼기) 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
 DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta", "answers")   # notes(웹 근거)·판정·노트·진도는 남긴다
 
@@ -308,9 +309,10 @@ def open_db(path):
         con.execute("UPDATE notes SET updated='' WHERE definition=''")    # 0.7.2: 정의를 못 찾았던 개념은 우리말샘·PyPI로 한 번 다시 찾는다
         con.execute("INSERT INTO settings VALUES ('note_fallback_v1', ?)", (datetime.now(timezone.utc).isoformat(),))
         con.commit()
-    if not con.execute("SELECT 1 FROM settings WHERE k='note_fallback_v2'").fetchone():
-        con.execute("UPDATE notes SET updated='' WHERE definition=''")    # 0.7.10: 0.7.8(검색 오류여도 대체 출처)·0.7.9(잘린 PyPI 응답) 뒤 정의 없는 개념을 한 번 더 찾는다
-        con.execute("INSERT INTO settings VALUES ('note_fallback_v2', ?)", (datetime.now(timezone.utc).isoformat(),))
+    got = con.execute("SELECT v FROM settings WHERE k='note_refetch'").fetchone()
+    if not got or int(got[0]) < NOTE_REFETCH:                 # 정의 찾는 방법이 바뀌면(NOTE_REFETCH) 정의 없는 개념을 한 번 더 찾는다
+        con.execute("UPDATE notes SET updated='' WHERE definition=''")
+        con.execute("REPLACE INTO settings VALUES ('note_refetch', ?)", (str(NOTE_REFETCH),))
         con.commit()
     if not con.execute("SELECT 1 FROM settings WHERE k='sense_v2'").fetchone():
         con.execute("DELETE FROM study_notes WHERE status='wrong_sense'")    # 0.7.3: '기술 분야만' 확인으로 숨겼던 노트를 바뀐 기준으로 한 번 다시 만든다
@@ -797,7 +799,11 @@ def choose_sense(senses, field):
     if not field:
         return None
     same = [s for s in senses if field in s[0]]
-    return same[0] if len(same) == 1 else None
+    if len(same) == 1:
+        return same[0]
+    if 2 <= len(same) <= 3:                                 # (0.7.11) 같은 분야의 뜻이 여럿이면 고르지 않고 모두 번호를 붙여 (모듈·포트: 정보·통신 뜻이 둘)
+        return [field], " ".join(f"{'①②③'[i]} {d}" for i, (_f, d) in enumerate(same))
+    return None
 
 
 def pypi_info(text):
