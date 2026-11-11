@@ -823,6 +823,26 @@ def fallback_note(con, cid, label):
     return None
 
 
+def collect_note(con, c, fetcher):
+    """개념 하나의 정의 → (정의, 출처). 위키백과·검색(fetcher)에 없거나 그 단계가 오류여도 우리말샘·PyPI(fallback_note)를 먼저 본다.
+    (0.7.8) 예전에는 SearXNG가 꺼져 있으면 연결 오류로 끝나 대체 출처까지 가지 못했다 (밤 작업에서 앱 로그로 찾음).
+    대체 출처에도 없으면 원래 오류를 그대로 올린다: 저장하지 않고 나중에 다시 시도 (검색이 켜지면 그때 찾는다)"""
+    forms = [r[0] for r in con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form", (c,))]
+    label = forms[0] if forms else c
+    err = None
+    try:
+        definition, sources = fetcher(label, forms[1:], context_terms(con, c))
+    except Exception as e:  # noqa: BLE001 — 아래에서 대체 출처를 본 뒤 다시 올린다
+        definition, sources, err = "", [], e
+    if not definition:
+        got = fallback_note(con, c, label)
+        if got:
+            return got
+    if err is not None:
+        raise err
+    return definition, sources
+
+
 def note_loop(st, fetcher=None):
     """노트 수집 일꾼 1개 (같은 사이트 1초 1번 규칙을 지키려고 한 번에 하나씩). 끝나면 update 이벤트로 알린다"""
     fetcher = fetcher or fetch_note
@@ -834,12 +854,7 @@ def note_loop(st, fetcher=None):
             continue
         pause = 0
         try:
-            forms = [r[0] for r in con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form", (c,))]
-            definition, sources = fetcher(forms[0] if forms else c, forms[1:], context_terms(con, c))
-            if not definition:                                    # 위키백과·검색에 없으면 우리말샘·PyPI (0.7.2)
-                got = fallback_note(con, c, forms[0] if forms else c)
-                if got:
-                    definition, sources = got
+            definition, sources = collect_note(con, c, fetcher)
             save_note(con, c, definition, sources)
             with st.note_lock:
                 st.note_failed.pop(c, None)

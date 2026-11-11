@@ -471,6 +471,16 @@ def check_fallback(tmp):
            and "CC BY-SA" in got[1][0]["text"], got)
         ok("대체 출처: 분야를 가를 근거가 없으면 고르지 않음 (모듈: 건설·정보·통신)", serve.fallback_note(con, "모듈", "모듈") is None)
         ok("대체 출처: 코드 이름이 아니면 PyPI를 부르지 않음", serve.fallback_note(con, "pyarrow", "pyarrow") is None)
+        con.execute("INSERT OR IGNORE INTO forms VALUES ('버그','버그',1)")
+        def searx_down(term, aliases=(), context=()):
+            raise OSError("연결 거부 (SearXNG 꺼짐)")
+        got = serve.collect_note(con, "버그", searx_down)
+        ok("(0.7.8) 검색 단계가 오류여도 우리말샘 대체 출처는 본다", got[0].startswith("버그:"), got)
+        try:
+            serve.collect_note(con, "pyarrow", searx_down)
+            ok("(0.7.8) 대체 출처에도 없으면 원래 오류를 올림 (나중에 다시)", False)
+        except OSError:
+            ok("(0.7.8) 대체 출처에도 없으면 원래 오류를 올림 (나중에 다시)", True)
         con.execute("REPLACE INTO notes VALUES ('버그', ?, ?, 't')", (got[0], json.dumps(got[1])))
         ok("관문은 우리말샘 출처를 근거로 세지 않음 (위키백과만)", study_api.sourced(con, "버그") is False)
         ok("정의를 못 찾았던 기록은 한 번 다시 찾게 표시", con.execute("SELECT 1 FROM settings WHERE k='note_fallback_v1'").fetchone() is not None)
