@@ -446,6 +446,8 @@ def check_fallback(tmp):
     """(0.7.2) 위키백과에 정의가 없을 때 우리말샘 뜻풀이: 분야가 맞는 뜻 하나만, 애매하면 쓰지 않음. PyPI는 코드 이름일 때만 (여기서는 네트워크 없이 '부르지 않음'만 본다)"""
     import fields
     it, gen, mech = (["정보·통신"], "프로그램을 기능별로 분할한 논리적인 일부분."), (["건설"], "건축물의 기준 치수."), (["기계"], "톱니 크기를 나타낸 값.")
+    big = '{"info":{"name":"pyarrow","summary":"Python library for Apache Arrow"},"releases":{"0.1":[' + '{"x":"' + "y" * 500 + '"},' * 50   # 잘린 응답
+    ok("(0.7.9) 잘린 PyPI 응답에서도 info만 읽음", serve.pypi_info(big).get("summary") == "Python library for Apache Arrow" and serve.pypi_info("<html>") == {})
     ok("뜻 고르기: 뜻이 하나면 그것", serve.choose_sense([it], None) == it)
     ok("뜻 고르기: 여럿이면 분야가 맞는 하나", serve.choose_sense([gen, it, mech], "정보·통신") == it)
     ok("뜻 고르기: 분야를 모르면 고르지 않음", serve.choose_sense([gen, it], None) is None)

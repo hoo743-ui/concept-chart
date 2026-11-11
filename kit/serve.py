@@ -796,6 +796,19 @@ def choose_sense(senses, field):
     return same[0] if len(same) == 1 else None
 
 
+def pypi_info(text):
+    """PyPI JSON의 info 부분만. 큰 패키지(torch·pyarrow)는 배포판 목록 때문에 응답이 수 MB라 읽기 상한(400KB)에서 잘린다 →
+    맨 앞에 오는 "info" 객체만 떼어 읽는다 (0.7.9, 밤 작업에서 앱 로그로 찾음). 없으면 {}"""
+    i = text.find('"info"')
+    if i < 0:
+        return {}
+    try:
+        obj, _ = json.JSONDecoder().raw_decode(text, text.index("{", i))
+    except (ValueError, json.JSONDecodeError):
+        return {}
+    return obj if isinstance(obj, dict) else {}
+
+
 def fallback_note(con, cid, label):
     """(0.7.2, 사용자 결정 11-11 '같이보내자') 위키백과·검색에서 정의를 못 찾았을 때만:
     1) 우리말샘 전문 뜻풀이 (분야가 맞는 뜻 하나) 2) 코드 속 이름(judgments.code=1)이면 PyPI 패키지 한 줄 설명.
@@ -812,7 +825,7 @@ def fallback_note(con, cid, label):
     if row and row[0] == 1 and PYPI_NAME.fullmatch(label):
         import fetch_sources as fs
         try:
-            info = json.loads(fs._get(f"https://pypi.org/pypi/{urllib.parse.quote(label)}/json")).get("info", {})
+            info = pypi_info(fs._get(f"https://pypi.org/pypi/{urllib.parse.quote(label)}/json"))
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 return None
