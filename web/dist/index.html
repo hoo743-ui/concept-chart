@@ -1216,7 +1216,7 @@ def wikipedia(term, lang="ko"):
     return [{"url": url, "text": j.get("extract", ""), "src": "wikipedia", "title": j.get("title", hits[1][0])}] if j.get("extract") else []
 
 
-TECH_PAREN = re.compile(r"\((?:[^()]*(?:컴퓨팅|컴퓨터|소프트웨어|프로그래밍|프로그램|버전 관리|기계 학습|통계학|운영 체제|데이터베이스|네트워크|인터넷|웹|자료 구조|가상화|인공지능|\bAI\b|\bshell\b|셸|computing|software|programming|computer|version control|machine learning|statistics|operating system|database|network|virtualization)[^()]*)\)\s*$", re.I)
+TECH_PAREN = re.compile(r"\((?:[^()]*(?:컴퓨팅|컴퓨터|소프트웨어|프로그래밍|프로그램|버전 관리|기계 학습|통계학|운영 체제|데이터베이스|네트워크|인터넷|웹|자료 구조|가상화|인공지능|언어 모델|챗봇|\bAI\b|\bshell\b|셸|computing|software|programming|computer|version control|machine learning|language model|chatbot|statistics|operating system|database|network|virtualization)[^()]*)\)\s*$", re.I)
 
 
 def subject_ok(term, text):
