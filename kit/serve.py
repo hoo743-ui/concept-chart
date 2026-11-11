@@ -317,6 +317,11 @@ def open_db(path):
         con.executemany("UPDATE judgments SET llm=NULL WHERE concept=?", [(i,) for i in ids])
         con.execute("INSERT INTO settings VALUES ('en_judge_v1', ?)", (datetime.now(timezone.utc).isoformat(),))
         con.commit()
+    if not con.execute("SELECT 1 FROM settings WHERE k='en_judge_v2'").fetchone():        # 0.7.7: 사용자 판단이 있는 영어 낱말도 측정용으로 새 질문에 다시 묻는다
+        ids = [r[0] for r in con.execute("SELECT concept FROM judgments WHERE llm IS NOT NULL AND user IS NOT NULL") if re.fullmatch(r"[a-z0-9.+#_\-]+", r[0])]
+        con.executemany("UPDATE judgments SET llm=NULL WHERE concept=?", [(i,) for i in ids])
+        con.execute("INSERT INTO settings VALUES ('en_judge_v2', ?)", (datetime.now(timezone.utc).isoformat(),))
+        con.commit()
     if not con.execute("SELECT 1 FROM settings WHERE k='note_retry_v1'").fetchone():
         con.execute("DELETE FROM study_notes WHERE status='rejected'")       # 0.7.4: 근거 대조에서 탈락한 쉬운 설명은 바뀐 방식(개념 이름 허용·한 번 더)으로 한 번 다시
         con.execute("INSERT INTO settings VALUES ('note_retry_v1', ?)", (datetime.now(timezone.utc).isoformat(),))
@@ -1053,6 +1058,8 @@ def warm_targets(con, ai=True):
             continue
         row = con.execute("SELECT llm, user, everyday FROM judgments WHERE concept=?", (x["id"],)).fetchone()
         if row and row[1]:
+            if ai and row[0] is None and (rule == "likely" or (rule == "unknown" and lex != "general")):
+                api.enqueue(con, "judge", x["id"], 9, redo=True)     # (0.7.7) 사용자 판단이 있어도 측정용 판정은 둔다 (화면은 사용자 판단이 앞선다, verify의 '관문이 맞혔나')
             continue
         if ai and rule == "likely" or (ai and rule == "unknown" and lex != "general"):
             if not (row and row[0] is not None):

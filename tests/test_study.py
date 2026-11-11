@@ -482,6 +482,12 @@ def check_fallback(tmp):
         con = serve.open_db(tmp / "fb.sqlite")
         got = dict(con.execute("SELECT concept, llm FROM judgments WHERE concept IN ('ubuntu','토큰','windows')").fetchall())
         ok("(0.7.5) 영어 판정만 다시 묻게 비움 (사용자 판단이 있으면 그대로)", got == {"ubuntu": None, "토큰": 0, "windows": 0}, got)
+        con.execute("DELETE FROM settings WHERE k='en_judge_v2'")
+        con.commit()
+        con.close()
+        con = serve.open_db(tmp / "fb.sqlite")
+        got = con.execute("SELECT llm, user FROM judgments WHERE concept='windows'").fetchone()
+        ok("(0.7.7) 사용자 판단이 있는 영어 낱말도 측정용 판정은 비움 (사용자 판단은 그대로)", got == (None, "concept"), got)
     finally:
         con.close()
         fields._con = saved_con
@@ -521,6 +527,11 @@ def check_warm(tmp):
         serve.warm_targets(con, ai=False)
         ok("뒤에서 코드 이름을 한 번 계산해 저장 → 공부 목록에", con.execute("SELECT code FROM judgments WHERE concept='pyarrow'").fetchone() == (1,)
            and study_api.gate_of(con, "pyarrow", "pyarrow")["by"] == "code" and study_api.gate_of(con, "pyarrow", "pyarrow")["show"])
+        words[:] = ["Ubuntu"]
+        study_api.set_feedback(con, "ubuntu", "concept")
+        serve.warm_targets(con, ai=True)
+        ok("(0.7.7) 사용자 판단이 있어도 측정용 판정은 예약 (뒤 순서)", con.execute("SELECT status, priority FROM jobs WHERE kind='judge' AND target='ubuntu'").fetchone() == ("queued", 9)
+           and study_api.gate_of(con, "ubuntu", "Ubuntu")["by"] == "user")
     finally:
         serve.leaderboard, serve.WARM_TOP = saved
         con.close()
