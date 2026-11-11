@@ -65,6 +65,11 @@ def install(names):
     con.executemany("INSERT INTO lex VALUES (?,?,?)", ((k, s, n) for k, (s, n) in lex.items()))
     con.execute("CREATE TABLE field (key TEXT PRIMARY KEY, fields TEXT) WITHOUT ROWID")     # 화면의 분야 꼬리표용 (판정에는 쓰지 않는다)
     con.executemany("INSERT INTO field VALUES (?,?)", read_fields(ROOT / "data" / "processed" / "lexicon").items())
+    con.execute("CREATE TABLE defs (key TEXT, fields TEXT, def TEXT)")      # (0.7.2) 설명 출처용 뜻풀이 (우리말샘 CC BY-SA 2.0 KR, 판정에는 쓰지 않는다)
+    for path in sorted((ROOT / "data" / "processed" / "lexicon_defs").glob("*.tsv")):
+        with path.open(encoding="utf-8") as f:
+            con.executemany("INSERT INTO defs VALUES (?,?,?)", (l.rstrip("\n").split("\t")[:3] for l in f if not l.startswith("#") and l.count("\t") >= 2))
+    con.execute("CREATE INDEX ix_defs ON defs (key)")
     con.execute("INSERT INTO meta VALUES ('sources', ?)", (", ".join(names),))
     con.commit()
     con.close()

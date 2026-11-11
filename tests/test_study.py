@@ -410,6 +410,48 @@ def check_server(tmp):
     con.close()
 
 
+def check_fallback(tmp):
+    """(0.7.2) 위키백과에 정의가 없을 때 우리말샘 뜻풀이: 분야가 맞는 뜻 하나만, 애매하면 쓰지 않음. PyPI는 코드 이름일 때만 (여기서는 네트워크 없이 '부르지 않음'만 본다)"""
+    import fields
+    it, gen, mech = (["정보·통신"], "프로그램을 기능별로 분할한 논리적인 일부분."), (["건설"], "건축물의 기준 치수."), (["기계"], "톱니 크기를 나타낸 값.")
+    ok("뜻 고르기: 뜻이 하나면 그것", serve.choose_sense([it], None) == it)
+    ok("뜻 고르기: 여럿이면 분야가 맞는 하나", serve.choose_sense([gen, it, mech], "정보·통신") == it)
+    ok("뜻 고르기: 분야를 모르면 고르지 않음", serve.choose_sense([gen, it], None) is None)
+    ok("뜻 고르기: 맞는 분야가 없으면 고르지 않음", serve.choose_sense([gen, mech], "정보·통신") is None)
+    d = tmp / "lexdefs"
+    d.mkdir()
+    lx = sqlite3.connect(d / "lexicon.sqlite")
+    lx.execute("CREATE TABLE lex (key TEXT PRIMARY KEY, spec INTEGER, gen INTEGER)")
+    lx.execute("CREATE TABLE field (key TEXT PRIMARY KEY, fields TEXT)")
+    lx.execute("CREATE TABLE defs (key TEXT, fields TEXT, def TEXT)")
+    lx.executemany("INSERT INTO defs VALUES (?,?,?)", [("버그", "정보·통신", "컴퓨터 프로그램이나 시스템의 착오."), ("모듈", "건설", "건축물의 기준 치수."), ("모듈", "정보·통신", "프로그램을 기능별로 분할한 논리적인 일부분.")])
+    lx.commit()
+    lx.close()
+    saved_env, saved_con = os.environ.get("CONCEPT_CHART_LEXICON"), fields._con
+    os.environ["CONCEPT_CHART_LEXICON"] = str(d)
+    fields._con = None
+    fields._cache.clear()
+    con = serve.open_db(tmp / "fb.sqlite")
+    try:
+        ok("우리말샘 뜻풀이 읽기", fields.definitions("버그") == [(["정보·통신"], "컴퓨터 프로그램이나 시스템의 착오.")])
+        got = serve.fallback_note(con, "버그", "버그")
+        ok("대체 출처: 뜻이 하나면 우리말샘 뜻풀이 + 출처 링크", got and got[0] == "버그: 컴퓨터 프로그램이나 시스템의 착오." and got[1][0]["url"].startswith(serve.OPENDICT)
+           and "CC BY-SA" in got[1][0]["text"], got)
+        ok("대체 출처: 분야를 가를 근거가 없으면 고르지 않음 (모듈: 건설·정보·통신)", serve.fallback_note(con, "모듈", "모듈") is None)
+        ok("대체 출처: 코드 이름이 아니면 PyPI를 부르지 않음", serve.fallback_note(con, "pyarrow", "pyarrow") is None)
+        con.execute("REPLACE INTO notes VALUES ('버그', ?, ?, 't')", (got[0], json.dumps(got[1])))
+        ok("관문은 우리말샘 출처를 근거로 세지 않음 (위키백과만)", study_api.sourced(con, "버그") is False)
+        ok("정의를 못 찾았던 기록은 한 번 다시 찾게 표시", con.execute("SELECT 1 FROM settings WHERE k='note_fallback_v1'").fetchone() is not None)
+    finally:
+        con.close()
+        fields._con = saved_con
+        fields._cache.clear()
+        if saved_env is None:
+            os.environ.pop("CONCEPT_CHART_LEXICON", None)
+        else:
+            os.environ["CONCEPT_CHART_LEXICON"] = saved_env
+
+
 def check_warm(tmp):
     """(0.6.6) 공부 목록 전체가 정의 수집 대상, 모델 노트는 상위 WARM_TOP만"""
     con = serve.open_db(tmp / "w.sqlite")
@@ -505,6 +547,7 @@ def main():
         check_today_extra(tmp)
         check_feedback(tmp)
         check_warm(tmp)
+        check_fallback(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print(f"\n결과: {'정상' if not FAILS else '실패 ' + str(len(FAILS)) + '개: ' + ', '.join(FAILS)}")

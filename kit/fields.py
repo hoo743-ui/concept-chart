@@ -49,6 +49,18 @@ def fields_of(form):
     return _cache[k]
 
 
+def definitions(form):
+    """(0.7.2) 우리말샘 전문 뜻풀이 [(분야들, 뜻풀이)]. 사전에 defs 표가 없으면(예전에 만든 사전) []: python dev.py lexicon"""
+    con = _open()
+    if not con:
+        return []
+    with _lock:
+        if not con.execute("SELECT 1 FROM sqlite_master WHERE name='defs'").fetchone():
+            return []
+        rows = con.execute("SELECT fields, def FROM defs WHERE key=?", (gate.key(form).replace("^", ""),)).fetchall()
+    return [(f.split(";"), d) for f, d in rows if d]
+
+
 def field_of(con, cid, label):
     """개념 하나의 분야 꼬리표 또는 None. con = 서버 DB (함께 나온 개념을 본다)"""
     if gate.key(label) in gate.terms():                     # 기술 용어집에 있으면 사전의 다른 분야(파인튜닝 = 천연자원)보다 이것

@@ -303,6 +303,11 @@ def open_db(path):
     if "code" not in {r[1] for r in con.execute("PRAGMA table_info(judgments)")}:        # 0.7.0: 원 답변에서 코드로 쓰인 영어 이름인가 (concept_gate.code_name, LLM 없음)
         con.execute("ALTER TABLE judgments ADD COLUMN code INTEGER")
         con.commit()
+    con.execute("CREATE TABLE IF NOT EXISTS settings (k TEXT PRIMARY KEY, v TEXT)")     # 색인을 다시 만들어도 남는 작은 표시들
+    if not con.execute("SELECT 1 FROM settings WHERE k='note_fallback_v1'").fetchone():
+        con.execute("UPDATE notes SET updated='' WHERE definition=''")    # 0.7.2: 정의를 못 찾았던 개념은 우리말샘·PyPI로 한 번 다시 찾는다
+        con.execute("INSERT INTO settings VALUES ('note_fallback_v1', ?)", (datetime.now(timezone.utc).isoformat(),))
+        con.commit()
     if not con.execute("SELECT 1 FROM sqlite_master WHERE name='views'").fetchone():    # 0.6.0: 개념 노트를 열어 본 기록 ('내 공부 기록에 묻기'용, 색인을 다시 만들어도 남는다)
         con.execute("CREATE TABLE views (concept TEXT, ts TEXT)")
         con.execute("CREATE INDEX ix_v ON views (ts DESC)")
@@ -759,6 +764,47 @@ def card_response(st, con, concept, cursor=None, project=None):
     return dict(concept_card(con, concept, cursor, project=project), note_status=status)
 
 
+OPENDICT = "https://opendict.korean.go.kr/search/searchResult?query="
+PYPI_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._\-]{1,60}")
+
+
+def choose_sense(senses, field):
+    """우리말샘 뜻 고르기: 전문 뜻이 하나면 그것, 여럿이면 개념의 분야 꼬리표(field)와 같은 분야의 뜻이 정확히 하나일 때만. 아니면 None (추측하지 않는다)"""
+    if len(senses) == 1:
+        return senses[0]
+    if not field:
+        return None
+    same = [s for s in senses if field in s[0]]
+    return same[0] if len(same) == 1 else None
+
+
+def fallback_note(con, cid, label):
+    """(0.7.2, 사용자 결정 11-11 '같이보내자') 위키백과·검색에서 정의를 못 찾았을 때만:
+    1) 우리말샘 전문 뜻풀이 (분야가 맞는 뜻 하나) 2) 코드 속 이름(judgments.code=1)이면 PyPI 패키지 한 줄 설명.
+    출처 링크를 붙이고, 관문(study_api.sourced)은 위키백과만 근거로 세므로 판정은 바뀌지 않는다. 없으면 None"""
+    import fields
+    sense = choose_sense(fields.definitions(label), fields.field_of(con, cid, label))
+    if sense:
+        flds, d = sense
+        return f"{label}: {d}", [{"text": f"{d} (우리말샘 『{'·'.join(flds)}』, 국립국어원, CC BY-SA 2.0 KR)", "url": OPENDICT + urllib.parse.quote(label)}]
+    try:
+        row = con.execute("SELECT code FROM judgments WHERE concept=?", (cid,)).fetchone()
+    except sqlite3.OperationalError:
+        row = None
+    if row and row[0] == 1 and PYPI_NAME.fullmatch(label):
+        import fetch_sources as fs
+        try:
+            info = json.loads(fs._get(f"https://pypi.org/pypi/{urllib.parse.quote(label)}/json")).get("info", {})
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+            raise
+        s = re.sub(r"\s+", " ", info.get("summary") or "").strip()
+        if s and not re.search(r"deprecat|placeholder|reserved|do not use", s, re.I):
+            return f"{label}: {s}", [{"text": f"{s} (PyPI 패키지 설명)", "url": f"https://pypi.org/project/{label}/"}]
+    return None
+
+
 def note_loop(st, fetcher=None):
     """노트 수집 일꾼 1개 (같은 사이트 1초 1번 규칙을 지키려고 한 번에 하나씩). 끝나면 update 이벤트로 알린다"""
     fetcher = fetcher or fetch_note
@@ -772,6 +818,10 @@ def note_loop(st, fetcher=None):
         try:
             forms = [r[0] for r in con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form", (c,))]
             definition, sources = fetcher(forms[0] if forms else c, forms[1:], context_terms(con, c))
+            if not definition:                                    # 위키백과·검색에 없으면 우리말샘·PyPI (0.7.2)
+                got = fallback_note(con, c, forms[0] if forms else c)
+                if got:
+                    definition, sources = got
             save_note(con, c, definition, sources)
             with st.note_lock:
                 st.note_failed.pop(c, None)
