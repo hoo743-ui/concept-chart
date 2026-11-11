@@ -18,7 +18,7 @@
 
 **개념 요약** `{id, label, rank, sessions, turns, last_seen, gate, progress, line, line_kind, origin, field}`
 
-- `gate`: `{show, candidate, extra, by, rule}` 보여 줄지. `extra` = 질문 묶음의 '더 보기'에만 낼 낱말 (`concept_gate.rescue`). `by` = `user`·`rule`·`llm`·`terms`·`unjudged`
+- `gate`: `{show, candidate, extra, by, rule}` 보여 줄지. `extra` = 질문 묶음의 '더 보기'에만 낼 낱말 (`concept_gate.rescue`). `by` = `user`·`rule`·`code`(원 답변에서 import·pip·인라인 코드로 쓰인 영어 이름, 0.7.0)·`lexicon`·`llm`·`terms`·`unjudged`
 - `progress`: `new`·`review`·`known`
 - `line_kind`: `ai_checked`(근거 대조를 통과한 AI 문장) · `source`(출처 문장 그대로) · `none`(설명 없음)
 - `origin`: `{question, ts, answer}` 이 개념을 처음 만난 자리. `question`은 그 답변 앞의 내 질문 첫 줄(80자까지, 없으면 `null`), `answer`는 `/api/answers/{id}`의 id. 기록이 없으면 `origin` 자체가 `null`

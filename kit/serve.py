@@ -164,13 +164,26 @@ def number_fragment(t, toks, i):
             and len(t.form) <= 2 and t.form.islower())
 
 
+SPLIT_SUFFIX = {"당", "별", "들", "씩", "째"}     # 0.7.0 (사용자 결정 11-11): 에폭당·에폭별·개발자들 → 에폭·개발자. 개념이 아니라 '마다·끼리·여럿'을 더하는 꼬리
+
+
+def whole_word(w):
+    """붙인 꼴 전체가 전문 뜻이 있는 낱말인가 (포도당·민주당은 '포도 + 당'이 아니다). 일상 뜻으로만 실린 꼴(단계별·국가별)은 뗀다"""
+    import concept_gate as gate
+    return gate.lexicon_verdict(w) in ("special", "mixed") or gate.key(w) in gate.terms()
+
+
 def noun_groups(s):
-    """붙어 있는 명사(+명사 파생 접미사 XSN)는 한 덩어리로: 가중+치 → 가중치, 시각+화 → 시각화. 영문·한자는 그대로"""
+    """붙어 있는 명사(+명사 파생 접미사 XSN)는 한 덩어리로: 가중+치 → 가중치, 시각+화 → 시각화. 영문·한자는 그대로.
+    SPLIT_SUFFIX 꼬리(당·별·들·씩·째)는 붙이지 않고 버린다. 붙인 꼴 전체가 사전에 있으면(포도당) 붙인다"""
     out, cur, end = [], "", -1
     toks = get_kiwi().tokenize(s)
     for i, t in enumerate(toks):
         glued = bool(cur) and t.start == end
-        if t.tag in ("NNG", "NNP") or (t.tag == "XSN" and glued):
+        if t.tag == "XSN" and glued and t.form in SPLIT_SUFFIX and not whole_word(cur + t.form):
+            out.append(cur)
+            cur = ""
+        elif t.tag in ("NNG", "NNP") or (t.tag == "XSN" and glued):
             if glued:
                 cur += t.form
             else:
@@ -186,7 +199,15 @@ def noun_groups(s):
         end = t.start + t.len
     if cur:
         out.append(cur)
-    return out
+    return [strip_tail(w) for w in out]
+
+
+def strip_tail(w):
+    """분석기가 한 명사로 묶은 '단계별·사람들'의 꼬리(별·들)도 뗀다. 세 글자 이상이고 통째로 사전에 없을 때만.
+    '당'은 여기서 떼지 않는다 (민주당·공화당): 분석기가 접미사로 나눈 경우(noun_groups)만 뗀다"""
+    if len(w) >= 3 and re.fullmatch(r"[가-힣]+", w) and w[-1] in "별들" and not whole_word(w):
+        return w[:-1]
+    return w
 
 
 def plain_line(s):
@@ -255,7 +276,7 @@ CREATE TABLE IF NOT EXISTS progress (concept TEXT PRIMARY KEY, status TEXT, upda
 CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, kind TEXT, target TEXT, priority INTEGER, status TEXT, tries INTEGER DEFAULT 0, updated TEXT, UNIQUE (kind, target));
 """
 SYSTEM_MSG = re.compile(r"\s*<(?:task-notification|system-reminder|command-|local-command)")
-SCHEMA_VERSION = 6            # 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
+SCHEMA_VERSION = 7            # (7: 0.7.0 꼬리 당·별·들 떼기) 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
 DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta", "answers")   # notes(웹 근거)·판정·노트·진도는 남긴다
 
 
@@ -273,6 +294,9 @@ def open_db(path):
         con.commit()
     if "everyday" not in {r[1] for r in con.execute("PRAGMA table_info(judgments)")}:    # 0.5.4: 두 번째 질문 답 (판정 표는 지우지 않으므로 열만 더한다)
         con.execute("ALTER TABLE judgments ADD COLUMN everyday INTEGER")
+        con.commit()
+    if "code" not in {r[1] for r in con.execute("PRAGMA table_info(judgments)")}:        # 0.7.0: 원 답변에서 코드로 쓰인 영어 이름인가 (concept_gate.code_name, LLM 없음)
+        con.execute("ALTER TABLE judgments ADD COLUMN code INTEGER")
         con.commit()
     if not con.execute("SELECT 1 FROM sqlite_master WHERE name='views'").fetchone():    # 0.6.0: 개념 노트를 열어 본 기록 ('내 공부 기록에 묻기'용, 색인을 다시 만들어도 남는다)
         con.execute("CREATE TABLE views (concept TEXT, ts TEXT)")
@@ -950,6 +974,13 @@ def warm_targets(con, ai=True):
     check = []
     for x in leaderboard(con, k=100000)["items"]:
         rule, lex = api.rule_of(con, x["id"], x["label"]), gate.lexicon_verdict(x["label"])
+        if rule in ("unknown", "likely") and gate.ASCII_FORM.fullmatch(x["label"].strip()):     # 0.7.0: 코드로 쓰인 영어 이름인지 한 번만 본다 (LLM 없음)
+            got = con.execute("SELECT code FROM judgments WHERE concept=?", (x["id"],)).fetchone()
+            if not got or got[0] is None:
+                texts = [r[0] for r in con.execute("SELECT text FROM answers WHERE instr(text, ?) > 0 LIMIT 50", (x["label"],))]
+                con.execute("INSERT INTO judgments (concept, code, updated) VALUES (?,?,?) ON CONFLICT(concept) DO UPDATE SET code=excluded.code",
+                            (x["id"], int(gate.code_name(x["label"], texts)), api.now()))
+                con.commit()
         if rule == "unknown" and lex in ("general", "mixed") and not ai:
             continue
         row = con.execute("SELECT llm, user, everyday FROM judgments WHERE concept=?", (x["id"],)).fetchone()

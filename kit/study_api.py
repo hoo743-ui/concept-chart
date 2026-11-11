@@ -47,8 +47,8 @@ def rule_of(con, cid, label):
 
 def gate_of(con, cid, label, use_user=True):
     """use_user=False: 사용자 판단을 빼고 관문만의 판정 (지속 검증에서 사용자 판단과 비교할 때)"""
-    row = con.execute("SELECT llm, user, everyday FROM judgments WHERE concept=?", (cid,)).fetchone()
-    llm, user, everyday = (row[0], row[1], row[2]) if row else (None, None, None)
+    row = con.execute("SELECT llm, user, everyday, code FROM judgments WHERE concept=?", (cid,)).fetchone()
+    llm, user, everyday, code = (row[0], row[1], row[2], row[3]) if row else (None, None, None, None)
     rule = rule_of(con, cid, label)
     if use_user and user in ("concept", "not_concept"):
         return {"show": user == "concept", "candidate": False, "extra": False, "by": "user", "rule": rule}
@@ -56,12 +56,14 @@ def gate_of(con, cid, label, use_user=True):
     src = sourced(con, cid) if rule == "unknown" and lex != "general" else False
     llm = None if llm is None else bool(llm)
     extra = False
+    code = bool(code)
     if AI:
-        verdict = gate.final(rule, llm, src, lex)
+        verdict = gate.final(rule, llm, src, lex, code)
         extra = verdict != "show" and gate.rescue(rule, llm, src, lex, None if everyday is None else bool(everyday))
     else:
-        verdict = gate.final_no_ai(rule, src, lex)
-    by = ("rule" if rule in ("accept", "reject") else "lexicon" if rule == "unknown" and lex in ("general", "mixed") and llm is None
+        verdict = gate.final_no_ai(rule, src, lex, code)
+    by = ("rule" if rule in ("accept", "reject") else "code" if code and rule in ("unknown", "likely")
+          else "lexicon" if rule == "unknown" and lex in ("general", "mixed") and llm is None
           else "llm" if llm is not None else "terms" if rule == "likely" else "unjudged")
     return {"show": verdict == "show", "candidate": verdict == "candidate", "extra": extra, "by": by, "rule": rule, "lexicon": lex}
 

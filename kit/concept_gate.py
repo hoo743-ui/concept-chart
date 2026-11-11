@@ -194,8 +194,24 @@ def lexicon_verdict(form):
     return "special" if s and not n else "mixed" if s else "general"
 
 
-def final_no_ai(rule, sourced=None, lex=None):
-    """AI(로컬 LLM)를 받지 않은 컴퓨터: 규칙이 확신하거나, 분야 사전에 전문 뜻만 있고 이름이 맞는 위키백과 문서도 있을 때만 보여 준다"""
+def code_name(form, texts):
+    """(0.7.0, 실험 codenames.py, 사용자 결정 11-11 채택) 원 답변에서 코드로 쓰인 영어 이름인가: import X · from X import · pip/conda/npm install X · `X`.
+    정답 기준(11-10)의 '기술 도구 이름은 개념'을 규칙으로 옮긴 것 (ipykernel·pyarrow처럼 작은 LLM이 아니라 하는 라이브러리 이름). 글자가 없는 낱말('...')은 제외"""
+    f = form.strip()
+    if not ASCII_FORM.fullmatch(f) or not re.search(r"[A-Za-z]", f):
+        return False
+    e = re.escape(f)
+    pats = (rf"(?m)^\s*(?:import\s+{e}(?![\w])|from\s+{e}(?:\.\w+)*\s+import)",
+            rf"(?:pip3?|conda|npm|uv pip)\s+install\s+(?:[-\w=.<>\[\]]+\s+)*{e}(?![\w-])",
+            rf"`{e}`")
+    return any(f in t and any(re.search(p, t) for p in pats) for t in texts or ())
+
+
+def final_no_ai(rule, sourced=None, lex=None, code=None):
+    """AI(로컬 LLM)를 받지 않은 컴퓨터: 규칙이 확신하거나, 분야 사전에 전문 뜻만 있고 이름이 맞는 위키백과 문서도 있을 때만 보여 준다.
+    code = 코드로 쓰인 영어 이름 (code_name). LLM 없이 정하는 신호라 AI가 없어도 쓴다"""
+    if rule in ("unknown", "likely") and code:
+        return "show"
     if rule == "accept" or (rule == "unknown" and lex == "special" and sourced):
         return "show"
     if rule == "reject" or lex == "general":
@@ -203,11 +219,14 @@ def final_no_ai(rule, sourced=None, lex=None):
     return "candidate" if rule == "likely" or lex == "special" else "hide"
 
 
-def final(rule, llm=None, sourced=None, lex=None):
+def final(rule, llm=None, sourced=None, lex=None, code=None):
     """→ "show"(공부 목록) | "candidate"(숨기되 사용자가 올릴 수 있는 후보) | "hide". 오탐을 먼저 막는다:
     LLM 혼자 인정한 낱말은 정밀도가 낮아(실측 0.72) 공부 목록에 넣지 않는다. 두 번째 근거가 있을 때만 넣는다:
     사전(개발 용어), 분야 사전에 전문 뜻만 있음(lex="special"), 또는 sourced = 이름이 맞는 위키백과 문서가 있음.
-    분야 사전에 일상 뜻만 있으면 숨기고(LLM에 묻지 않아도 된다), 일상 뜻도 있으면 LLM과 위키백과 문서가 함께 인정할 때만 보여 준다."""
+    분야 사전에 일상 뜻만 있으면 숨기고(LLM에 묻지 않아도 된다), 일상 뜻도 있으면 LLM과 위키백과 문서가 함께 인정할 때만 보여 준다.
+    code = 원 답변에서 코드로 쓰인 영어 이름(code_name)이면 LLM 답과 상관없이 보여 준다 (0.7.0)."""
+    if rule in ("unknown", "likely") and code:
+        return "show"
     if rule == "unknown" and lex == "general":
         return "hide"
     if rule == "unknown" and lex == "mixed":                # 일상 뜻도 있는 말: LLM 인정 + 이름이 맞는 위키백과 문서가 둘 다 있어야 보여 준다

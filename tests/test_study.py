@@ -55,6 +55,13 @@ def check_gate():
         ok(f"완성된 화학식·약어는 남김: {w}", gate.rule_verdict(w, [s]) == "accept")
     ok("아래첨자 글자가 붙은 조각도 숨김: NO(NOₓ)", gate.rule_verdict("NO", ["질소산화물(NOₓ)"]) == "reject")
     ok("숫자가 붙은 이름은 남김: SGLT(SGLT2)", gate.rule_verdict("SGLT", ["SGLT2 억제제"]) == "accept")
+    code_doc = "```python\nimport pyarrow\nfrom ipykernel.kernelapp import App\n```\npip install -U matplotlib\n`torch`를 쓴다. 기본값은 ... 이다."
+    for w in ["pyarrow", "ipykernel", "matplotlib", "torch"]:
+        ok(f"코드로 쓰인 영어 이름: {w}", gate.code_name(w, [code_doc]))
+    for w, why in [("pandas", "답변에 없음"), ("...", "글자 없음"), ("기본값", "한글")]:
+        ok(f"코드 이름 아님: {w} ({why})", not gate.code_name(w, [code_doc]))
+    ok("코드 이름은 LLM이 아니라 해도 보여 줌", gate.final("unknown", False, None, None, True) == "show" and gate.final_no_ai("unknown", None, None, True) == "show")
+    ok("규칙이 거절한 낱말은 코드 이름이어도 숨김", gate.final("reject", None, None, None, True) == "hide")
     for w, s in [("Server", "SQL Server는 관계형"), ("CROSS", "CROSS JOIN은 모든 조합")]:
         ok(f"영어 이름 조각은 숨김: {w}", gate.rule_verdict(w, [s]) == "reject")
     for w, s in [("ELB", "AWS ELB 등"), ("API", "REST API를 설계"), ("Server", "SQL Server 또는 Server 설정")]:
@@ -405,6 +412,13 @@ def check_warm(tmp):
         serve.WARM_TOP = 1
         top, rest = serve.warm_targets(con, ai=False)
         ok("상위 개념은 정의·노트, 나머지 공부 목록은 정의만 준비", top == ["docker"] and rest == ["github", "pytorch"], f"{top} {rest}")
+        words[:] = ["pyarrow"]
+        con.execute("INSERT INTO answers VALUES ('a1', 's', 't', 'x', '```python\nimport pyarrow\n```', NULL)")
+        con.commit()
+        ok("코드 이름 전: LLM 판정 없으면 숨김", study_api.gate_of(con, "pyarrow", "pyarrow")["show"] is False)
+        serve.warm_targets(con, ai=False)
+        ok("뒤에서 코드 이름을 한 번 계산해 저장 → 공부 목록에", con.execute("SELECT code FROM judgments WHERE concept='pyarrow'").fetchone() == (1,)
+           and study_api.gate_of(con, "pyarrow", "pyarrow")["by"] == "code" and study_api.gate_of(con, "pyarrow", "pyarrow")["show"])
     finally:
         serve.leaderboard, serve.WARM_TOP = saved
         con.close()
