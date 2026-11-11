@@ -305,11 +305,13 @@ def coverage(con):
     return dict(n, shown=total, explained=round((n["ai_checked"] + n["source"]) / total, 3) if total else None)
 
 
-def enqueue(con, kind, target, priority=5):
-    """모델 작업 예약. 같은 작업이 이미 있으면 우선순위만 올린다. 작업자는 별도 프로세스 (study_worker.py)"""
+def enqueue(con, kind, target, priority=5, redo=False):
+    """모델 작업 예약. 같은 작업이 이미 있으면 우선순위만 올린다. 작업자는 별도 프로세스 (study_worker.py).
+    redo=True: 예전 작업이 '완료'로 남아 있어도 다시 예약한다. 부르는 쪽이 '결과가 없음'을 확인했을 때만 쓴다 (0.7.6:
+    판정·노트를 '한 번 다시' 하려고 결과를 지웠는데 완료된 작업 기록 때문에 다시 예약되지 않았다 — 영어 판정 207개, 노트 38개)"""
     con.execute("""INSERT INTO jobs (kind, target, priority, status, updated) VALUES (?,?,?,'queued',?)
                    ON CONFLICT(kind, target) DO UPDATE SET priority=min(priority, excluded.priority),
-                   status=CASE WHEN status='done' THEN status ELSE 'queued' END, updated=excluded.updated""", (kind, target, priority, now()))
+                   status=CASE WHEN status='done' AND NOT ? THEN status ELSE 'queued' END, updated=excluded.updated""", (kind, target, priority, now(), int(redo)))
     con.commit()
 
 

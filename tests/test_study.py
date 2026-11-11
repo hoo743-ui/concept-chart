@@ -492,6 +492,18 @@ def check_fallback(tmp):
             os.environ["CONCEPT_CHART_LEXICON"] = saved_env
 
 
+def check_redo(tmp):
+    """(0.7.6) 완료된 작업은 다시 예약하지 않지만, 결과가 없음을 확인한 쪽(redo=True)은 다시 예약한다"""
+    con = serve.open_db(tmp / "r.sqlite")
+    study_api.enqueue(con, "judge", "ubuntu")
+    con.execute("UPDATE jobs SET status='done'")
+    study_api.enqueue(con, "judge", "ubuntu")
+    ok("완료된 작업은 그대로 (같은 일을 반복하지 않음)", con.execute("SELECT status FROM jobs").fetchone() == ("done",))
+    study_api.enqueue(con, "judge", "ubuntu", redo=True)
+    ok("결과가 지워졌으면(redo) 다시 예약", con.execute("SELECT status FROM jobs").fetchone() == ("queued",))
+    con.close()
+
+
 def check_warm(tmp):
     """(0.6.6) 공부 목록 전체가 정의 수집 대상, 모델 노트는 상위 WARM_TOP만"""
     con = serve.open_db(tmp / "w.sqlite")
@@ -587,6 +599,7 @@ def main():
         check_today_extra(tmp)
         check_feedback(tmp)
         check_warm(tmp)
+        check_redo(tmp)
         check_fallback(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

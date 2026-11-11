@@ -1056,9 +1056,9 @@ def warm_targets(con, ai=True):
             continue
         if ai and rule == "likely" or (ai and rule == "unknown" and lex != "general"):
             if not (row and row[0] is not None):
-                api.enqueue(con, "judge", x["id"], 8)
+                api.enqueue(con, "judge", x["id"], 8, redo=True)      # 판정이 없을 때만 오므로 예전 완료 기록이 있어도 다시
         if ai and rule == "unknown" and lex == "special" and row and row[0] == 0 and row[2] is None and api.sourced(con, x["id"]):
-            api.enqueue(con, "everyday", x["id"], 9)        # '더 보기'에 살릴지 묻는 두 번째 질문 (gate.rescue)
+            api.enqueue(con, "everyday", x["id"], 9, redo=True)        # '더 보기'에 살릴지 묻는 두 번째 질문 (gate.rescue)
         wants_source = rule == "unknown" and (lex == "special" or (ai and lex in (None, "mixed") and bool(row and row[0])))
         if wants_source and len(check) < CHECK_TOP and not con.execute("SELECT 1 FROM notes WHERE concept=?", (x["id"],)).fetchone():
             check.append(x["id"])
@@ -1082,7 +1082,7 @@ def study_loop(st, interval=5.0):
                     note_status(st, con, cid)               # 정의 수집 예약 (이미 있으면 그대로)
                     has_def = con.execute("SELECT 1 FROM notes WHERE concept=? AND definition<>''", (cid,)).fetchone()
                     if ai and has_def and not con.execute("SELECT 1 FROM study_notes WHERE concept=?", (cid,)).fetchone():
-                        api.enqueue(con, "note", cid, 5)
+                        api.enqueue(con, "note", cid, 5, redo=True)     # 노트가 없을 때만 오므로 예전 완료 기록이 있어도 다시
                 for cid in rest:                            # 나머지 공부 목록: 정의만 (수집 일꾼이 하나씩 천천히, 모델은 쓰지 않는다)
                     note_status(st, con, cid)
             if not ai:
