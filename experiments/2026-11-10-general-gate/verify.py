@@ -50,7 +50,12 @@ def dev(fb_gold):
     drop = R.leaked_all(gold)
     items = [x for x in items if x["form"] not in drop]
     c_old, _c_sp, wk = c2.prepare(items, D, sfx)
-    sel = [x["form"] for x in items if g.final(g.rule_verdict(x["form"], x.get("sents")), c_old.get(x["form"]), wk.get(x["form"]), g.lexicon_verdict(x["form"])) == "show"]
+    docs = []                                             # 0.7.0 코드 속 이름: 앱과 같게 원 답변에서 본다
+    if DB.exists():
+        con = sqlite3.connect(f"file:{DB.as_posix()}?mode=ro", uri=True)
+        docs = [r[0] for r in con.execute("SELECT text FROM answers") if r[0]]
+    code = lambda f: g.code_name(f, [t for t in docs if f in t])
+    sel = [x["form"] for x in items if g.final(g.rule_verdict(x["form"], x.get("sents")), c_old.get(x["form"]), wk.get(x["form"]), g.lexicon_verdict(x["form"]), code(x["form"])) == "show"]
     tp, pos = sum(gold[f] for f in sel), sum(gold[x["form"]] for x in items)
     return {"words": len(items), "gold": pos, "shown": len(sel), "precision": round(tp / max(1, len(sel)), 3),
             "recall": round(tp / max(1, pos), 3), "feedback_used": len(over)}

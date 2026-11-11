@@ -6,6 +6,7 @@
 import hashlib
 import json
 import re
+import sqlite3
 from datetime import datetime, timezone
 
 import concept_gate as gate
@@ -45,9 +46,18 @@ def rule_of(con, cid, label):
     return gate.rule_verdict(label, sents)
 
 
+def judgment_row(con, cid):
+    """(llm, user, everyday, code). code 열은 0.7.0 서버가 켜질 때 생긴다: 그 전 DB를 읽기 전용으로 열어도(dev.py verify) 멈추지 않게 없으면 None"""
+    try:
+        return con.execute("SELECT llm, user, everyday, code FROM judgments WHERE concept=?", (cid,)).fetchone()
+    except sqlite3.OperationalError:
+        row = con.execute("SELECT llm, user, everyday FROM judgments WHERE concept=?", (cid,)).fetchone()
+        return tuple(row) + (None,) if row else None
+
+
 def gate_of(con, cid, label, use_user=True):
     """use_user=False: 사용자 판단을 빼고 관문만의 판정 (지속 검증에서 사용자 판단과 비교할 때)"""
-    row = con.execute("SELECT llm, user, everyday, code FROM judgments WHERE concept=?", (cid,)).fetchone()
+    row = judgment_row(con, cid)
     llm, user, everyday, code = (row[0], row[1], row[2], row[3]) if row else (None, None, None, None)
     rule = rule_of(con, cid, label)
     if use_user and user in ("concept", "not_concept"):

@@ -457,6 +457,11 @@ def check_today_extra(tmp):
     con = serve.open_db(tmp / "x.sqlite")
     ok("예전 판정은 남음", con.execute("SELECT llm FROM judgments WHERE concept='k'").fetchone() == (1,))
     ok("예전 DB에도 두 번째 질문 열이 생김", "everyday" in {r[1] for r in con.execute("PRAGMA table_info(judgments)")})
+    pre = sqlite3.connect(":memory:")                                       # 0.7.0 전 DB를 읽기 전용으로 열 때 (dev.py verify): code 열이 없어도 멈추지 않음
+    pre.execute("CREATE TABLE judgments (concept TEXT PRIMARY KEY, llm INTEGER, user TEXT, updated TEXT, everyday INTEGER)")
+    pre.execute("INSERT INTO judgments VALUES ('k', 1, 'concept', 't', NULL)")
+    ok("code 열이 없는 예전 DB도 읽음", study_api.judgment_row(pre, "k") == (1, "concept", None, None) and study_api.judgment_row(pre, "x") is None)
+    pre.close()
     words = [("a", "q1"), ("b", "q1"), ("민법", "q1"), ("세균", "q2")]       # 세균은 q2에서만 나옴
     for w, s in words:                                                     # 같은 답변 = 같은 세션·시각
         con.execute("INSERT INTO mentions VALUES (?,?,?, 'assistant', 'x', NULL)", (w, "2026-11-10T00:00:00+00:00", s))
