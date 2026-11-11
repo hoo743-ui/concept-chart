@@ -50,6 +50,11 @@ def dev(fb_gold):
     drop = R.leaked_all(gold)
     items = [x for x in items if x["form"] not in drop]
     c_old, _c_sp, wk = c2.prepare(items, D, sfx)
+    # 0.7.5: 영어 표기 낱말은 앱과 같게 en_judge_prompt 답으로 (없는 답은 물어서 저장, 새로 인정된 낱말은 위키백과 문서 확인)
+    c_en = c2.p.ask(items, D / f"llm{sfx}_en_{c2.p.tag(g.en_judge_prompt)}.json", g.en_judge_prompt, g.JUDGE_SCHEMA, "is_term",
+                    lambda x: g.ASCII_FORM.fullmatch(x["form"]) and g.rule_verdict(x["form"], x.get("sents")) in ("unknown", "likely"))
+    c_old = {**c_old, **c_en}
+    wk = ev.sourced_all(items, c_old, D / "wiki.json")
     docs = []                                             # 0.7.0 코드 속 이름: 앱과 같게 원 답변에서 본다
     if DB.exists():
         con = sqlite3.connect(f"file:{DB.as_posix()}?mode=ro", uri=True)

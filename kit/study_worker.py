@@ -242,7 +242,7 @@ def run_judge(con, client, cid):
     if not row:
         return
     sents = [r[0] for r in con.execute("SELECT snippet FROM mentions WHERE concept=? ORDER BY ts DESC LIMIT 3", (cid,))]
-    verdict = bool(client.json(gate.judge_prompt(row[0], sents), gate.JUDGE_SCHEMA, 20)["is_term"])
+    verdict = bool(client.json(gate.prompt_for(row[0], sents), gate.JUDGE_SCHEMA, 20)["is_term"])      # 0.7.5: 영어 표기는 en_judge_prompt
     con.execute("INSERT INTO judgments (concept, llm, updated) VALUES (?,?,?) ON CONFLICT(concept) DO UPDATE SET llm=excluded.llm, updated=excluded.updated",
                 (cid, int(verdict), datetime.now(timezone.utc).isoformat()))
 

@@ -74,7 +74,9 @@ def rule_verdict(form, sentences=None):
     """accept = 규칙만으로 보여 줌, reject = 규칙만으로 숨김, likely = 사전에 있으니 LLM 확인, unknown = 판단 못 함.
     sentences(그 낱말이 나온 문장)가 있으면 화학식 조각과 영어 이름 조각을 거른다"""
     v = _rule_verdict(form, sentences)
-    return "reject" if v == "accept" and ASCII_FORM.fullmatch(form.strip()) and name_fragment(form.strip(), sentences) else v
+    if v in ("accept", "unknown", "likely") and ASCII_FORM.fullmatch(form.strip()) and name_fragment(form.strip(), sentences):
+        return "reject"          # (0.7.5) LLM에게 묻는 영어 낱말에도 (Google Photos의 Photos, Structured Query Language의 Language)
+    return v
 
 
 def _rule_verdict(form, sentences=None):
@@ -118,6 +120,24 @@ JSON으로만 답한다. is_term은 true 또는 false."""
 
 
 JUDGE_SCHEMA = {"type": "object", "properties": {"is_term": {"type": "boolean"}}, "required": ["is_term"]}
+
+
+def en_judge_prompt(form, sentences):
+    """(0.7.5, 실험 en_prompt.py, 사용자 결정 11-11 'a로 가자') 영어 표기 낱말용 질문. judge_prompt의 '회사 이름은 false'가
+    정답 기준(11-10: 기술 제품·회사·도구·AI 모델 이름은 개념)과 어긋나 Ubuntu·Windows·Discord가 숨겨졌다. 한글 낱말은 judge_prompt 그대로"""
+    joined = "\n".join("- " + s for s in sentences[:3]) or "- (문장 없음)"
+    return f"""아래 영어 표기 낱말이 학습 도구에서 따로 공부할 '이름이나 용어'인지 판단한다.
+true: 기술 제품·서비스·소프트웨어·라이브러리·프로그래밍 언어·회사·AI 모델의 이름, 그리고 분야 전문 용어나 약어. 예: Terraform, Kotlin, Mistral, Elasticsearch, TCP.
+false: 문장 속 흔한 영어 단어나 동사·형용사, 잘린 조각, 사람·나라 이름. 예: hello, simple, really, John, Paris.
+낱말: {form}
+문장:
+{joined}
+JSON으로만 답한다. is_term은 true 또는 false."""
+
+
+def prompt_for(form, sentences):
+    """LLM 판정 질문 고르기: 영어 표기면 en_judge_prompt, 아니면 judge_prompt"""
+    return en_judge_prompt(form, sentences) if ASCII_FORM.fullmatch(form.strip()) else judge_prompt(form, sentences)
 
 
 def everyday_prompt(form, sentences):

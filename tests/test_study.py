@@ -62,6 +62,9 @@ def check_gate():
         ok(f"코드 이름 아님: {w} ({why})", not gate.code_name(w, [code_doc]))
     ok("코드 이름은 LLM이 아니라 해도 보여 줌", gate.final("unknown", False, None, None, True) == "show" and gate.final_no_ai("unknown", None, None, True) == "show")
     ok("규칙이 거절한 낱말은 코드 이름이어도 숨김", gate.final("reject", None, None, None, True) == "hide")
+    ok("(0.7.5) 영어 표기는 영어 질문, 한글은 기존 질문", "기술 제품·서비스" in gate.prompt_for("Ubuntu", []) and "엄격한 심사관" in gate.prompt_for("토큰", []))
+    ok("(0.7.5) LLM에게 묻는 영어 낱말도 이름 조각이면 숨김 (Google Photos의 Photos)", gate.rule_verdict("Photos", ["Google Photos로 백업"]) == "reject"
+       and gate.rule_verdict("Ubuntu", ["Ubuntu를 설치"]) != "reject")
     for w, s in [("Server", "SQL Server는 관계형"), ("CROSS", "CROSS JOIN은 모든 조합")]:
         ok(f"영어 이름 조각은 숨김: {w}", gate.rule_verdict(w, [s]) == "reject")
     for w, s in [("ELB", "AWS ELB 등"), ("API", "REST API를 설계"), ("Server", "SQL Server 또는 Server 설정")]:
@@ -471,6 +474,14 @@ def check_fallback(tmp):
         con.execute("REPLACE INTO notes VALUES ('버그', ?, ?, 't')", (got[0], json.dumps(got[1])))
         ok("관문은 우리말샘 출처를 근거로 세지 않음 (위키백과만)", study_api.sourced(con, "버그") is False)
         ok("정의를 못 찾았던 기록은 한 번 다시 찾게 표시", con.execute("SELECT 1 FROM settings WHERE k='note_fallback_v1'").fetchone() is not None)
+        con.execute("DELETE FROM settings WHERE k='en_judge_v1'")          # (0.7.5) 영어 판정은 한 번 다시 묻는다, 사용자 판단·한글은 그대로
+        con.executemany("INSERT OR REPLACE INTO judgments (concept, llm, user, updated) VALUES (?,?,?,?)",
+                        [("ubuntu", 0, None, "t"), ("토큰", 0, None, "t"), ("windows", 0, "concept", "t")])
+        con.commit()
+        con.close()
+        con = serve.open_db(tmp / "fb.sqlite")
+        got = dict(con.execute("SELECT concept, llm FROM judgments WHERE concept IN ('ubuntu','토큰','windows')").fetchall())
+        ok("(0.7.5) 영어 판정만 다시 묻게 비움 (사용자 판단이 있으면 그대로)", got == {"ubuntu": None, "토큰": 0, "windows": 0}, got)
     finally:
         con.close()
         fields._con = saved_con
@@ -530,11 +541,11 @@ def check_today_extra(tmp):
     """관문이 '더 보기'에만 내놓은 낱말(gate.extra)은 펼친 칸에 들어가지 않고, 그런 낱말만 있는 질문은 묶음이 되지 않는다"""
     old = sqlite3.connect(tmp / "x.sqlite")
     old.execute("CREATE TABLE judgments (concept TEXT PRIMARY KEY, llm INTEGER, user TEXT, updated TEXT)")   # 0.5.3까지의 판정 표
-    old.execute("INSERT INTO judgments VALUES ('k', 1, NULL, 't')")
+    old.execute("INSERT INTO judgments VALUES ('가나', 1, NULL, 't')")      # 한글 id: 0.7.5의 '영어 판정 다시 묻기'와 섞이지 않게
     old.commit()
     old.close()
     con = serve.open_db(tmp / "x.sqlite")
-    ok("예전 판정은 남음", con.execute("SELECT llm FROM judgments WHERE concept='k'").fetchone() == (1,))
+    ok("예전 판정은 남음", con.execute("SELECT llm FROM judgments WHERE concept='가나'").fetchone() == (1,))
     ok("예전 DB에도 두 번째 질문 열이 생김", "everyday" in {r[1] for r in con.execute("PRAGMA table_info(judgments)")})
     pre = sqlite3.connect(":memory:")                                       # 0.7.0 전 DB를 읽기 전용으로 열 때 (dev.py verify): code 열이 없어도 멈추지 않음
     pre.execute("CREATE TABLE judgments (concept TEXT PRIMARY KEY, llm INTEGER, user TEXT, updated TEXT, everyday INTEGER)")

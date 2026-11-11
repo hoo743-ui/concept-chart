@@ -312,6 +312,11 @@ def open_db(path):
         con.execute("DELETE FROM study_notes WHERE status='wrong_sense'")    # 0.7.3: '기술 분야만' 확인으로 숨겼던 노트를 바뀐 기준으로 한 번 다시 만든다
         con.execute("INSERT INTO settings VALUES ('sense_v2', ?)", (datetime.now(timezone.utc).isoformat(),))
         con.commit()
+    if not con.execute("SELECT 1 FROM settings WHERE k='en_judge_v1'").fetchone():        # 0.7.5: 영어 표기 낱말은 새 질문(en_judge_prompt)으로 한 번 다시 묻는다 (사용자 판단은 그대로)
+        ids = [r[0] for r in con.execute("SELECT concept FROM judgments WHERE llm IS NOT NULL AND user IS NULL") if re.fullmatch(r"[a-z0-9.+#_\-]+", r[0])]
+        con.executemany("UPDATE judgments SET llm=NULL WHERE concept=?", [(i,) for i in ids])
+        con.execute("INSERT INTO settings VALUES ('en_judge_v1', ?)", (datetime.now(timezone.utc).isoformat(),))
+        con.commit()
     if not con.execute("SELECT 1 FROM settings WHERE k='note_retry_v1'").fetchone():
         con.execute("DELETE FROM study_notes WHERE status='rejected'")       # 0.7.4: 근거 대조에서 탈락한 쉬운 설명은 바뀐 방식(개념 이름 허용·한 번 더)으로 한 번 다시
         con.execute("INSERT INTO settings VALUES ('note_retry_v1', ?)", (datetime.now(timezone.utc).isoformat(),))
