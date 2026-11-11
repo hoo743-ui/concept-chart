@@ -943,6 +943,7 @@ CHECK_TOP = 30                 # 한 번에 위키백과 문서를 확인할 낱
 
 def warm_targets(con, ai=True):
     """뒤에서 준비할 것: 사전으로 못 가른 낱말 판정 → 두 번째 근거(위키백과 문서) 확인 → 상위 개념의 정의·노트 (작업자가 하나씩 처리).
+    → (정의·노트까지 준비할 것, 정의만 찾을 나머지 공부 목록).
     분야 사전에 일상 뜻이 있는 낱말은 묻지도 찾지도 않는다 (어차피 공부 목록에 들어가지 않는다)"""
     import concept_gate as gate
     import study_api as api
@@ -962,8 +963,8 @@ def warm_targets(con, ai=True):
         wants_source = rule == "unknown" and (lex == "special" or (ai and lex in (None, "mixed") and bool(row and row[0])))
         if wants_source and len(check) < CHECK_TOP and not con.execute("SELECT 1 FROM notes WHERE concept=?", (x["id"],)).fetchone():
             check.append(x["id"])
-    shown = api.concepts(con, leaderboard, "show", WARM_TOP, origin=False)["items"]
-    return check + [x["id"] for x in shown]
+    shown = [x["id"] for x in api.concepts(con, leaderboard, "show", 100000, origin=False)["items"]]
+    return check + shown[:WARM_TOP], shown[WARM_TOP:]     # (0.6.6) 상위 WARM_TOP 밖의 공부 목록도 정의는 찾는다. 예전에는 상위 50개만 예약해 설명이 붙은 비율이 0.396이었다
 
 
 def study_loop(st, interval=5.0):
@@ -977,11 +978,14 @@ def study_loop(st, interval=5.0):
             if now - last_warm > 120 or (st.version != seen_version and now - last_warm > 15):   # 새 기록이 오면 곧바로 준비한다
                 last_warm, seen_version = now, st.version
                 import study_api as api
-                for cid in warm_targets(con, ai):
+                top, rest = warm_targets(con, ai)
+                for cid in top:
                     note_status(st, con, cid)               # 정의 수집 예약 (이미 있으면 그대로)
                     has_def = con.execute("SELECT 1 FROM notes WHERE concept=? AND definition<>''", (cid,)).fetchone()
                     if ai and has_def and not con.execute("SELECT 1 FROM study_notes WHERE concept=?", (cid,)).fetchone():
                         api.enqueue(con, "note", cid, 5)
+                for cid in rest:                            # 나머지 공부 목록: 정의만 (수집 일꾼이 하나씩 천천히, 모델은 쓰지 않는다)
+                    note_status(st, con, cid)
             if not ai:
                 st.wake.wait(interval)
                 st.wake.clear()

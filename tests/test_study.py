@@ -395,6 +395,21 @@ def check_server(tmp):
     con.close()
 
 
+def check_warm(tmp):
+    """(0.6.6) 공부 목록 전체가 정의 수집 대상, 모델 노트는 상위 WARM_TOP만"""
+    con = serve.open_db(tmp / "w.sqlite")
+    words = ["Docker", "GitHub", "PyTorch"]
+    saved = serve.leaderboard, serve.WARM_TOP
+    try:
+        serve.leaderboard = lambda con, k=50, project=None: {"items": [{"id": w.lower(), "label": w, "sessions": 3 - i, "turns": 1, "last_seen": ""} for i, w in enumerate(words)], "n_sessions": 3, "n_concepts": 3}
+        serve.WARM_TOP = 1
+        top, rest = serve.warm_targets(con, ai=False)
+        ok("상위 개념은 정의·노트, 나머지 공부 목록은 정의만 준비", top == ["docker"] and rest == ["github", "pytorch"], f"{top} {rest}")
+    finally:
+        serve.leaderboard, serve.WARM_TOP = saved
+        con.close()
+
+
 def check_feedback(tmp):
     """지속 검증: 사용자 판단('맞아요·아니에요')과 사용자 판단을 뺀 관문 판정을 비교한다 (dev.py verify가 쓰는 study_api.feedback_check)"""
     con = serve.open_db(tmp / "f.sqlite")
@@ -461,6 +476,7 @@ def main():
         check_server(tmp)
         check_today_extra(tmp)
         check_feedback(tmp)
+        check_warm(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print(f"\n결과: {'정상' if not FAILS else '실패 ' + str(len(FAILS)) + '개: ' + ', '.join(FAILS)}")
