@@ -50,7 +50,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - 화학식 조각 거르기 + 새 분야 세트 측정(0.5.1, 11-10): `--set=fresh`. 화면 정리 방향(11-10 사용자 결정): 첫 화면은 질문별 묶음. 먼저 카드에 출처 질문(`origin`)·분야 꼬리표(`field`, `kit/fields.py`)를 넣었다
 - 배포 방향(11-10 사용자 결정, D7): 작은 설치 파일 하나 + 앱 창(로컬 서버 + OS 웹뷰) + AI는 첫 실행에서 선택 받기, Claude Code 플러그인은 입구. 디자인·UI/UX는 사용자가 나중에 직접
 
-읽을 것: `docs/WORKSHEET.md`(기획 5단계), `docs/DECISION_LOG.md`(결정 근거), `docs/CONSTRAINTS.md`(할루시네이션 방지 규칙, 새 기능은 이 규칙을 지킨다), `docs/API.md`(화면과 서버의 계약)
+읽을 것: `docs/WORKSHEET.md`(기획 5단계), `docs/DECISION_LOG.md`(결정 근거), `docs/CONSTRAINTS.md`(할루시네이션 방지 규칙, 새 기능은 이 규칙을 지킨다), `docs/API.md`(화면과 서버의 계약), `docs/DESIGN_GUIDE.md`(피그마로 화면 그리기: 지킬 원칙·화면별 데이터·상태)
 
 다음 할 일 (합의된 순서)
 1. 사용자가 프로토타입을 확인한다. 관문 판정과 엇갈린 낱말 165개만 모은 `data/eval/review_sheet.csv`(만들기·다시 재기: `experiments/2026-11-10-general-gate/review_sheet.py [--apply]`)를 사용자가 검토하면 관문 수치를 다시 잰다.
