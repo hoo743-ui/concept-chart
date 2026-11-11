@@ -48,6 +48,7 @@ def get(port, path):
 
 def main():
     tmp = pathlib.Path(tempfile.mkdtemp())
+    os.environ["CONCEPT_CHART_LEXICON"] = str(tmp / "no-lexicon")   # (0.7.2) 개발 PC에 분야 사전(뜻풀이 포함)이 있어도 CI와 같게: 사전 없이 시험한다 (test_study.py와 같음)
     inbox, db = tmp / "inbox.jsonl", tmp / "db.sqlite"
     try:
         inbox.write_text(
