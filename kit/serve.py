@@ -308,6 +308,10 @@ def open_db(path):
         con.execute("UPDATE notes SET updated='' WHERE definition=''")    # 0.7.2: 정의를 못 찾았던 개념은 우리말샘·PyPI로 한 번 다시 찾는다
         con.execute("INSERT INTO settings VALUES ('note_fallback_v1', ?)", (datetime.now(timezone.utc).isoformat(),))
         con.commit()
+    if not con.execute("SELECT 1 FROM settings WHERE k='note_fallback_v2'").fetchone():
+        con.execute("UPDATE notes SET updated='' WHERE definition=''")    # 0.7.10: 0.7.8(검색 오류여도 대체 출처)·0.7.9(잘린 PyPI 응답) 뒤 정의 없는 개념을 한 번 더 찾는다
+        con.execute("INSERT INTO settings VALUES ('note_fallback_v2', ?)", (datetime.now(timezone.utc).isoformat(),))
+        con.commit()
     if not con.execute("SELECT 1 FROM settings WHERE k='sense_v2'").fetchone():
         con.execute("DELETE FROM study_notes WHERE status='wrong_sense'")    # 0.7.3: '기술 분야만' 확인으로 숨겼던 노트를 바뀐 기준으로 한 번 다시 만든다
         con.execute("INSERT INTO settings VALUES ('sense_v2', ?)", (datetime.now(timezone.utc).isoformat(),))

@@ -486,6 +486,12 @@ def check_fallback(tmp):
         con.execute("REPLACE INTO notes VALUES ('버그', ?, ?, 't')", (got[0], json.dumps(got[1])))
         ok("관문은 우리말샘 출처를 근거로 세지 않음 (위키백과만)", study_api.sourced(con, "버그") is False)
         ok("정의를 못 찾았던 기록은 한 번 다시 찾게 표시", con.execute("SELECT 1 FROM settings WHERE k='note_fallback_v1'").fetchone() is not None)
+        con.execute("INSERT OR REPLACE INTO notes VALUES ('빈정의', '', '[]', '2026-11-12T00:00:00+00:00')")
+        con.execute("DELETE FROM settings WHERE k='note_fallback_v2'")
+        con.commit()
+        con.close()
+        con = serve.open_db(tmp / "fb.sqlite")
+        ok("(0.7.10) 정의 없는 기록은 고친 경로로 한 번 더 찾게 표시", con.execute("SELECT updated FROM notes WHERE concept='빈정의'").fetchone() == ("",))
         con.execute("DELETE FROM settings WHERE k='en_judge_v1'")          # (0.7.5) 영어 판정은 한 번 다시 묻는다, 사용자 판단·한글은 그대로
         con.executemany("INSERT OR REPLACE INTO judgments (concept, llm, user, updated) VALUES (?,?,?,?)",
                         [("ubuntu", 0, None, "t"), ("토큰", 0, None, "t"), ("windows", 0, "concept", "t")])
