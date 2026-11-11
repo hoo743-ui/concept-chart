@@ -179,8 +179,11 @@ def run_note(con, client, cid):
     definition = source_of(con, cid)
     if not definition:
         return "no_evidence", None
-    if client.json(sense_prompt(label, definition), SENSE_SCHEMA, 30).get("field") != TECH:
-        return "wrong_sense", None                          # 출처가 다른 분야의 뜻이다: 설명을 만들지도 보여 주지도 않는다
+    import fields
+    if fields.field_of(con, cid, label) == fields.TECH and client.json(sense_prompt(label, definition), SENSE_SCHEMA, 30).get("field") != TECH:
+        return "wrong_sense", None                          # 기술 개념인데 출처가 다른 분야의 뜻이다: 설명을 만들지도 보여 주지도 않는다
+    # (0.7.3) 기술 분야 확인은 분야 꼬리표가 정보·통신인 개념에만. 관문은 0.5.0부터 분야를 가리지 않는데 여기만 '기술 전용'으로 남아
+    # 계약·표본 같은 개념의 출처가 모두 '다른 뜻'으로 숨겨졌다. 다른 분야 개념은 아래 '같은 대상인가' 확인만 거친다
     chat = [r[0] for r in con.execute("SELECT snippet FROM mentions WHERE concept=? ORDER BY ts DESC LIMIT 3", (cid,))]
     if chat and client.json(referent_prompt(label, definition, chat), REFERENT_SCHEMA, 30).get("answer") == OTHER:
         return "wrong_sense", None                          # 같은 기술 분야지만 이름만 같은 다른 대상 (RTX 그래픽카드 ≠ RTX 운영체제)
