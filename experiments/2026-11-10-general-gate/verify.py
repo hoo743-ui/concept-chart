@@ -7,6 +7,8 @@
 2. 개발 대화 세트: 정답 = 사용자 기준 정답 + 리뷰 시트, 그 위에 피드백(사용자 판단이 가장 앞선다). 저장된 LLM 답·위키백과 문서로만 잰다
    (없는 답이 있으면 묻는다. 개발 대화 세트는 낱말이 고정이라 보통 모두 저장돼 있다)
 3. 기록: data/eval/scores/verify_log.jsonl 에 한 줄 (git 제외). 피드백 정답은 data/eval/feedback_gold.json
+   + 설명이 붙은 비율 (사용자 결정 11-11 '1,2,3 싹다 진행'의 3): 공부 목록 개념 중 근거 확인된 쉬운 설명·출처 문장이 있는 비율 (study_api.coverage).
+     목표가 '공부할 내용 전달'이라 관문 수치와 함께 본다. 직전 기록보다 0.05 넘게 떨어지면 알림
 4. 알림: 정밀도가 하한(0.8, 사용자 결정 11-10) 아래이거나 직전 기록보다 0.02 넘게 떨어지면 '알림' 줄을 찍는다.
    피드백 정밀도는 관문이 보여 준 낱말 판단이 20개 이상일 때만 하한과 비교한다 (그보다 적으면 한두 개로 크게 흔들린다)
 """
@@ -25,18 +27,20 @@ c2, g, ev = R.c2, R.g, R.ev
 sys.path.insert(0, str(c2.ROOT / "kit"))
 import study_api  # noqa: E402
 
-FLOOR, DROP, MIN_FEEDBACK = 0.8, 0.02, 20
+FLOOR, DROP, MIN_FEEDBACK, COV_DROP = 0.8, 0.02, 20, 0.05
 DB = pathlib.Path.home() / ".claude" / "concept-chart.sqlite"
 LOG = c2.EVAL / "scores" / "verify_log.jsonl"
 
 
 def feedback():
+    """→ (피드백 검증, 설명이 붙은 비율). 실제 DB가 없거나 공부 기능을 쓴 적이 없으면 빈 값"""
+    empty = {"n": 0, "shown": 0, "shown_ok": 0, "precision": None, "wrong": [], "missed": [], "gold": {}}
     if not DB.exists():
-        return {"n": 0, "shown": 0, "shown_ok": 0, "precision": None, "wrong": [], "missed": [], "gold": {}}
+        return empty, None
     con = sqlite3.connect(f"file:{DB.as_posix()}?mode=ro", uri=True)
     if not con.execute("SELECT 1 FROM sqlite_master WHERE name='judgments'").fetchone():
-        return {"n": 0, "shown": 0, "shown_ok": 0, "precision": None, "wrong": [], "missed": [], "gold": {}}
-    return study_api.feedback_check(con)
+        return empty, None
+    return study_api.feedback_check(con), study_api.coverage(con)
 
 
 def dev(fb_gold):
@@ -54,11 +58,11 @@ def dev(fb_gold):
 
 def main():
     g.load_lexicons(ev.LEX)
-    fb = feedback()
+    fb, cov = feedback()
     (c2.EVAL / "feedback_gold.json").write_bytes(json.dumps(fb["gold"], ensure_ascii=False, indent=0).encode("utf-8"))
     d = dev(fb["gold"])
     rec = {"time": time.strftime("%Y-%m-%d %H:%M"), "gate": hashlib.sha1((c2.ROOT / "kit" / "concept_gate.py").read_bytes()).hexdigest()[:10],
-           "feedback": {k: fb[k] for k in ("n", "shown", "shown_ok", "precision")}, "dev": d}
+           "feedback": {k: fb[k] for k in ("n", "shown", "shown_ok", "precision")}, "dev": d, "coverage": cov}
     prev = None
     if LOG.exists():
         lines = [l for l in LOG.read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -75,7 +79,12 @@ def main():
     if fb["missed"]:
         print("  관문은 숨겼는데 '맞아요':", ", ".join(fb["missed"][:30]))
     print(f"개발 대화: 공부 목록 {d['shown']}개, 정밀도 {d['precision']:.3f}, 재현율 {d['recall']:.3f} (피드백으로 바꾼 정답 {d['feedback_used']}개)")
+    if cov and cov["shown"]:
+        print(f"설명이 붙은 비율: 공부 목록 {cov['shown']}개 중 {cov['explained']:.3f} (근거 확인된 쉬운 설명 {cov['ai_checked']}, 출처 문장 {cov['source']}, 아직 없음 {cov['none']})")
     alerts = []
+    pc = (prev or {}).get("coverage")
+    if cov and pc and cov["explained"] is not None and pc.get("explained") is not None and pc["explained"] - cov["explained"] > COV_DROP:
+        alerts.append(f"설명이 붙은 비율이 직전 기록 {pc['explained']:.3f}에서 {cov['explained']:.3f}로 떨어짐")
     if d["precision"] < FLOOR:
         alerts.append(f"개발 대화 정밀도 {d['precision']:.3f}가 하한 {FLOOR} 아래")
     if prev and prev["dev"]["precision"] - d["precision"] > DROP:

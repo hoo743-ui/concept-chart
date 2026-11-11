@@ -281,6 +281,18 @@ def feedback_check(con):
             "wrong": wrong, "missed": missed, "gold": gold}
 
 
+def coverage(con):
+    """공부 내용 전달 지표: 공부 목록에 나온 개념(사용자 판단 포함) 중 설명이 붙은 비율.
+    ai_checked = 근거 대조를 통과한 쉬운 설명, source = 출처 문장 한 줄, none = 아직 설명 없음(또는 출처가 다른 뜻)"""
+    n = {"ai_checked": 0, "source": 0, "none": 0}
+    for (cid,) in con.execute("SELECT DISTINCT concept FROM forms").fetchall():
+        top = con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (cid,)).fetchone()
+        if gate_of(con, cid, top[0] if top else cid)["show"]:
+            n[summary_line(con, cid)[1]] += 1
+    total = sum(n.values())
+    return dict(n, shown=total, explained=round((n["ai_checked"] + n["source"]) / total, 3) if total else None)
+
+
 def enqueue(con, kind, target, priority=5):
     """모델 작업 예약. 같은 작업이 이미 있으면 우선순위만 올린다. 작업자는 별도 프로세스 (study_worker.py)"""
     con.execute("""INSERT INTO jobs (kind, target, priority, status, updated) VALUES (?,?,?,'queued',?)

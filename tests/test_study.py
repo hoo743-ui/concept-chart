@@ -409,6 +409,12 @@ def check_feedback(tmp):
     ok("지속 검증: 관문이 보여 줬는데 '아니에요'한 낱말은 정밀도에 들어감", fb["n"] == 2 and fb["shown"] == 1 and fb["precision"] == 0.0 and fb["wrong"] == ["Docker"], fb)
     study_api.set_feedback(con, "docker", "clear")
     ok("판단 지우기 → 검증 대상에서 빠짐", study_api.feedback_check(con)["n"] == 1)
+    cv = study_api.coverage(con)
+    ok("설명 비율: 공부 목록(사용자 판단 포함)에서 설명 없음", cv["shown"] == 2 and cv["none"] == 2 and cv["explained"] == 0.0, cv)
+    con.execute("INSERT INTO notes VALUES ('docker', 'Docker는 컨테이너 플랫폼이다.', '[]', 't')")
+    con.execute("INSERT INTO study_notes VALUES ('추천', ?, 'ok', 'm', 't')", (json.dumps({"easy": "쉬운 설명"}),))
+    cv = study_api.coverage(con)
+    ok("설명 비율: 출처 문장·근거 확인된 설명을 셈", cv["source"] == 1 and cv["ai_checked"] == 1 and cv["explained"] == 1.0, cv)
     con.close()
 
 
