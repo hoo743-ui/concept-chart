@@ -279,9 +279,32 @@ CREATE TABLE IF NOT EXISTS progress (concept TEXT PRIMARY KEY, status TEXT, upda
 CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, kind TEXT, target TEXT, priority INTEGER, status TEXT, tries INTEGER DEFAULT 0, updated TEXT, UNIQUE (kind, target));
 """
 SYSTEM_MSG = re.compile(r"\s*<(?:task-notification|system-reminder|command-|local-command)")
-NOTE_REFETCH = 5              # 정의 찾는 방법이 바뀌면 올린다 (1: 0.7.2 우리말샘·PyPI, 2: 0.7.8·0.7.9 오류 고침, 3: 0.7.11 같은 분야 여러 뜻, 4: 0.7.12 언어 모델·챗봇 괄호, 5: 0.7.13 우리말샘 뜻 고르기 강화)
+NOTE_REFETCH = 6              # 정의 찾는 방법이 바뀌면 올린다 (1: 0.7.2 우리말샘·PyPI, 2: 0.7.8·0.7.9 오류 고침, 3: 0.7.11 같은 분야 여러 뜻, 4: 0.7.12 언어 모델·챗봇 괄호, 5: 0.7.13 우리말샘 뜻 고르기 강화, 6: 0.7.15 다른 뜻으로 넘겨준 위키백과 문서 거르기)
 SCHEMA_VERSION = 8            # (7: 0.7.0 꼬리 당·별·들 떼기, 8: 0.7.1 한 명사로 묶인 '-당'도 떼기) 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
 DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta", "answers")   # notes(웹 근거)·판정·노트·진도는 남긴다
+
+
+def wiki_title(url):
+    """위키백과 주소 → 문서 제목 (위키백과가 아니면 None)"""
+    if "wikipedia.org/wiki/" not in str(url):
+        return None
+    return urllib.parse.unquote(str(url).split("/wiki/", 1)[1]).replace("_", " ")
+
+
+def other_sense_notes(con):
+    """(0.7.15) 저장된 정의 중 첫 출처가 다른 뜻의 위키백과 문서인 개념 (fetch_sources.other_sense)"""
+    import fetch_sources as fs
+    out = []
+    for cid, src in con.execute("SELECT concept, sources FROM notes WHERE definition != '' AND sources LIKE '%wikipedia.org%'").fetchall():
+        try:
+            first = (json.loads(src) or [{}])[0]
+        except (ValueError, TypeError):
+            continue
+        title = wiki_title(first.get("url", "")) if isinstance(first, dict) else None
+        row = con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (cid,)).fetchone()
+        if title and fs.other_sense(row[0] if row else cid, title):
+            out.append(cid)
+    return out
 
 
 def open_db(path):
@@ -314,6 +337,10 @@ def open_db(path):
         con.execute("UPDATE notes SET updated='' WHERE definition=''")
         if not got or int(got[0]) < 5:                        # 0.7.13: 예전 규칙으로 붙인 우리말샘 설명은 지우고 새 규칙으로 다시 (틀린 뜻이 섞였다)
             ids = [r[0] for r in con.execute("SELECT concept FROM notes WHERE sources LIKE '%opendict.korean.go.kr%'")]
+            con.executemany("UPDATE notes SET definition='', sources='[]', updated='' WHERE concept=?", [(i,) for i in ids])
+            con.executemany("DELETE FROM study_notes WHERE concept=?", [(i,) for i in ids])
+        if not got or int(got[0]) < 6:                        # 0.7.15: 다른 뜻 문서(중복 → 복날, Export → 수출)로 붙인 위키백과 설명은 지우고 다시 찾는다
+            ids = other_sense_notes(con)
             con.executemany("UPDATE notes SET definition='', sources='[]', updated='' WHERE concept=?", [(i,) for i in ids])
             con.executemany("DELETE FROM study_notes WHERE concept=?", [(i,) for i in ids])
         con.execute("REPLACE INTO settings VALUES ('note_refetch', ?)", (str(NOTE_REFETCH),))

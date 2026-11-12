@@ -283,6 +283,27 @@ def check_grounding(tmp):
         ok("맞는 문서가 없으면 빈 목록", fs.wikipedia_lead("없는말") == [])
     finally:
         fs.wikipedia_tech, fs.wikipedia_exact, fs.korean_version = saved
+    # (0.7.15) 다른 제목으로 넘겨준 문서가 정보·통신 뜻 없는 사전 낱말이면 다른 뜻: 실제 데이터의 중복 → 복날, Export → 수출
+    import concept_gate as gate
+    import fields
+    lexf = {"복날": ["민속"], "수출": [], "그래픽처리장치": ["정보·통신"], "함수": ["수학"]}
+    saved_lex = gate.lexicon_verdict, fields.fields_of, fs.wikipedia_tech, fs.wikipedia_exact, fs.korean_version
+    try:
+        gate.lexicon_verdict = lambda f: "general" if f.replace(" ", "") in lexf else None
+        fields.fields_of = lambda f: lexf.get(f.replace(" ", ""), [])
+        ok("(0.7.15) 다른 뜻 문서: 중복 → 복날, Export → 수출", fs.other_sense("중복", "복날") and fs.other_sense("Export", "수출"))
+        ok("(0.7.15) 정보·통신 뜻이 있거나 사전에 없는 제목은 받음 (GPU → 그래픽 처리 장치, Anthropic → 앤트로픽)",
+           not fs.other_sense("GPU", "그래픽 처리 장치") and not fs.other_sense("Anthropic", "앤트로픽"))
+        ok("(0.7.15) 같은 이름·기술 분야 괄호는 받음", not fs.other_sense("함수", "함수") and not fs.other_sense("함수", "함수 (컴퓨터 과학)"))
+        fs.wikipedia_tech = lambda t, lang="ko": []
+        fs.wikipedia_exact = lambda t, lang="ko": {("중복", "ko"): [page("복날", "복날은 초복·중복·말복을 말한다.")],
+                                                   ("Export", "en"): [page("Export", "An export is a good produced in one country and sold into another.")],
+                                                   ("수출", "ko"): [page("수출", "수출은 재화를 외국으로 내보내는 것이다.")]}.get((t, lang), [])
+        fs.korean_version = lambda title: "수출" if title == "Export" else None
+        ok("(0.7.15) 넘겨주기로 간 다른 뜻 문서는 정의로 쓰지 않음", fs.wikipedia_lead("중복") == [])
+        ok("(0.7.15) 한국어 문서가 다른 뜻이면 언어 연결된 영어 문서도 쓰지 않음", fs.wikipedia_lead("Export") == [])
+    finally:
+        gate.lexicon_verdict, fields.fields_of, fs.wikipedia_tech, fs.wikipedia_exact, fs.korean_version = saved_lex
     ok("마크다운·인라인 코드를 살린 문장", serve.extract("**핵심:** `main`에 커밋합니다.")[0][0] == "핵심: main에 커밋합니다.", str(serve.extract("**핵심:** `main`에 커밋합니다.")[0][0]))
     ok("표 줄은 칸으로 나눔", serve.plain_line("| 커밋 | 저장 |") == "커밋 · 저장" and serve.plain_line("|---|---|") == "")
     ok("도구 알림은 내 질문이 아님", bool(serve.SYSTEM_MSG.match("<task-notification>x")) and not serve.SYSTEM_MSG.match("커밋이 뭐야?"))
@@ -518,6 +539,24 @@ def check_fallback(tmp):
         con = serve.open_db(tmp / "fb.sqlite")
         ok("(0.7.10~) 정의 찾는 방법이 바뀌면 정의 없는 기록을 한 번 더 찾게 표시", con.execute("SELECT updated FROM notes WHERE concept='빈정의'").fetchone() == ("",)
            and con.execute("SELECT v FROM settings WHERE k='note_refetch'").fetchone() == (str(serve.NOTE_REFETCH),))
+        wiki = lambda t: json.dumps([{"text": "x", "url": "https://ko.wikipedia.org/wiki/" + urllib.parse.quote(t)}])
+        con.execute("INSERT OR REPLACE INTO notes VALUES ('중복', '복날은 초복·중복·말복이다.', ?, 't')", (wiki("복날"),))
+        con.execute("INSERT OR REPLACE INTO notes VALUES ('gpu', '그래픽 처리 장치는 전자 회로이다.', ?, 't')", (wiki("그래픽_처리_장치"),))
+        con.execute("INSERT OR REPLACE INTO study_notes VALUES ('중복', '{}', 'ok', 'm', 't')")
+        con.execute("REPLACE INTO settings VALUES ('note_refetch', '5')")
+        con.commit()
+        con.close()
+        import fetch_sources as fs
+        saved_os = fs.other_sense
+        fs.other_sense = lambda term, title: title == "복날"
+        try:
+            con = serve.open_db(tmp / "fb.sqlite")
+        finally:
+            fs.other_sense = saved_os
+        ok("(0.7.15) 다른 뜻 문서로 붙인 정의·쉬운 설명은 지우고 다시 찾게, 맞는 문서는 그대로",
+           con.execute("SELECT definition, updated FROM notes WHERE concept='중복'").fetchone() == ("", "")
+           and con.execute("SELECT 1 FROM study_notes WHERE concept='중복'").fetchone() is None
+           and con.execute("SELECT updated FROM notes WHERE concept='gpu'").fetchone() == ("t",))
         con.execute("DELETE FROM settings WHERE k='en_judge_v1'")          # (0.7.5) 영어 판정은 한 번 다시 묻는다, 사용자 판단·한글은 그대로
         con.executemany("INSERT OR REPLACE INTO judgments (concept, llm, user, updated) VALUES (?,?,?,?)",
                         [("ubuntu", 0, None, "t"), ("토큰", 0, None, "t"), ("windows", 0, "concept", "t")])
