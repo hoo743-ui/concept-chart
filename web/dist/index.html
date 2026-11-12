@@ -1305,24 +1305,32 @@ def lead_sents(src):
     return out
 
 
-def wikipedia_lead(term):
+def wikipedia_lead(term, rejected=None):
     """개념 이름 → 정의 문장들. 기술 문서를 먼저 본다: 함수 → 함수 (컴퓨터 과학)가 있으면 수학의 함수보다 앞선다.
     영어 문서만 맞으면 언어 연결로 한국어 문서를 찾아 쓴다. 찾지 못하면 빈 목록 (검색 단계로 넘어간다)
-    (0.7.15) 다른 뜻의 문서(other_sense)는 받지 않는다. 언어 연결된 한국어 문서가 다른 뜻이면 그 영어 문서도 같은 뜻이라 함께 버린다"""
+    (0.7.15) 다른 뜻의 문서(other_sense)는 받지 않는다. 언어 연결된 한국어 문서가 다른 뜻이면 그 영어 문서도 같은 뜻이라 함께 버린다
+    (0.7.16) 버린 문서는 rejected(목록을 주면)에 넣는다: 정의로는 쓰지 않지만 '이 이름의 위키백과 문서가 있다'는 관문 근거로는 센다"""
+    def drop(src):
+        if rejected is not None and src.get("url"):
+            rejected.append({"url": src["url"], "title": src.get("title", "")})
     for src in wikipedia_tech(term, "ko") or wikipedia_exact(term, "ko"):
         if other_sense(term, src.get("title", "")):
+            drop(src)
             continue
         got = lead_sents(src)
         if got:
             return got
     for src in wikipedia_tech(term, "en") or wikipedia_exact(term, "en"):
         if other_sense(term, src.get("title", "")):
+            drop(src)
             continue
         ko_title = korean_version(src["title"])
         if ko_title and other_sense(term, ko_title):
+            drop(src)
             continue
         kos = wikipedia_exact(ko_title, "ko") if ko_title else []
         if any(other_sense(term, ko.get("title", "")) for ko in kos):
+            drop(src)
             continue
         for ko in kos:
             got = lead_sents(ko)

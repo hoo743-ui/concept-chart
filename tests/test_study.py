@@ -302,6 +302,9 @@ def check_grounding(tmp):
         fs.korean_version = lambda title: "수출" if title == "Export" else None
         ok("(0.7.15) 넘겨주기로 간 다른 뜻 문서는 정의로 쓰지 않음", fs.wikipedia_lead("중복") == [])
         ok("(0.7.15) 한국어 문서가 다른 뜻이면 언어 연결된 영어 문서도 쓰지 않음", fs.wikipedia_lead("Export") == [])
+        rej = []
+        fs.wikipedia_lead("Export", rej)
+        ok("(0.7.16) 버린 다른 뜻 문서는 관문 근거용으로 알려 줌", [r["title"] for r in rej] == ["Export"], rej)
     finally:
         gate.lexicon_verdict, fields.fields_of, fs.wikipedia_tech, fs.wikipedia_exact, fs.korean_version = saved_lex
     ok("마크다운·인라인 코드를 살린 문장", serve.extract("**핵심:** `main`에 커밋합니다.")[0][0] == "핵심: main에 커밋합니다.", str(serve.extract("**핵심:** `main`에 커밋합니다.")[0][0]))
@@ -544,6 +547,7 @@ def check_fallback(tmp):
         con.execute("INSERT OR REPLACE INTO notes VALUES ('gpu', '그래픽 처리 장치는 전자 회로이다.', ?, 't')", (wiki("그래픽_처리_장치"),))
         con.execute("INSERT OR REPLACE INTO study_notes VALUES ('중복', '{}', 'ok', 'm', 't')")
         con.execute("REPLACE INTO settings VALUES ('note_refetch', '5')")
+        con.execute("DELETE FROM settings WHERE k='wiki_names_v1'")
         con.commit()
         con.close()
         import fetch_sources as fs
@@ -554,9 +558,20 @@ def check_fallback(tmp):
         finally:
             fs.other_sense = saved_os
         ok("(0.7.15) 다른 뜻 문서로 붙인 정의·쉬운 설명은 지우고 다시 찾게, 맞는 문서는 그대로",
-           con.execute("SELECT definition, updated FROM notes WHERE concept='중복'").fetchone() == ("", "")
+           con.execute("SELECT definition, updated FROM notes WHERE concept='중복'").fetchone() in (None, ("", ""))
            and con.execute("SELECT 1 FROM study_notes WHERE concept='중복'").fetchone() is None
            and con.execute("SELECT updated FROM notes WHERE concept='gpu'").fetchone() == ("t",))
+        ok("(0.7.16) 다시 찾기를 기다리던 빈 기록은 지워 관문 확인이 다시 찾게", con.execute("SELECT 1 FROM notes WHERE concept='중복'").fetchone() is None)
+        con.execute("INSERT OR IGNORE INTO forms VALUES ('export','Export',1)")
+        def other_doc(term, aliases=(), context=(), rejected=None):
+            rejected.append({"url": "https://en.wikipedia.org/wiki/Export", "title": "Export"})
+            raise OSError("연결 거부 (SearXNG 꺼짐)")
+        try:
+            serve.collect_note(con, "export", other_doc)
+        except OSError:
+            pass
+        ok("(0.7.16) 다른 뜻 문서는 정의가 아니어도 관문 근거로 셈 (검색 오류여도 남김)",
+           study_api.sourced(con, "export") is True and con.execute("SELECT definition FROM notes WHERE concept='export'").fetchone() is None)
         con.execute("DELETE FROM settings WHERE k='en_judge_v1'")          # (0.7.5) 영어 판정은 한 번 다시 묻는다, 사용자 판단·한글은 그대로
         con.executemany("INSERT OR REPLACE INTO judgments (concept, llm, user, updated) VALUES (?,?,?,?)",
                         [("ubuntu", 0, None, "t"), ("토큰", 0, None, "t"), ("windows", 0, "concept", "t")])

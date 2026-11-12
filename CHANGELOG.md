@@ -2,6 +2,18 @@
 
 날짜는 한국 시간. 페이지에 보이는 숫자가 바뀐 변경은 따로 표시한다.
 
+## 작업 중 — 2026-11-13
+
+- 기록에 묻기를 한 웹으로 합침 (사용자 결정 11-13): 묻기 화면을 Atelier '기록에 묻기' 메뉴 안으로 옮기고 Atelier 디자인으로 다시 그림(`app/atelier-chat.js`). `chat/`은 API 서버만 남기고(CORS는 이 PC 주소만), 주소로 열면 Atelier로 넘긴다. `chat/index.html`·`chat.js`는 지움
+- 서버 첫 화면(`localhost:8765/`)을 Atelier로 (사용자 결정 11-13): `app/index.html`은 `atelier.html`로 넘기고(주소의 `#/…` 유지), 예전 화면은 `app/classic.html`(답변 붙여넣기). 기록에 묻기 예시 질문·화면 문구를 존댓말로, 존댓말 '공부했었나요?'도 '했던가' 질문으로 알아듣게
+
+## 0.7.16 — 2026-11-13
+
+관문 근거 되돌리기 (사용자 결정 11-13 '2번', 근거는 `docs/DECISION_LOG.md` D8)
+- 0.7.15 뒤 사용자 판단: 관문에서 빠진 낱말 중 판단이 있는 10개(hero·public·임계값·Cobalt·Mist·Nitrogen·import·seed·weight·Rhizobium)가 모두 '맞아요'. 설명이 틀린 뜻이어도 낱말은 공부할 개념이었다. 피드백 F1 0.810(0.7.15 전, 계산값) → 0.727
+- 다른 뜻 위키백과 문서는 계속 정의로 쓰지 않고, '이 이름의 문서가 있다'는 관문 근거로만 센다 (`wiki_names` 표, `fetch_sources.wikipedia_lead(rejected)`, `study_api.sourced`). 검색 단계가 오류여도 남긴다
+- 0.7.15가 지운 정의는 문서 주소도 지워져서, 다시 찾기를 기다리는 빈 기록을 지워 관문 확인이 다시 찾게 한다. 근거를 얻은 낱말은 확인 칸(CHECK_TOP)에서 뺀다
+
 ## 0.7.15 — 2026-11-13
 
 설명 정확도·공부 목록 고침 (사용자 결정 11-13, 근거는 `docs/DECISION_LOG.md` D8)

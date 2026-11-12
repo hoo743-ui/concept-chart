@@ -345,6 +345,13 @@ def open_db(path):
             con.executemany("DELETE FROM study_notes WHERE concept=?", [(i,) for i in ids])
         con.execute("REPLACE INTO settings VALUES ('note_refetch', ?)", (str(NOTE_REFETCH),))
         con.commit()
+    con.execute("CREATE TABLE IF NOT EXISTS wiki_names (concept TEXT PRIMARY KEY, url TEXT, updated TEXT)")   # (0.7.16) 정의로 쓰지 않은 다른 뜻 위키백과 문서 (관문 근거만)
+    if not con.execute("SELECT 1 FROM settings WHERE k='wiki_names_v1'").fetchone():
+        # 0.7.16: 0.7.15가 지운 정의는 문서 주소도 함께 지워져 관문 근거를 잃었다. 다시 찾기를 기다리는 빈 기록을 지워
+        # 관문 확인(warm_targets의 문서 확인)이 다시 찾게 한다. 다시 찾으면 다른 뜻 문서는 wiki_names에 남는다
+        con.execute("DELETE FROM notes WHERE definition='' AND sources='[]' AND updated=''")
+        con.execute("INSERT INTO settings VALUES ('wiki_names_v1', ?)", (datetime.now(timezone.utc).isoformat(),))
+        con.commit()
     if not con.execute("SELECT 1 FROM settings WHERE k='sense_v2'").fetchone():
         con.execute("DELETE FROM study_notes WHERE status='wrong_sense'")    # 0.7.3: '기술 분야만' 확인으로 숨겼던 노트를 바뀐 기준으로 한 번 다시 만든다
         con.execute("INSERT INTO settings VALUES ('sense_v2', ?)", (datetime.now(timezone.utc).isoformat(),))
@@ -612,7 +619,7 @@ def context_terms(con, concept, k=2):
     return [label_of(con, r[0]) for r in rows]
 
 
-def fetch_note(term, aliases=(), searx=None, context=()):
+def fetch_note(term, aliases=(), searx=None, context=(), rejected=None):
     """개념 이름 → (정의 문장, [{text, url}]). 위키백과(ko → en) → 그래도 없으면 SearXNG (함께 나온 개념을 붙여서 → 없으면 이름만).
     근거가 없으면 ("", []), 네트워크 오류·SearXNG 꺼짐은 예외로 올린다 (저장하지 않고 나중에 다시 시도).
     출처 문장을 그대로 쓴다 (LLM이 만든 문장 없음). 밖으로 나가는 건 개념 이름뿐."""
@@ -622,7 +629,7 @@ def fetch_note(term, aliases=(), searx=None, context=()):
         ev = [e for e in ev if str(e["url"]).startswith(("http://", "https://"))]   # 외부에서 온 링크: 화면에 넣기 전에 거른다
         ev = [e for e in ev if not hasattr(fs, "subject_ok") or fs.subject_ok(term, e["text"])]   # '이동 기준선은…'처럼 다른 낱말을 설명하는 문장은 받지 않는다
         return (ev[0]["text"], [{"text": e["text"], "url": e["url"]} for e in ev]) if ev else None
-    got = result(fs.wikipedia_lead(term))                  # 먼저 이름이 정확히 맞는 문서의 첫 문장 (문서 첫 문장이 곧 정의문이다)
+    got = result(fs.wikipedia_lead(term, rejected) if rejected is not None else fs.wikipedia_lead(term))   # 먼저 이름이 정확히 맞는 문서의 첫 문장 (문서 첫 문장이 곧 정의문이다)
     if got:
         return got
     for lang in NOTE_LANGS:
@@ -891,11 +898,19 @@ def collect_note(con, c, fetcher):
     대체 출처에도 없으면 원래 오류를 그대로 올린다: 저장하지 않고 나중에 다시 시도 (검색이 켜지면 그때 찾는다)"""
     forms = [r[0] for r in con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form", (c,))]
     label = forms[0] if forms else c
-    err = None
+    err, rejected = None, []
     try:
-        definition, sources = fetcher(label, forms[1:], context_terms(con, c))
+        try:
+            definition, sources = fetcher(label, forms[1:], context_terms(con, c), rejected=rejected)
+        except TypeError as e:                            # 다른 뜻 문서 목록을 받지 않는 수집기 (시험용)
+            if "rejected" not in str(e):
+                raise
+            definition, sources = fetcher(label, forms[1:], context_terms(con, c))
     except Exception as e:  # noqa: BLE001 — 아래에서 대체 출처를 본 뒤 다시 올린다
         definition, sources, err = "", [], e
+    if rejected:                                          # (0.7.16) 정의로 쓰지 않은 다른 뜻 문서: 관문 근거로만 (검색 단계가 오류여도 남긴다)
+        con.execute("REPLACE INTO wiki_names VALUES (?,?,?)", (c, rejected[0]["url"], datetime.now(timezone.utc).isoformat()))
+        con.commit()
     if not definition:
         got = fallback_note(con, c, label)
         if got:
@@ -1144,7 +1159,7 @@ def warm_targets(con, ai=True):
         if ai and rule == "unknown" and lex == "special" and row and row[0] == 0 and row[2] is None and api.sourced(con, x["id"]):
             api.enqueue(con, "everyday", x["id"], 9, redo=True)        # '더 보기'에 살릴지 묻는 두 번째 질문 (gate.rescue)
         wants_source = rule == "unknown" and (lex == "special" or (ai and lex in (None, "mixed") and bool(row and row[0])))
-        if wants_source and len(check) < CHECK_TOP and not con.execute("SELECT 1 FROM notes WHERE concept=?", (x["id"],)).fetchone():
+        if wants_source and len(check) < CHECK_TOP and not con.execute("SELECT 1 FROM notes WHERE concept=?", (x["id"],)).fetchone()                 and not con.execute("SELECT 1 FROM wiki_names WHERE concept=?", (x["id"],)).fetchone():   # (0.7.16) 근거를 얻었으면 칸을 비운다 (검색이 꺼져 저장 못 해도)
             check.append(x["id"])
     shown = [x["id"] for x in api.concepts(con, leaderboard, "show", 100000, origin=False)["items"]]
     return check + shown[:WARM_TOP], shown[WARM_TOP:]     # (0.6.6) 상위 WARM_TOP 밖의 공부 목록도 정의는 찾는다. 예전에는 상위 50개만 예약해 설명이 붙은 비율이 0.396이었다
@@ -1388,7 +1403,7 @@ def main():
         print(f"폴더 {project} 의 대화를 먼저 보여 줍니다 (화면에서 바꿀 수 있음)", flush=True)
     threading.Thread(target=tail_loop, args=(st,), daemon=True).start()
     searx = None if a.searx.lower() == "off" else a.searx
-    threading.Thread(target=note_loop, args=(st, lambda t, al=(), ctx=(): fetch_note(t, al, searx, ctx)), daemon=True).start()
+    threading.Thread(target=note_loop, args=(st, lambda t, al=(), ctx=(), rejected=None: fetch_note(t, al, searx, ctx, rejected)), daemon=True).start()
     import study_api
     study_api.AI = st.llm != "off"                         # AI가 없으면 관문은 규칙·사전·위키백과만으로 판정한다
     threading.Thread(target=study_loop, args=(st,), daemon=True).start()

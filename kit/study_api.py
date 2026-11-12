@@ -29,6 +29,11 @@ AI = True          # 서버가 --llm off로 켜지면 False: AI 없는 판정(co
 
 def sourced(con, cid):
     """이름이 맞는 위키백과 문서에서 정의를 찾았는가 (관문의 두 번째 근거). 검색(SearXNG) 결과는 근거로 치지 않는다"""
+    try:                                                  # (0.7.16) 다른 뜻이라 정의로 쓰지 않은 문서도 '이 이름의 문서가 있다'는 근거로는 센다
+        if con.execute("SELECT 1 FROM wiki_names WHERE concept=?", (cid,)).fetchone():
+            return True
+    except sqlite3.OperationalError:                      # 0.7.16 전 DB (읽기 전용 verify)
+        pass
     row = con.execute("SELECT definition, sources FROM notes WHERE concept=?", (cid,)).fetchone()
     if not (row and row[0] and row[1]):
         return False
