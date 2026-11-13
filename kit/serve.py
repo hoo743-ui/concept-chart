@@ -1169,6 +1169,10 @@ def study_loop(st, interval=5.0):
     """모델 작업자 관리: 할 일이 있을 때만 별도 프로세스를 띄운다. LLM이 없거나 작업자가 죽어도 서버는 그대로"""
     con = open_db(st.db)
     ai = st.llm != "off"                                    # AI가 꺼져 있으면 정의 확인만 하고 모델 작업자는 띄우지 않는다
+    clf_on = ai and bool(os.environ.get("CONCEPT_CHART_CLF"))   # (0.8.0) 개념 분류기 (작업자가 ml/concept_clf.py를 따로 실행, 기본은 끔)
+    if not clf_on:                                          # 끄면 예전 관문으로: 남은 점수는 기준점이 없으면 쓰지 않는다 (study_api.clf_of)
+        con.execute("DELETE FROM settings WHERE k='clf_threshold'")
+        con.commit()
     last_warm, backoff_until, seen_version = 0.0, 0.0, -1
     while not st.stop.is_set():
         try:
@@ -1177,6 +1181,8 @@ def study_loop(st, interval=5.0):
                 last_warm, seen_version = now, st.version
                 import study_api as api
                 top, rest = warm_targets(con, ai)
+                if clf_on:
+                    api.enqueue(con, "score", "all", 7, redo=True)    # 바뀐 낱말만 점수를 다시 매긴다 (없으면 금방 끝난다)
                 for cid in top:
                     note_status(st, con, cid)               # 정의 수집 예약 (이미 있으면 그대로)
                     has_def = con.execute("SELECT 1 FROM notes WHERE concept=? AND definition<>''", (cid,)).fetchone()

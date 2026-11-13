@@ -258,9 +258,84 @@ def run_everyday(con, client, cid):
                 (cid, int(everyday), datetime.now(timezone.utc).isoformat()))
 
 
+CLF_SCRIPT = pathlib.Path(__file__).resolve().parent.parent / "ml" / "concept_clf.py"   # 백본은 불러오지 않고 별도 프로세스로만 실행한다
+CLF_TIMEOUT = 1800
+
+
+def clf_dir():
+    """(0.8.0) 개념 분류기 폴더 (환경 변수 CONCEPT_CHART_CLF, 기본은 끔). concept_clf.json(기준점 등)이 있어야 켠다"""
+    d = os.environ.get("CONCEPT_CHART_CLF")
+    return pathlib.Path(d) if d and (pathlib.Path(d) / "concept_clf.json").is_file() else None
+
+
+def ensure_clf_columns(con):
+    cols = {r[1] for r in con.execute("PRAGMA table_info(judgments)")}
+    for c, t in (("clf", "REAL"), ("clf_key", "TEXT")):
+        if c not in cols:
+            con.execute(f"ALTER TABLE judgments ADD COLUMN {c} {t}")
+
+
+def clf_inputs(con, tag):
+    """점수가 없거나 입력(신호·문장)이 바뀐 낱말만 → [(입력 행, 키)]. 규칙이 확신한 낱말(accept·reject)은 점수가 필요 없다.
+    신호는 학습 데이터(experiments/2026-11-13-expand/build_data.py)와 같게: 위키백과 문서는 일상 뜻만 있는 낱말이면 '모름'(찾지 않는 낱말)"""
+    import hashlib
+
+    import study_api as api
+    out = []
+    for (cid,) in con.execute("SELECT concept FROM freq").fetchall():
+        top = con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (cid,)).fetchone()
+        if not top:
+            continue
+        label = top[0]
+        rule = api.rule_of(con, cid, label)
+        if rule not in ("unknown", "likely"):
+            continue
+        lex = gate.lexicon_verdict(label)
+        j = con.execute("SELECT llm, clf_key FROM judgments WHERE concept=?", (cid,)).fetchone()
+        sents = [r[0] for r in con.execute("SELECT snippet FROM mentions WHERE concept=? ORDER BY ts DESC LIMIT 3", (cid,))]
+        row = {"id": cid, "form": label, "sents": sents, "rule": rule, "lex": lex,
+               "llm": None if not j or j[0] is None else bool(j[0]), "wiki": None if lex == "general" else api.sourced(con, cid)}
+        key = hashlib.sha1((tag + json.dumps(row, ensure_ascii=False, sort_keys=True)).encode("utf-8")).hexdigest()[:16]
+        if not (j and j[1] == key):
+            out.append((row, key))
+    return out
+
+
+def run_score(con):
+    """(0.8.0) 개념 분류기 점수 매기기: 바뀐 낱말만 모아 ml/concept_clf.py를 한 번 실행한다. 실패하면 예외 (작업만 실패, 관문은 예전 판정)"""
+    d = clf_dir()
+    if not d:
+        return 0
+    cfg = json.loads((d / "concept_clf.json").read_text(encoding="utf-8"))
+    ensure_clf_columns(con)
+    todo = clf_inputs(con, f"{cfg.get('made')}|{cfg.get('data_sha')}")
+    if todo:
+        script = pathlib.Path(os.environ.get("CONCEPT_CHART_CLF_SCRIPT") or CLF_SCRIPT)     # 시험용 가짜 스크립트
+        kw = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
+        r = subprocess.run([sys.executable, str(script), "--model", str(d)], input="\n".join(json.dumps(x, ensure_ascii=False) for x, _ in todo),
+                           capture_output=True, text=True, encoding="utf-8", timeout=CLF_TIMEOUT, **kw)
+        if r.returncode != 0:
+            raise RuntimeError(f"분류기 실패 {r.returncode}: {r.stderr[-300:]}")
+        keys = {x["id"]: k for x, k in todo}
+        t = datetime.now(timezone.utc).isoformat()
+        for line in r.stdout.splitlines():
+            try:
+                got = json.loads(line)
+                cid, score = got["id"], float(got["score"])
+            except (ValueError, KeyError, TypeError):
+                continue
+            if cid in keys and 0.0 <= score <= 1.0:
+                con.execute("INSERT INTO judgments (concept, clf, clf_key, updated) VALUES (?,?,?,?) ON CONFLICT(concept) DO UPDATE SET clf=excluded.clf, clf_key=excluded.clf_key",
+                            (cid, score, keys[cid], t))
+    con.execute("REPLACE INTO settings VALUES ('clf_threshold', ?)", (str(float(cfg["threshold"])),))
+    return len(todo)
+
+
 def run_job(con, client, kind, target):
     t = datetime.now(timezone.utc).isoformat()
-    if kind == "judge":
+    if kind == "score":
+        log("score", f"{run_score(con)}개")
+    elif kind == "judge":
         run_judge(con, client, target)
     elif kind == "everyday":
         run_everyday(con, client, target)
@@ -291,7 +366,7 @@ def main():
         if not job:
             time.sleep(3)
             continue
-        if not client.available():
+        if job[1] != "score" and not client.available():
             log("LLM을 쓸 수 없어 끝냅니다", client.name)
             return 2
         wait_for_room(loaded)

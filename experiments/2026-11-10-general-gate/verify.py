@@ -43,6 +43,38 @@ def feedback():
     return study_api.feedback_check(con), study_api.coverage(con)
 
 
+CLF_CFG = c2.ROOT / "models" / "concept-clf" / "concept_clf.json"
+
+
+def fresh_feedback():
+    """(0.8.0) 개념 분류기를 켠 DB: 분류기가 학습에 쓴 낱말의 판단은 점수가 부풀므로, 학습에 쓰지 않은 낱말의 판단만 따로 잰다.
+    → None(분류기 점수가 없는 DB) 또는 {"n", "shown", "shown_ok", "precision", "recall", "trained"}"""
+    if not (DB.exists() and CLF_CFG.exists()):
+        return None
+    trained = set(json.loads(CLF_CFG.read_text(encoding="utf-8")).get("trained_forms", []))
+    con = sqlite3.connect(f"file:{DB.as_posix()}?mode=ro", uri=True)
+    try:
+        if not con.execute("SELECT 1 FROM settings WHERE k='clf_threshold'").fetchone():
+            return None
+    except sqlite3.OperationalError:
+        return None
+    n = shown = ok = pos = skipped = 0
+    for cid, user in con.execute("SELECT concept, user FROM judgments WHERE user IN ('concept','not_concept')").fetchall():
+        top = con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form LIMIT 1", (cid,)).fetchone()
+        if not top:
+            continue
+        if top[0] in trained:
+            skipped += 1
+            continue
+        yes = user == "concept"
+        g_ = study_api.gate_of(con, cid, top[0], use_user=False)
+        n, pos = n + 1, pos + yes
+        if g_["show"]:
+            shown, ok = shown + 1, ok + yes
+    return {"n": n, "shown": shown, "shown_ok": ok, "precision": round(ok / shown, 3) if shown else None,
+            "recall": round(ok / pos, 3) if pos else None, "trained": skipped}
+
+
 def dev(fb_gold):
     items, gold, D, sfx = c2.dev_set(c2.fixes())
     over = {w: b for w, b in fb_gold.items() if w in gold}
@@ -71,8 +103,9 @@ def main():
     fb, cov = feedback()
     (c2.EVAL / "feedback_gold.json").write_bytes(json.dumps(fb["gold"], ensure_ascii=False, indent=0).encode("utf-8"))
     d = dev(fb["gold"])
+    fresh = fresh_feedback()
     rec = {"time": time.strftime("%Y-%m-%d %H:%M"), "gate": hashlib.sha1((c2.ROOT / "kit" / "concept_gate.py").read_bytes()).hexdigest()[:10],
-           "feedback": {k: fb[k] for k in ("n", "shown", "shown_ok", "precision")}, "dev": d, "coverage": cov}
+           "feedback": {k: fb[k] for k in ("n", "shown", "shown_ok", "precision")}, "dev": d, "coverage": cov, "fresh_feedback": fresh}
     prev = None
     if LOG.exists():
         lines = [l for l in LOG.read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -91,7 +124,12 @@ def main():
     if fb.get("moved") or fb.get("gone"):
         print("  이제 나오지 않는 낱말의 판단:", "옮겨 잼 " + (", ".join(fb.get("moved", [])) or "없음"),
               "/ 재지 않음 " + (", ".join(fb.get("gone", [])) or "없음"))
-    print(f"개발 대화: 공부 목록 {d['shown']}개, 정밀도 {d['precision']:.3f}, 재현율 {d['recall']:.3f} (피드백으로 바꾼 정답 {d['feedback_used']}개)")
+    if fresh is not None:
+        print(f"  (0.8.0 개념 분류기 켬) 위 피드백에는 분류기가 학습에 쓴 낱말 {fresh['trained']}개가 들어 있어 부풀려진 값입니다."
+              f" 학습에 쓰지 않은 낱말 판단 {fresh['n']}개: 보여 준 것 {fresh['shown']}개 중 개념 {fresh['shown_ok']}개"
+              + (f", 정밀도 {fresh['precision']:.3f}, 재현율 {fresh['recall']:.3f}" if fresh["precision"] is not None and fresh["recall"] is not None else ""))
+        print("  분류기의 학습 전 성능은 5겹 교차 검증 기록 experiments/2026-11-13-expand/train_roberta-base-sig.json (기준점 0.97: 개발 대화 0.855·0.665)")
+    print(f"개발 대화(LLM 관문 기준): 공부 목록 {d['shown']}개, 정밀도 {d['precision']:.3f}, 재현율 {d['recall']:.3f} (피드백으로 바꾼 정답 {d['feedback_used']}개)")
     if cov and cov["shown"]:
         print(f"설명이 붙은 비율: 공부 목록 {cov['shown']}개 중 {cov['explained']:.3f} (근거 확인된 쉬운 설명 {cov['ai_checked']}, 출처 문장 {cov['source']}, 아직 없음 {cov['none']})")
     alerts = []

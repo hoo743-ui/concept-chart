@@ -60,6 +60,19 @@ def judgment_row(con, cid):
         return tuple(row) + (None,) if row else None
 
 
+def clf_of(con, cid):
+    """(0.8.0) 개념 분류기 점수와 기준점 → (점수, 기준점). 분류기를 켜지 않았거나 아직 점수가 없으면 (None, None) → 관문은 예전 판정.
+    점수는 작업자(study_worker의 score 작업)가 judgments.clf에, 기준점은 settings의 clf_threshold에 적는다"""
+    try:
+        t = con.execute("SELECT v FROM settings WHERE k='clf_threshold'").fetchone()
+        row = con.execute("SELECT clf FROM judgments WHERE concept=?", (cid,)).fetchone() if t else None
+    except sqlite3.OperationalError:                      # 0.8.0 전 DB (읽기 전용 verify)
+        return None, None
+    if not (t and row and row[0] is not None):
+        return None, None
+    return float(row[0]), float(t[0])
+
+
 def gate_of(con, cid, label, use_user=True):
     """use_user=False: 사용자 판단을 빼고 관문만의 판정 (지속 검증에서 사용자 판단과 비교할 때)"""
     row = judgment_row(con, cid)
@@ -72,12 +85,14 @@ def gate_of(con, cid, label, use_user=True):
     llm = None if llm is None else bool(llm)
     extra = False
     code = bool(code)
+    clf, threshold = clf_of(con, cid) if AI else (None, None)
     if AI:
-        verdict = gate.final(rule, llm, src, lex, code)
+        verdict = gate.final(rule, llm, src, lex, code, clf, threshold)
         extra = verdict != "show" and gate.rescue(rule, llm, src, lex, None if everyday is None else bool(everyday))
     else:
         verdict = gate.final_no_ai(rule, src, lex, code)
     by = ("rule" if rule in ("accept", "reject") else "code" if code and rule in ("unknown", "likely")
+          else "clf" if clf is not None
           else "lexicon" if rule == "unknown" and lex in ("general", "mixed") and llm is None
           else "llm" if llm is not None else "terms" if rule == "likely" else "unjudged")
     return {"show": verdict == "show", "candidate": verdict == "candidate", "extra": extra, "by": by, "rule": rule, "lexicon": lex}

@@ -19,6 +19,7 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - `web/`: `build_page.py`(+ `page_template.html`, `kit/*.py`, `sim/results/page_data.json`) → `dist/index.html`
 - `kit/`: 실제 쓰는 코드. 로컬 서버(`serve.py`, API 계약은 `docs/ARCHITECTURE.md`), 훅 설치기(`install_concept_hook.py`, 훅 본문은 `HOOK_TEMPLATE` 안의 `normalize()`가 어댑터), 노트북 첫 셀, 클릭 카드, 근거 수집, 검증 에이전트.
 - `chat/`: 내 공부 기록에 묻기 (따로 도는 API 서버, 포트 8766. 화면은 11-13부터 개념 차트 웹 `app/atelier.html#/chat`, `app/atelier-chat.js`). 개념 차트와는 `docs/API.md`의 읽기 API로만 만나고, `kit/`에서는 `llm.py`만 쓴다. `kit/`는 `chat/`을 모른다.
+- `ml/`: 학습한 모델을 쓰는 코드 (`concept_clf.py`, 작업자가 별도 프로세스로만 실행, `kit/`는 불러오지 않는다).
 - `tests/`: `check_env.py`(전체 점검), `test_hook.py`(훅 fixture), `test_serve.py`(서버), `check_page.js`·`check_setup.js`(jsdom).
 
 ## 규칙
@@ -53,6 +54,8 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 - 11-11~12 개선(0.6.6~0.7.10, 자세한 근거는 CHANGELOG·DECISION_LOG D8): 공부 목록 전체 정의 찾기, 코드 속 이름(import·pip), 꼬리 떼기(당·별·들), 위키백과에 없으면 우리말샘 뜻풀이·PyPI 설명, 설명 단계의 '기술 분야 전용' 확인 고침, 쉬운 설명 한 번 더, 영어 표기 낱말 전용 질문, 작업 다시 예약 고침. 실제 기록(11-12 01시): 피드백 정밀도 0.940, 개발 대화 0.912·0.486, 설명이 붙은 비율 0.725
 - 디자인 가이드 `docs/DESIGN_GUIDE.md` (사용자가 피그마로 화면을 그림)
 - 0.7.15~0.7.16(11-13, 사용자 결정): 위키백과가 다른 뜻 문서로 넘겨준 정의는 쓰지 않는다(중복 → 복날, Export → 수출). 그 문서는 관문 근거로만 센다(0.7.15에서 근거까지 뺐더니 사용자가 '맞아요'한 낱말 10개가 빠짐). 사용자 판단으로는 Variables·Mock 같은 영어 낱말도 개념. 웹 디자인은 챗봇까지 한 웹으로 합쳐 투자하는 방향(11-13 사용자 의견, 합치는 순서는 정하기 전)
+
+- 개념 분류기(0.8.0, 11-13 사용자 결정 '0.97로 가자', D9): klue/roberta-base 미세조정 점수로 관문을 정한다(`ml/concept_clf.py`, 모델은 `models/concept-clf` git 제외). 교차 검증 개발 대화 0.893·0.472 → 0.855·0.665. 일반 세트로만 배우면 재현율이 오히려 낮다(내 대화 정답을 배운 덕분)
 
 읽을 것: `docs/WORKSHEET.md`(기획 5단계), `docs/DECISION_LOG.md`(결정 근거), `docs/CONSTRAINTS.md`(할루시네이션 방지 규칙, 새 기능은 이 규칙을 지킨다), `docs/API.md`(화면과 서버의 계약), `docs/DESIGN_GUIDE.md`(피그마로 화면 그리기: 지킬 원칙·화면별 데이터·상태)
 

@@ -246,14 +246,21 @@ def final_no_ai(rule, sourced=None, lex=None, code=None):
     return "candidate" if rule == "likely" or lex == "special" else "hide"
 
 
-def final(rule, llm=None, sourced=None, lex=None, code=None):
+CLF_CANDIDATE = 0.5    # 분류기 점수가 기준점 아래여도 이 이상이면 '후보'(숨기되 사용자가 올릴 수 있음)
+
+
+def final(rule, llm=None, sourced=None, lex=None, code=None, clf=None, threshold=None):
     """→ "show"(공부 목록) | "candidate"(숨기되 사용자가 올릴 수 있는 후보) | "hide". 오탐을 먼저 막는다:
     LLM 혼자 인정한 낱말은 정밀도가 낮아(실측 0.72) 공부 목록에 넣지 않는다. 두 번째 근거가 있을 때만 넣는다:
     사전(개발 용어), 분야 사전에 전문 뜻만 있음(lex="special"), 또는 sourced = 이름이 맞는 위키백과 문서가 있음.
     분야 사전에 일상 뜻만 있으면 숨기고(LLM에 묻지 않아도 된다), 일상 뜻도 있으면 LLM과 위키백과 문서가 함께 인정할 때만 보여 준다.
-    code = 원 답변에서 코드로 쓰인 영어 이름(code_name)이면 LLM 답과 상관없이 보여 준다 (0.7.0)."""
+    code = 원 답변에서 코드로 쓰인 영어 이름(code_name)이면 LLM 답과 상관없이 보여 준다 (0.7.0).
+    (0.8.0) clf = 개념 분류기 점수(0~1, ml/concept_clf.py가 규칙·사전·LLM 답·위키백과 문서와 대화 문장을 함께 보고 낸다)와 threshold가 있으면
+    규칙이 확신하지 못한 낱말은 점수로만 정한다 (실험 2026-11-13-expand: 5겹 교차 검증 개발 대화 0.893·0.472 → 0.855·0.665, 사용자 결정 기준점 0.97)."""
     if rule in ("unknown", "likely") and code:
         return "show"
+    if clf is not None and threshold is not None and rule in ("unknown", "likely"):
+        return "show" if clf >= threshold else "candidate" if clf >= CLF_CANDIDATE else "hide"
     if rule == "unknown" and lex == "general":
         return "hide"
     if rule == "unknown" and lex == "mixed":                # 일상 뜻도 있는 말: LLM 인정 + 이름이 맞는 위키백과 문서가 둘 다 있어야 보여 준다

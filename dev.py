@@ -163,6 +163,12 @@ def app(extra):
         print(f"AI 요약: {LLM}" if ollama else "AI 요약: 꺼짐 (Ollama 없음). 출처 문장만 보여 줍니다")
     if "--searx" not in extra and not port_open(8888):
         args += ["--searx", "off"]
+    clf = ROOT / "models" / "concept-clf"                   # (0.8.0) 개념 분류기: 학습해 둔 모델과 학습 패키지(requirements-ml.txt)가 있을 때만 켠다
+    if "CONCEPT_CHART_CLF" not in os.environ and (clf / "concept_clf.json").is_file():
+        import importlib.util
+        if importlib.util.find_spec("torch") and importlib.util.find_spec("transformers"):
+            os.environ["CONCEPT_CHART_CLF"] = str(clf)
+            print("개념 분류기: 켜짐 (models/concept-clf)")
     chat_proc = None                                        # '내 공부 기록에 묻기'(chat/)는 따로 도는 앱: 못 켜거나 죽어도 개념 차트는 그대로
     if not port_open(8766):
         given = args + extra
