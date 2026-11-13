@@ -1,0 +1,21 @@
+THYNK — 함께 배포하는 구성품과 라이선스
+
+이 프로그램은 사용자 PC 안에서만 동작합니다. 대화 기록은 이 PC(사용자 폴더\.claude)에만 저장되고 바깥 서버로 보내지 않습니다.
+위키백과 등 공개 출처에서 개념 설명을 찾을 때만 인터넷을 씁니다.
+
+[함께 들어 있는 것]
+- Python (python.org 윈도우 내장용 배포판) — Python Software Foundation License
+- kiwipiepy, kiwipiepy_model (한국어 형태소 분석) — Apache License 2.0 (LGPL 아님, 패키지 메타데이터 기준)
+- trafilatura (웹 문서 본문 추출) — Apache License 2.0
+- pywebview (앱 창) — BSD 3-Clause License
+- pythonnet, clr_loader (pywebview가 쓰는 .NET 연결) — MIT License
+- PyTorch (CPU판, 개념 분류기 실행) — BSD 3-Clause License
+- transformers, tokenizers, safetensors, huggingface_hub (개념 분류기 실행) — Apache License 2.0
+- 개념 분류기 모델: klue/roberta-base를 이 프로젝트가 미세조정한 것 (원 모델 카드에 라이선스 표기가 없어 확인 중)
+- 그 밖의 의존 패키지: 각 패키지 폴더(runtime\Lib\site-packages\*.dist-info)의 라이선스 파일을 따릅니다.
+- 글꼴: Pretendard, Noto Sans KR, Noto Serif KR, IBM Plex Mono — SIL Open Font License 1.1
+- 분야 사전: 국립국어원 우리말샘에서 만든 파생 자료 — CC BY-SA 2.0 KR (출처: 국립국어원 우리말샘)
+
+[설치에서 고른 경우에만 받는 것]
+- Ollama (로컬 AI 실행기, ollama.com 공식 설치 파일) — MIT License
+- qwen3:4b 모델 — Apache License 2.0

@@ -1,0 +1,63 @@
+/* 06 나만의 노트 + 마스코트 바로 가기 (11-13). 기존 atelier.css의 규칙은 바꾸지 않고, 이 파일의 클래스(mn-*, art-hit)만 쓴다. 색·간격·글자는 atelier.css의 토큰 */
+
+/* 개념 노트 머리의 추가 단추 */
+.mn-add { text-decoration: none; }
+.mn-add.on { color: var(--cobalt); border-color: var(--cobalt); }
+
+/* 화면 배치: 왼쪽 노트 목록, 오른쪽 종이 한 장 */
+.mn-layout { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: var(--s7); align-items: start; padding-bottom: var(--s8); }
+.mn-side { display: grid; gap: var(--s4); position: sticky; top: 96px; }
+.mn-q { font: 400 var(--fs-sub)/1.4 var(--sans); padding: var(--s3) var(--s4); border: 1px solid var(--stone-deep); border-radius: 2px; background: var(--sheet); color: var(--ink); }
+.mn-q:focus { outline: none; border-color: var(--cobalt); box-shadow: 0 0 0 3px rgba(168, 184, 232, .45); }
+.mn-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--stone); max-height: 60vh; overflow-y: auto; }
+.mn-list a { display: grid; gap: 2px; padding: var(--s3) var(--s3) var(--s3) var(--s4); border-bottom: 1px solid var(--stone); border-left: 2px solid transparent; text-decoration: none; color: inherit; transition: background-color .15s var(--ease); }
+.mn-list a:hover { background: var(--paper-deep); }
+.mn-list a[aria-current="true"] { border-left-color: var(--cobalt); background: var(--sheet); }
+.mn-list b { font: 600 var(--fs-card)/1.4 var(--sans); }
+.mn-snip { font: 400 var(--fs-sub)/1.5 var(--sans); color: var(--ink-2); }
+.mn-export { justify-self: start; }
+
+.mn-sheet { padding: var(--s7) var(--s7) var(--s6); display: grid; gap: var(--s5); position: relative; }
+.mn-sheet::before { content: ""; position: absolute; inset: 0; background-image: var(--grain-a); opacity: .12; mix-blend-mode: multiply; pointer-events: none; }
+.mn-head { display: grid; gap: var(--s2); }
+.mn-head .kicker::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 8px; background: var(--cobalt); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); }
+.mn-title { font: 700 var(--fs-concept)/1.25 var(--sans); margin: 0; letter-spacing: -.01em; }
+/* 줄 노트: 줄 간격과 같은 간격의 옅은 선 */
+.mn-text { position: relative; width: 100%; box-sizing: border-box; min-height: 360px; resize: vertical; padding: 0 var(--s1); border: 0; outline: none; background: transparent; color: var(--ink);
+  font: 400 var(--fs-body)/32px var(--sans); background-image: linear-gradient(transparent 31px, var(--stone) 31px); background-size: 100% 32px; background-attachment: local; }
+.mn-text::placeholder { color: var(--ink-3); }
+.mn-sheet:focus-within { box-shadow: var(--shadow-layered), 0 0 0 3px rgba(168, 184, 232, .45); }
+.mn-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); border-top: 1px solid var(--stone); padding-top: var(--s4); }
+
+@media (max-width: 900px) {
+  .mn-layout { grid-template-columns: minmax(0, 1fr); gap: var(--s5); }
+  .mn-side { position: static; }
+  .mn-list { max-height: 240px; }
+  .mn-sheet { padding: var(--s5) var(--s4); }
+  .mn-text { min-height: 280px; }
+}
+
+/* 마스코트: 마우스를 올리면 고개를 들고 별이 반짝, 누르면 바로 가기 말풍선 */
+.desk-art .art-hit { position: absolute; inset: 0; z-index: 2; border: 0; padding: 0; margin: 0; background: transparent; cursor: pointer; border-radius: inherit; }
+.desk-art .art-hit:focus-visible { outline: 2px solid var(--cobalt); outline-offset: -4px; }
+.desk-art .mascot.art { transition: transform .5s var(--ease); }
+.desk-art:hover .mascot.art, .desk-art:has(.art-hit:focus-visible) .mascot.art, .desk-art:has(.art-hit[aria-expanded="true"]) .mascot.art { transform: translateX(-50%) translateY(-4%) rotate(-3deg); }
+.desk-art:hover .arch-sky .spark, .desk-art:has(.art-hit[aria-expanded="true"]) .arch-sky .spark { animation: mnTwinkle 1.4s var(--ease) infinite; transform-box: fill-box; transform-origin: center; }
+.desk-art:hover .arch-sky .spark:nth-of-type(2) { animation-delay: .3s; }
+.desk-art:hover .arch-sky .spark:nth-of-type(3) { animation-delay: .6s; }
+@keyframes mnTwinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(1.5); } }
+:root[data-motion="reduced"] .desk-art .mascot.art, :root[data-motion="reduced"] .desk-art .arch-sky .spark { transition: none; animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .desk-art .mascot.art, .desk-art .arch-sky .spark { transition: none; animation: none !important; } }
+
+.mn-bubble { position: absolute; z-index: 30; width: 248px; padding: var(--s4); background: var(--sheet); color: var(--ink); border: 1px solid var(--stone); border-radius: 14px; box-shadow: 0 12px 32px rgba(23, 28, 50, .16); animation: mnPop .22s var(--ease) both; }
+.mn-bubble::after { content: ""; position: absolute; left: calc(50% - 8px); bottom: -8px; width: 14px; height: 14px; background: var(--sheet); border-right: 1px solid var(--stone); border-bottom: 1px solid var(--stone); transform: rotate(45deg); }
+.mn-bubble.below::after { bottom: auto; top: -8px; transform: rotate(225deg); }
+.mn-hi { margin: 0 0 var(--s2); font: 600 var(--fs-sub)/1.4 var(--brand); color: var(--cobalt); letter-spacing: .02em; }
+.mn-bubble ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.mn-bubble a { display: grid; gap: 1px; padding: var(--s2) var(--s3); min-height: 44px; box-sizing: border-box; border-radius: 8px; text-decoration: none; color: inherit; }
+.mn-bubble a:hover, .mn-bubble a:focus-visible { background: var(--cobalt-tint); outline: none; }
+.mn-bubble b { font: 600 var(--fs-sub)/1.4 var(--sans); }
+.mn-bubble span { font: 400 var(--fs-meta)/1.4 var(--sans); color: var(--ink-3); }
+@keyframes mnPop { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; transform: none; } }
+:root[data-motion="reduced"] .mn-bubble { animation: none; }
+@media (prefers-reduced-motion: reduce) { .mn-bubble { animation: none; } }

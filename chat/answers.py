@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 
 KST = timezone(timedelta(hours=9))
 STATUS = {"known": "이해함", "review": "다시 보기", "new": "아직 표시 안 함"}
-EXAMPLES = ["어떻게 학습하면 좋아?", "분야별로 개념노트 나눠줘", "내가 저번에 공부했던 게 뭐였지?", "트랜스포머 내가 했던가?"]
+EXAMPLES = ["어떻게 학습하면 좋을까요?", "분야별로 개념 노트를 나눠 주세요", "제가 저번에 공부했던 게 뭐였죠?", "트랜스포머, 제가 공부했었나요?"]   # 11-13: 존댓말 (사용자 결정)
 
 
 def ro(word):

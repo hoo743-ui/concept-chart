@@ -4,20 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>개념 차트</title>
-<link rel="stylesheet" href="style.css">
+<!-- 11-13 사용자 결정: 서버 첫 화면은 Atelier(atelier.html). 주소 뒤의 ?…·#/…는 그대로 넘긴다 (묻기 답의 노트 링크 /#/c/{id}도 Atelier 노트로).
+     예전 화면은 classic.html (답변 붙여넣기는 아직 거기에 있다). -->
+<meta http-equiv="refresh" content="0; url=atelier.html">
+<script>location.replace('atelier.html' + location.search + location.hash);</script>
 </head>
-<body>
-<header>
-  <a class="brand" href="#/">개념 차트</a>
-  <nav aria-label="주요 화면">
-    <a href="#/" data-tab="today">오늘 공부</a>
-    <a href="#/answers" data-tab="answers">답변 읽기</a>
-    <a href="#/all" data-tab="all">전체 개념</a>
-  </nav>
-</header>
-<main id="view" tabindex="-1"><p class="muted">불러오는 중…</p></main>
-<footer id="status" class="muted" aria-live="polite"></footer>
-<script src="api.js"></script>
-<script src="app.js"></script>
-</body>
+<body><p><a href="atelier.html">개념 차트 열기</a></p></body>
 </html>

@@ -93,6 +93,15 @@ def main():
         con.execute("DELETE FROM notes")
         con.commit()
 
+        # (11-13) '함께 나온 개념' 표: 날짜가 넘어가면 개념마다 상위 K개만 남긴다
+        ok("날짜가 넘어가며 정리 날짜를 적음", serve.meta_get(con, "cooc_day") == "2026-11-08", str(serve.meta_get(con, "cooc_day")))
+        kc = serve.open_db(tmp / "k.sqlite")
+        kc.executemany("INSERT INTO cooc VALUES (?,?,?)", [("a", "x", 3), ("a", "y", 1), ("a", "z", 3), ("a", "w", 2), ("b", "x", 1)])
+        serve.compact_cooc(kc, 2)
+        got = kc.execute("SELECT a, b FROM cooc ORDER BY a, b").fetchall()
+        ok("짝 정리: 개념마다 n 큰 순(같으면 이름순) K개", got == [("a", "x"), ("a", "z"), ("b", "x")], str(got))
+        kc.close()
+
         # 개념이 아닌 조각 빼기 (순위판에 cu·GB·https가 올라오던 문제)
         def terms(s):
             return {k for _, cs in serve.extract(s) for k in cs}

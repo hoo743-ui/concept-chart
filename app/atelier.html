@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>개념 차트</title>
+<!-- 개념 차트 첫 화면 (11-13 사용자 결정: 서버 주소 / → 이 파일). 디자인 기준은 Figma 'Cognitive Atelier' 페이지. 예전 화면은 classic.html. -->
+<link rel="stylesheet" href="fonts/pretendard/pretendard.css">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="atelier.css">
+<link rel="stylesheet" href="atelier-notes.css">
+</head>
+<body data-screen="today">
+<div class="atmos" aria-hidden="true"><div class="light"></div><div class="light two"></div></div>
+<header class="topbar">
+  <a class="brand" href="#/" aria-label="THYNK 오늘 공부로"><span class="brand-name">THYNK<i class="brand-dot" aria-hidden="true">.</i></span><span class="brand-sub">생각을 모으고, 지식을 키우다</span></a>
+  <nav class="nav" aria-label="주요 화면">
+    <a href="#/" data-tab="today"><span class="no">01</span><span class="lb">오늘 공부</span></a>
+    <a href="#/answers" data-tab="answers"><span class="no">02</span><span class="lb">답변 기록</span></a>
+    <a href="#/all" data-tab="all"><span class="no">03</span><span class="lb">전체 개념</span></a>
+    <a href="#/hidden" data-tab="hidden"><span class="no">04</span><span class="lb">숨긴 개념</span></a>
+    <a href="#/chat" data-tab="chat"><span class="no">05</span><span class="lb">기록에 묻기</span></a>
+    <a href="#/notes" data-tab="notes"><span class="no">06</span><span class="lb">나만의 노트</span></a>
+  </nav>
+  <p class="health" id="health"></p>
+</header>
+<main id="view" tabindex="-1"><p class="loading">불러오는 중…</p></main>
+<footer class="foot">
+  <p id="status"></p>
+  <button type="button" class="btn quiet" id="motion" aria-pressed="false">애니메이션 줄이기</button>
+</footer>
+<script src="api.js"></script>
+<script src="atelier-render.js"></script>
+<script src="atelier-chat.js"></script>
+<script src="atelier-notes.js"></script>
+<script src="atelier.js"></script>
+</body>
+</html>

@@ -41,7 +41,7 @@
 
 | 경로 | 본문 | 돌려주는 것 |
 |---|---|---|
-| `/api/ingest` | `{text, source?}` | `{added}` AI 답변 추가. 키는 가려서 저장, 같은 글은 `false` |
+| `/api/ingest` | `{text, source?, session?, question?}` | `{added}` AI 답변 추가. 키는 가려서 저장, 같은 글은 `false`. `question`은 답변 앞의 내 질문(분석 안 함), `session`은 대화 묶음 (11-13 브라우저 확장용). 다른 사이트는 막고, 확장은 `extension/`의 고정 ID 하나만 이 경로에 허락 |
 | `/api/study/concept/{id}/progress` | `{status: new\|review\|known}` | `{ok}` |
 | `/api/study/concept/{id}/feedback` | `{verdict: concept\|not_concept\|clear}` | `{ok}` 사용자 판단은 규칙과 LLM보다 앞선다 |
 | `/api/answers/{id}/summary` | `{}` | `{queued, reason?}` 요약 예약 |
@@ -50,7 +50,9 @@
 
 ## 이 API를 쓰는 다른 앱: 내 공부 기록에 묻기 (`chat/`)
 
-`chat/chat_server.py`(`http://localhost:8766`)는 따로 도는 앱이다. 이 문서의 읽기 API 중 `/api/study/today`·`/api/study/concepts`·`/api/study/history`만 쓰고, 개념 차트에 아무것도 기록하지 않는다 (개념 노트 API를 부르지 않아 열어 본 기록도 남기지 않는다). DB를 열지 않고, `kit/`에서는 `llm.py`만 쓴다. LLM은 질문 종류만 고르고, 답은 기록 값으로만 만든다. `tests/test_chat.py`가 강제한다.
+`chat/chat_server.py`(`http://127.0.0.1:8766`)는 따로 도는 앱이다. 이 문서의 읽기 API 중 `/api/study/today`·`/api/study/concepts`·`/api/study/history`만 쓰고, 개념 차트에 아무것도 기록하지 않는다 (개념 노트 API를 부르지 않아 열어 본 기록도 남기지 않는다). DB를 열지 않고, `kit/`에서는 `llm.py`만 쓴다. LLM은 질문 종류만 고르고, 답은 기록 값으로만 만든다. `tests/test_chat.py`가 강제한다.
+
+화면(11-13 한 웹으로 합침): 묻기 화면은 개념 차트 웹 `app/atelier.html`의 '기록에 묻기'(`#/chat`, `app/atelier-chat.js`)에 있고, 묻기 서버는 API만 낸다: `GET /api/health` → `{llm, app, examples}`, `POST /api/ask {text}` → `{intent, text[], links[{label, href}], how}`. 화면이 다른 포트(8765)에서 부르므로 이 PC 주소(`localhost`·`127.0.0.1`)에서 온 요청에만 CORS를 연다. 묻기 서버 주소(`/`)로 열면 `{개념 차트}/atelier.html#/chat`으로 넘긴다. 묻기 서버가 꺼져 있어도 다른 메뉴는 그대로 된다.
 
 ## 모델을 바꾸는 방법
 

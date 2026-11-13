@@ -94,10 +94,11 @@ class FakeLLM:
 
 def check_intents():
     for text, want in [("어떻게 학습하면 좋아?", "plan"), ("분야별로 개념노트 나눠줘", "by_field"), ("내가 저번에 공부했던게 무엇이였지?", "recent"),
-                       ("트랜스포머 내가 했던가?", "check"), ("오늘 날씨 어때", "other")]:
+                       ("트랜스포머 내가 했던가?", "check"), ("오늘 날씨 어때", "other")] + [(e, k) for e, k in zip(answers.EXAMPLES, ["plan", "by_field", "recent", "check"])]:   # 화면 예시(존댓말)도
         got, how = intents.classify(text, None)
         ok(f"LLM 없이 낱말 규칙: {text} → {want}", got["intent"] == want and how == "rules", str(got))
     ok("규칙: 했던가에서 개념 이름 뽑기", intents.by_rules("트랜스포머 내가 했던가?")["concept"] == "트랜스포머")
+    ok("규칙: 존댓말 '공부했었나요'에서 개념 이름 뽑기", intents.by_rules("트랜스포머, 제가 공부했었나요?")["concept"] == "트랜스포머" and intents.by_rules("Docker 제가 공부했었나요?")["concept"] == "Docker")
     got, how = intents.classify("이거 내가 했던가? 커밋", FakeLLM({"intent": "check", "concept": "리베이스", "period": "all"}))
     ok("LLM이 글에 없는 이름을 내면 버림", how == "llm" and got["concept"] != "리베이스", str(got))
     got, _ = intents.classify("어제 공부한 거", FakeLLM({"intent": "recent", "concept": "", "period": "어제"}))
@@ -128,8 +129,9 @@ def check_boundary():
     ok("chat/이 쓰는 API는 모두 docs/API.md에 있음", all(f"`{p}" in doc for p in chat_server.Api.PATHS), str(chat_server.Api.PATHS))
     kit = "".join(p.read_text(encoding="utf-8") for p in (ROOT / "kit").glob("*.py"))
     ok("kit/는 chat/을 모름", not re.search(r"chat_server|import intents|import answers|chat/", kit))
-    js = (ROOT / "chat" / "chat.js").read_text(encoding="utf-8")
+    js = (ROOT / "app" / "atelier-chat.js").read_text(encoding="utf-8")   # 11-13: 화면은 개념 차트 웹 안으로 합침
     ok("챗봇 화면은 글을 HTML로 넣지 않음", "innerHTML" not in js)
+    ok("chat/에는 화면 파일이 남지 않음 (화면은 한 벌만)", not any((ROOT / "chat" / n).exists() for n in ("index.html", "chat.js")))
 
 
 def free_port():
@@ -185,6 +187,22 @@ def check_servers(tmp):
             ok("챗봇: 다른 사이트의 요청 막음", False)
         except urllib.error.HTTPError as e:
             ok("챗봇: 다른 사이트의 요청 막음", e.code == 403)
+        pre = urllib.request.Request(f"http://127.0.0.1:{p2}/api/ask", method="OPTIONS", headers={"Origin": f"http://127.0.0.1:{p1}", "Access-Control-Request-Method": "POST"})
+        with urllib.request.urlopen(pre, timeout=5) as r:
+            ok("챗봇: 개념 차트 화면(다른 포트)의 사전 확인 허용", r.status == 204 and r.headers.get("Access-Control-Allow-Origin") == f"http://127.0.0.1:{p1}")
+        try:
+            urllib.request.urlopen(urllib.request.Request(f"http://127.0.0.1:{p2}/api/ask", method="OPTIONS", headers={"Origin": "http://evil.example"}), timeout=5)
+            ok("챗봇: 다른 사이트의 사전 확인 막음", False)
+        except urllib.error.HTTPError as e:
+            ok("챗봇: 다른 사이트의 사전 확인 막음", e.code == 403 and not e.headers.get("Access-Control-Allow-Origin"))
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, *a, **k):
+                return None
+        try:
+            urllib.request.build_opener(NoRedirect).open(f"http://127.0.0.1:{p2}/", timeout=5)
+            ok("챗봇 주소는 개념 차트 화면의 '기록에 묻기'로 넘김", False)
+        except urllib.error.HTTPError as e:
+            ok("챗봇 주소는 개념 차트 화면의 '기록에 묻기'로 넘김", e.code == 302 and e.headers["Location"].endswith("/atelier.html?chat=http%3A%2F%2F127.0.0.1%3A" + str(p2) + "#/chat"), e.headers.get("Location"))
         chat.kill()
         chat.wait()
         ok("챗봇이 꺼져도 개념 차트는 그대로", get(p1, "/api/study/today")["counts"]["shown"] >= 1)

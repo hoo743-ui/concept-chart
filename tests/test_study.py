@@ -442,6 +442,10 @@ def check_server(tmp):
         ok("다른 사이트의 기록 요청 차단", status == 403)
         status, _ = post("/api/ingest", {"text": "x"}, {"Content-Type": "text/plain"})
         ok("JSON이 아닌 기록 요청 차단", status == 415)
+        status, _ = post("/api/ingest", {"text": "x"}, {"Content-Type": "application/json", "Origin": "chrome-extension://aaaabbbbccccddddeeeeffffgggghhhh"})
+        ok("(확장) 다른 확장의 기록 요청 차단", status == 403)
+        status, _ = post(f"/api/study/concept/{urllib.parse.quote(cid)}/progress", {"status": "known"}, {"Content-Type": "application/json", "Origin": "chrome-extension://idefgkkfmkgofakkaapjnafeleebnfla"})
+        ok("(확장) THYNK 확장도 답변 추가 말고는 못 씀", status == 403)
         status, r = post("/api/ingest", {"text": "컨테이너는 격리된 실행 환경이다."})
         ok("붙여넣기 API", status == 200 and r["added"] is True)
         for _ in range(60):
@@ -452,6 +456,16 @@ def check_server(tmp):
         ok("답변 목록에 붙여넣은 글이 나타남", len(a) == 2 and a[0]["source"] == "paste", str(len(a)))
         full = get("/api/answers/" + a[-1]["id"])
         ok("답변 원문·내 질문·개념 표시", full["question"] == "도커가 뭐야?" and "Docker" in full["text"] and any(t["label"] == "Docker" for t in full["terms"]) and not any(t["label"] == "설치" for t in full["terms"]))
+        status, r = post("/api/ingest", {"text": "쿠버네티스는 컨테이너를 관리한다.", "source": "claude-web", "session": "claude-web:abc", "question": "쿠버네티스가 뭐야?"},
+                         {"Content-Type": "application/json", "Origin": "chrome-extension://idefgkkfmkgofakkaapjnafeleebnfla"})
+        ok("(확장) THYNK 확장의 답변 + 질문 추가", status == 200 and r["added"] is True)
+        for _ in range(60):
+            a = get("/api/answers?k=5")["items"]
+            if a and a[0]["source"] == "claude-web":
+                break
+            time.sleep(0.25)
+        full = get("/api/answers/" + a[0]["id"])
+        ok("(확장) 대화 하나에 질문과 답변이 이어짐", a[0]["source"] == "claude-web" and full["question"] == "쿠버네티스가 뭐야?", str(full.get("question")))
         with urllib.request.urlopen(base + "/", timeout=5) as r:
             ok("화면 파일을 서버가 그대로 내줌", "개념 차트" in r.read().decode("utf-8"))
         req = urllib.request.Request(base + "/api/study/today", headers={"Host": "evil.example"})

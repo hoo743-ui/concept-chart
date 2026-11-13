@@ -5,7 +5,7 @@ const { JSDOM } = require('jsdom');
 
 const APP = path.join(__dirname, '..', 'app');
 const demo = JSON.parse(fs.readFileSync(path.join(APP, 'demo.json'), 'utf8'));
-const html = fs.readFileSync(path.join(APP, 'index.html'), 'utf8').replace(/<script[^>]*><\/script>/g, '').replace(/<link[^>]*>/g, '');
+const html = fs.readFileSync(path.join(APP, 'classic.html'), 'utf8').replace(/<script[^>]*><\/script>/g, '').replace(/<link[^>]*>/g, '');
 let fails = 0;
 const ok = (name, cond, info = '') => { console.log((cond ? '[OK]   ' : '[FAIL] ') + name + (info ? ' — ' + info : '')); if (!cond) fails += 1; };
 const wait = () => new Promise((r) => setTimeout(r, 30));

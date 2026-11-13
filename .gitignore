@@ -17,6 +17,11 @@ concept-inbox.jsonl
 *.bak-*
 kit/searxng/.env
 
+# 브라우저 화면 점검(Playwright) 결과 — 캡처·보고서는 다시 만들 수 있다
+tests/e2e/.results/
+tests/e2e/.report/
+tests/e2e/screenshots/
+
 # 에디터·OS
 .vscode/
 .idea/
@@ -44,3 +49,10 @@ experiments/2026-11-09-concept-gate/*.json
 experiments/2026-11-10-general-gate/rounds.json
 experiments/2026-11-10-general-gate/dashboard.html
 experiments/2026-11-09-b-finetune/*.log
+
+# 시안 글꼴 조각(253개, 약 10MB) — 배포 방식은 사용자 결정 전, 이 PC에서만
+app/fonts/
+# 설치 파일 만들기 결과물 (installer/build.py)
+installer/build/
+installer/out/
+installer/cache/

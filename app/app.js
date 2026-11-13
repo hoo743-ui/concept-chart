@@ -99,16 +99,22 @@ async function pageConcept(id) {
   }
   if (c.related && c.related.length) body.push(h('h2', {}, '함께 나온 개념'), h('div', { class: 'chips' }, c.related.map((r) => h('a', { href: cHash(r.id) }, r.label))));
 
-  const mark = async (status) => { await API.setProgress(c.concept, status); location.hash = '#/'; };
+  const fail = h('p', { class: 'muted', role: 'status' });    // 저장에 실패하면 화면에 남아 알린다
+  const mark = async (status) => {
+    try { await API.setProgress(c.concept, status); location.hash = '#/'; } catch (e) { fail.textContent = '저장하지 못했어요: ' + e.message; }
+  };
   body.push(h('div', { class: 'actions' }, h('button', { class: 'primary', onclick: () => mark('known') }, '이해했어요'), h('button', { onclick: () => mark('review') }, '다시 볼게요')));
-  body.push(feedbackRow(c));
+  body.push(feedbackRow(c, fail), fail);
   return body;
 }
 
 // 지속 검증: 사용자 판단은 관문보다 앞서고, 관문을 다시 재는 정답이 된다 (python dev.py verify)
-function feedbackRow(c) {
+function feedbackRow(c, fail) {
   const mine = c.gate && c.gate.by === 'user' ? (c.gate.show ? '공부할 개념' : '공부할 개념 아님') : null;
-  const send = async (verdict) => { await API.setFeedback(c.concept, verdict); if (verdict === 'not_concept') location.hash = '#/'; else render(); };
+  const send = async (verdict) => {
+    try { await API.setFeedback(c.concept, verdict); } catch (e) { fail.textContent = '저장하지 못했어요: ' + e.message; return; }
+    if (verdict === 'not_concept') location.hash = '#/'; else render();
+  };
   return h('div', { class: 'feedback', style: 'margin-top:12px' },
     mine
       ? h('p', { class: 'muted' }, `내 판단: ${mine}. `, h('button', { class: 'link', onclick: () => send('clear') }, '판단 지우기'))
@@ -231,7 +237,7 @@ async function pageAll(hidden) {
   const list = h('ul', { class: 'list' });
   const draw = (q) => {
     list.replaceChildren(...d.items.filter((x) => x.label.toLowerCase().includes(q.toLowerCase())).map((x) => (hidden
-      ? h('li', { class: 'box' }, h('b', {}, x.label), x.gate && x.gate.candidate ? h('span', { class: 'tag' }, '후보') : null, ' ', h('button', { class: 'link', onclick: async () => { await API.setFeedback(x.id, 'concept'); render(); } }, '공부할 개념이에요'))
+      ? h('li', { class: 'box' }, h('b', {}, x.label), x.gate && x.gate.candidate ? h('span', { class: 'tag' }, '후보') : null, ' ', h('button', { class: 'link', onclick: async (e) => { try { await API.setFeedback(x.id, 'concept'); render(); } catch (err) { e.target.after(h('span', { class: 'muted', role: 'status' }, ' 저장하지 못했어요: ' + err.message)); } } }, '공부할 개념이에요'))
       : conceptItem(x))));
   };
   draw('');

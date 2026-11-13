@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "THYNK 공부 기록",
+  "version": "0.1.0",
+  "description": "claude.ai에서 받은 AI 답변을 이 PC의 THYNK(개념 차트)로만 보냅니다. 바깥 서버로는 보내지 않습니다.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnPeQCR/vEFifJV16uXDGE/jETlOWEGqf4p/FmLoDa2qGpfSLM7MMNHuZKdXEd0ZYOUJidgP6uS0THUDmey5+1wTpMpWDCK8HWUY02YL4jEohaA6jHTsH2KzUNlhWKXco0kSzml1vCU8opcBUSFO0IL0WHzkkkyP0gZLu/82pgvLr1gsWKec/o4K6eXIdcZu5vRQddqJQyaEEjkJWTo5Qk/zUGwod6uYs8PxuqE3BskfABcOh0KmU0YTsahJQoRLDAvyDmCDt4TdtDEFoCCgE4HkChL7F71OzV/FaxmZZv/DJQhACzCalsVOyLQC4XVzei8f/xVuEaBuC/lO2MWCeKwIDAQAB",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8765/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "THYNK 공부 기록",
+    "default_icon": {
+      "128": "icon.png"
+    }
+  },
+  "icons": {
+    "128": "icon.png"
+  }
+}

@@ -9,6 +9,8 @@
   개념 노트 API도 부르지 않는다: 부르면 '열어 본 기록'이 생기고 노트 작성이 예약된다.
 - kit/에서는 LLM 연결부(llm.py)만 쓴다. kit/는 이 폴더를 모른다. 이 앱이 꺼지거나 죽어도 개념 차트는 그대로다.
 - LLM은 질문 종류만 고른다 (intents.py). 답은 기록 값으로만 만든다 (answers.py).
+- 화면은 개념 차트 웹(app/atelier.html의 '기록에 묻기', 11-13 한 웹으로 합침)에 있다. 이 서버는 API만 내고,
+  주소(/)로 열면 그 화면으로 넘긴다. 화면이 다른 포트(8765)에서 부르므로 이 PC 주소에서 온 요청에만 CORS를 연다.
 """
 import argparse
 import json
@@ -26,7 +28,6 @@ import answers  # noqa: E402
 import intents  # noqa: E402
 import llm  # noqa: E402
 
-FILES = {"/": ("index.html", "text/html; charset=utf-8"), "/chat.js": ("chat.js", "text/javascript; charset=utf-8")}
 MAX_POST = 8 * 1024
 LOCAL = {"localhost", "127.0.0.1"}
 
@@ -74,9 +75,20 @@ def make_handler(api, client, app_url):
             host = (self.headers.get("Host") or "").rsplit(":", 1)[0].strip("[]")
             return host in LOCAL
 
+        def local_origin(self):
+            origin = self.headers.get("Origin")
+            return origin if origin and urllib.parse.urlparse(origin).hostname in LOCAL else None
+
+        def cors(self):
+            origin = self.local_origin()
+            if origin:
+                self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+
         def send(self, code, body, ctype="application/json; charset=utf-8"):
             data = body if isinstance(body, bytes) else json.dumps(body, ensure_ascii=False).encode("utf-8")
             self.send_response(code)
+            self.cors()
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(data)))
             self.send_header("X-Content-Type-Options", "nosniff")
@@ -87,12 +99,29 @@ def make_handler(api, client, app_url):
             if not self.local():
                 return self.send(403, {"error": "이 PC에서만 열 수 있어요"})
             path = urllib.parse.urlparse(self.path).path
-            if path in FILES:
-                name, ctype = FILES[path]
-                return self.send(200, (HERE / name).read_bytes(), ctype)
+            if path in ("/", "/index.html"):        # 화면은 개념 차트 웹 안에 있다
+                port = self.server.server_address[1]
+                q = "" if port == 8766 else "?" + urllib.parse.urlencode({"chat": f"http://127.0.0.1:{port}"})
+                self.send_response(302)
+                self.send_header("Location", f"{app_url}/atelier.html{q}#/chat")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return None
             if path == "/api/health":
                 return self.send(200, {"llm": {"name": client.name, "available": client.available()}, "app": app_url, "examples": answers.EXAMPLES})
             return self.send(404, {"error": "없는 경로"})
+
+        def do_OPTIONS(self):                       # 브라우저의 사전 확인(POST application/json): 이 PC 주소에서만
+            if not self.local() or not self.local_origin():
+                return self.send(403, {"error": "이 PC에서만 쓸 수 있어요"})
+            self.send_response(204)
+            self.cors()
+            self.send_header("Access-Control-Allow-Methods", "GET, POST")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Max-Age", "600")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
 
         def do_POST(self):
             origin = self.headers.get("Origin")

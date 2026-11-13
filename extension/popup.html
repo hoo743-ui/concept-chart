@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<header><img src="icon.png" alt="" width="40" height="40"><div><b class="brand">THYNK<i>.</i></b><span>공부 기록</span></div></header>
+<button id="toggle" class="rec" type="button" aria-pressed="true"><span class="dot" aria-hidden="true"></span><span id="toggle-t">기록 중</span></button>
+<p class="sub">claude.ai에서 새로 받은 답변을 이 PC의 THYNK로만 보내요.</p>
+<dl>
+  <div><dt>THYNK 연결</dt><dd id="conn">확인 중…</dd></div>
+  <div><dt>오늘 보낸 답변</dt><dd id="added">0개</dd></div>
+  <div><dt>이미 있던 답변</dt><dd id="dup">0개</dd></div>
+  <div><dt>보내기 대기</dt><dd id="queue">0개</dd></div>
+</dl>
+<p id="err" class="err" hidden></p>
+<section>
+  <h2>이 탭 진단</h2>
+  <p id="diag" class="mono">claude.ai 탭에서 열면 보여요.</p>
+  <button id="all" class="btn" type="button" disabled>이 대화 답변 전부 보내기</button>
+</section>
+<a class="open" href="http://127.0.0.1:8765/atelier.html" target="_blank">THYNK 열기 →</a>
+<script src="popup.js"></script>
+</body>
+</html>

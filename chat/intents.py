@@ -31,8 +31,8 @@ def by_rules(text):
     if re.search(r"분야", t):
         return {"intent": "by_field", "concept": "", "period": "all"}
     if re.search(r"(했던가|했나|봤나|봤던가|본\s*적|공부했어\?|했었나)", t):
-        name = re.split(r"\s*(내가|나|이거|을|를|은|는)?\s*(했던가|했나|봤나|봤던가|본\s*적|공부했어|했었나)", t)[0]
-        name = re.sub(r"^(이거|그거|혹시)\s*", "", name).strip(" ?'\"“”")
+        name = re.split(r"\s*,?\s*(제가|내가|나|이거|을|를|은|는)?\s*(공부)?\s*(했던가|했나|봤나|봤던가|본\s*적|공부했어|했었나)", t)[0]
+        name = re.sub(r"^(이거|그거|혹시)\s*", "", name).strip(" ?,'\"“”")
         return {"intent": "check", "concept": name, "period": "all"}
     if re.search(r"(저번|지난번|최근|어제|오늘|이번\s*주|지난\s*주).*(공부|봤|본|했)", t):
         return {"intent": "recent", "concept": "", "period": period}

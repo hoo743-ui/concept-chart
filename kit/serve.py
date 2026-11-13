@@ -66,8 +66,11 @@ QUESTION_MAX = 200             # 카드에 보여 줄 질문 길이 (글자). �
 WORKER_IDLE = 600              # 새 답변이 이만큼(초) 없으면 분석 프로세스를 끝내 메모리를 돌려준다
 WORKER_BACKOFF = 30            # 분석 프로세스가 실패하면 다시 시도하기까지 (초)
 LB_TTL = 60                    # 새 기록이 없어도 순위를 다시 계산하는 주기 (초, 경과일 반영)
+COOC_KEEP = 150                # (11-13 사용자 결정) '함께 나온 개념' 표는 하루 한 번 개념마다 많이 나온 짝 150개만 남긴다. 실험: experiments/2026-11-13-cooc-slim
 HEAD_BYTES = 256               # 인박스가 다른 파일로 바뀌었는지 볼 앞부분 길이
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
+# (11-13 실험) 브라우저 확장 THYNK(extension/, manifest의 key로 고정한 ID)만 답변 추가(/api/ingest)를 쓸 수 있다. 다른 확장·사이트는 그대로 막는다
+EXTENSION_IDS = {"idefgkkfmkgofakkaapjnafeleebnfla"}
 MODEL_LOAD_TIMEOUT = 300       # 모델 불러오기 제한 (초). 넘으면 규칙으로 계속
 MODEL_CALL_TIMEOUT = 5         # 표기 하나 판단 제한 (초). 넘으면 규칙으로 계속
 
@@ -438,6 +441,11 @@ def apply_record(con, p):
     con.execute("""INSERT INTO sessions VALUES (?,?,?) ON CONFLICT(id) DO UPDATE
                    SET last_ts=max(last_ts, excluded.last_ts), project=COALESCE(project, excluded.project)""",
                 (sess, t, norm_project(p["project"])))
+    day, last = ts[:10], meta_get(con, "cooc_day")
+    if last is None or day > last:                        # 날짜가 넘어가면 지난 날까지 쌓인 짝을 정리 (처음이면 날짜만 적는다)
+        if last is not None:
+            compact_cooc(con)
+        meta_set(con, "cooc_day", day)
     for c in seen:
         con.execute("INSERT INTO freq VALUES (?,1) ON CONFLICT(concept) DO UPDATE SET n=n+1", (c,))
         con.execute("INSERT OR IGNORE INTO term_sess VALUES (?,?)", (c, sess))
@@ -445,6 +453,12 @@ def apply_record(con, p):
             if c != d:
                 con.execute("INSERT INTO cooc VALUES (?,?,1) ON CONFLICT(a,b) DO UPDATE SET n=n+1", (c, d))
     return True
+
+
+def compact_cooc(con, k=COOC_KEEP):
+    """개념마다 짝을 n 큰 순(같으면 이름순)으로 k개만 남긴다. 관련 개념(상위 60개 중 6개)·정의 검색어(상위 2개)가 쓰는 앞쪽은 그대로다"""
+    con.execute("""DELETE FROM cooc WHERE rowid IN (SELECT rowid FROM (
+                   SELECT rowid, ROW_NUMBER() OVER (PARTITION BY a ORDER BY n DESC, b) AS r FROM cooc) WHERE r > ?)""", (k,))
 
 
 def head_print(path, n):
@@ -1111,7 +1125,13 @@ def study_post(st, con, path, body):
         text = body.get("text")
         if not isinstance(text, str) or not text.strip():
             raise ValueError("text가 비어 있습니다")
-        return {"added": concept_add.add(text, str(body.get("source") or "paste")[:40], inbox=st.inbox)}    # 서버가 읽는 인박스에 쓴다
+        source = str(body.get("source") or "paste")[:40]
+        session = body.get("session") if isinstance(body.get("session"), str) and body.get("session").strip() else None   # (11-13) 확장: 대화 하나 = 세션 하나
+        session = session[:120] if session else None
+        q = body.get("question")
+        if isinstance(q, str) and q.strip():                # (11-13) 확장: 답변 앞의 내 질문 (분석하지 않고 원문 저장, 질문별 묶음용)
+            concept_add.add(q, source, role="user", session=session, inbox=st.inbox)
+        return {"added": concept_add.add(text, source, session=session, inbox=st.inbox)}    # 서버가 읽는 인박스에 쓴다
     m = re.fullmatch(r"/api/study/concept/([^/]+)/(progress|feedback)", path)
     if m:
         cid = urllib.parse.unquote(m.group(1))
@@ -1232,7 +1252,9 @@ def make_handler(st):
             if not self.host_ok():
                 return self.send(403, {"error": "이 PC 안에서만 접속할 수 있습니다"})
             origin = self.headers.get("Origin")
-            if origin and not st.any_host and (urllib.parse.urlparse(origin).hostname or "") not in LOCAL_HOSTS:
+            ou = urllib.parse.urlparse(origin or "")
+            ext_ok = ou.scheme in ("chrome-extension", "extension") and ou.hostname in EXTENSION_IDS and urllib.parse.urlparse(self.path).path == "/api/ingest"
+            if origin and not st.any_host and (ou.hostname or "") not in LOCAL_HOSTS and not ext_ok:
                 return self.send(403, {"error": "다른 사이트에서는 쓸 수 없습니다"})
             if not (self.headers.get("Content-Type") or "").lower().startswith("application/json"):
                 return self.send(415, {"error": "JSON으로 보내 주세요"})

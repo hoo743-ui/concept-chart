@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>THYNK 설치 안내</title>
+<!-- 설치 안내 (11-13, 사용자 결정: 코드 서명 없이 배포). installer/build.py가 마스코트({{MASCOT}})와 버전({{VERSION}})·파일 이름({{FILE}})을 채워 installer/out/에 둔다.
+     그림은 실제 화면을 찍은 것이 아니라 안내용으로 다시 그린 것이다. 경고 창 문구는 Windows 버전에 따라 조금 다를 수 있다. -->
+<style>
+:root { --ink:#171c32; --ink-2:#41465c; --ink-3:#5c6074; --cobalt:#3949ab; --paper:#f4f0e8; --paper-deep:#ece6da; --sheet:#fbf9f4; --stone:#d8d5cb; --mist:#a8b8e8; --white:#fff; --ok:#2e7d4f;
+  --sans:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif; --brand:"Noto Serif KR","Nanum Myeongjo","AppleMyungjo",serif; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--paper); color:var(--ink); font:400 16px/1.7 var(--sans); word-break:keep-all; overflow-wrap:anywhere; }
+a { color:var(--cobalt); }
+.wrap { max-width:880px; margin:0 auto; padding:48px 16px 80px; }
+header.hero { display:grid; grid-template-columns:auto 1fr; gap:24px; align-items:center; margin-bottom:40px; }
+.arch { width:132px; aspect-ratio:4/5; border-radius:999px 999px 2px 2px; background:linear-gradient(180deg,#4f5797 0%,#7d88c6 40%,#c4cbea 75%,var(--paper) 100%); position:relative; overflow:hidden; }
+.arch img { position:absolute; left:50%; bottom:0; width:92%; transform:translateX(-50%); mix-blend-mode:multiply; }
+.brand { font:700 15px/1 var(--brand); letter-spacing:.14em; margin:0 0 10px; }
+.brand i { color:var(--cobalt); font-style:normal; }
+h1 { font:700 clamp(28px,4vw,38px)/1.25 var(--sans); margin:0 0 8px; letter-spacing:-.01em; }
+.lead { margin:0; color:var(--ink-2); font-size:17px; }
+.tabs { display:flex; gap:4px; border-bottom:1px solid var(--stone); margin-bottom:32px; }
+.tabs button { font:600 16px/1 var(--sans); padding:14px 18px; min-height:48px; background:none; border:0; border-bottom:2px solid transparent; color:var(--ink-2); cursor:pointer; }
+.tabs button[aria-selected="true"] { color:var(--ink); border-bottom-color:var(--cobalt); }
+.tabs button:focus-visible { outline:2px solid var(--cobalt); outline-offset:-2px; }
+.note { background:var(--sheet); border:1px solid var(--stone); border-left:3px solid var(--mist); padding:16px 20px; margin:0 0 32px; color:var(--ink-2); }
+.note b { color:var(--ink); }
+ol.steps { list-style:none; margin:0; padding:0; counter-reset:s; display:grid; gap:40px; }
+ol.steps > li { counter-increment:s; display:grid; grid-template-columns:44px 1fr; gap:16px; }
+ol.steps > li::before { content:counter(s); width:36px; height:36px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font:700 16px/1 var(--sans); }
+h2 { font:700 20px/1.4 var(--sans); margin:4px 0 6px; }
+p { margin:0 0 12px; }
+.small { font-size:14px; color:var(--ink-3); }
+figure { margin:16px 0 0; }
+figcaption { font-size:13px; color:var(--ink-3); margin-top:8px; }
+code { font:13px/1.5 ui-monospace,Consolas,monospace; background:var(--paper-deep); padding:2px 6px; border-radius:3px; }
+
+/* 안내 그림: 실제 화면을 다시 그린 것 */
+.shot { position:relative; border-radius:6px; box-shadow:0 10px 28px rgba(23,28,50,.14); overflow:hidden; max-width:560px; }
+.mark { position:relative; display:inline-block; }
+.mark::after { content:""; position:absolute; inset:-6px -10px; border:3px solid #ffb703; border-radius:8px; box-shadow:0 0 0 4px rgba(255,183,3,.25); }
+.pin { position:absolute; width:28px; height:28px; border-radius:50%; background:#ffb703; color:var(--ink); font:800 15px/28px var(--sans); text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.25); }
+.ss { background:#0b5cad; color:#fff; padding:28px 32px 24px; font-family:"Segoe UI","Malgun Gothic",sans-serif; }
+.ss h3 { font:300 26px/1.25 "Segoe UI Light","Malgun Gothic",sans-serif; margin:0 0 18px; }
+.ss p { font-size:14px; line-height:1.55; margin:0 0 14px; color:#eaf2fb; }
+.ss .more { color:#fff; text-decoration:underline; font-size:14px; }
+.ss .meta { font-size:14px; margin:0 0 4px; }
+.ss .row { display:flex; justify-content:flex-end; gap:10px; margin-top:26px; }
+.ss .b { font-size:14px; padding:7px 22px; border:1px solid #fff; background:transparent; color:#fff; }
+.ss .b.main { background:#fff; color:#0b5cad; }
+.dl { background:#fff; color:#1f1f1f; padding:14px 16px; font:14px/1.5 "Segoe UI","Malgun Gothic",sans-serif; display:grid; gap:10px; }
+.dl .warn { display:flex; gap:10px; align-items:flex-start; }
+.dl .ic { width:20px; height:20px; border-radius:50%; background:#f2c94c; color:#1f1f1f; font-weight:700; display:grid; place-items:center; flex:none; font-size:13px; }
+.dl .acts { display:flex; gap:8px; justify-content:flex-end; }
+.dl .acts span { border:1px solid #c8c8c8; padding:4px 14px; border-radius:4px; }
+.wz { background:#fff; color:#1f1f1f; font:14px/1.5 "Segoe UI","Malgun Gothic",sans-serif; }
+.wz .top { background:#f3f3f3; padding:14px 18px; border-bottom:1px solid #ddd; }
+.wz .top b { display:block; font-size:15px; }
+.wz .body { padding:16px 18px; display:grid; gap:8px; }
+.wz label { display:flex; gap:8px; align-items:flex-start; }
+.wz .box { width:15px; height:15px; border:1px solid #555; flex:none; margin-top:3px; display:grid; place-items:center; font-size:12px; line-height:1; }
+.wz .foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; border-top:1px solid #ddd; background:#f7f7f7; }
+.wz .foot span { border:1px solid #adadad; padding:4px 18px; background:#fdfdfd; }
+.wz .foot span.main { border-color:#0067c0; }
+table.opt { border-collapse:collapse; width:100%; margin-top:14px; font-size:15px; }
+table.opt th, table.opt td { text-align:left; padding:10px 12px; border-top:1px solid var(--stone); vertical-align:top; }
+table.opt th { font-weight:600; width:38%; }
+.tag { display:inline-block; font-size:12px; padding:1px 8px; border-radius:99px; background:var(--paper-deep); color:var(--ink-2); margin-left:6px; }
+.tag.on { background:#dfe6fa; color:var(--cobalt); }
+footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--stone); font-size:14px; color:var(--ink-3); }
+[hidden] { display:none !important; }
+@media (max-width:560px) {
+  header.hero { grid-template-columns:1fr; }
+  .arch { width:104px; }
+  ol.steps > li { grid-template-columns:1fr; gap:8px; }
+  .ss { padding:20px; }
+  .ss h3 { font-size:22px; }
+  table.opt th { width:auto; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="arch" aria-hidden="true"><img src="{{MASCOT}}" alt=""></div>
+    <div>
+      <p class="brand">THYNK<i>.</i></p>
+      <h1>THYNK 설치 안내</h1>
+      <p class="lead">AI와 나눈 공부 대화를 개념 노트로 모아 주는 프로그램이에요. 모든 기록은 내 컴퓨터에만 저장돼요.</p>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="운영체제">
+    <button role="tab" id="t-win" aria-controls="p-win" aria-selected="true" type="button">Windows</button>
+    <button role="tab" id="t-mac" aria-controls="p-mac" aria-selected="false" type="button">Mac</button>
+  </div>
+
+  <section id="p-win" role="tabpanel" aria-labelledby="t-win">
+    <p class="note"><b>경고 창이 떠도 괜찮아요.</b> THYNK는 아직 유료 '코드 서명'을 하지 않은 프로그램이라, Windows가 처음 보는 프로그램이라고 알려 줘요.
+      설치 파일은 Microsoft Defender 검사에서 위협이 발견되지 않았어요. 관리자 권한도 요구하지 않아요.</p>
+
+    <ol class="steps">
+      <li><div>
+        <h2>설치 파일 받기</h2>
+        <p><code>{{FILE}}</code> (약 610MB)을 받아요. 브라우저가 "흔히 다운로드되지 않는 파일"이라고 하면 <b>…(더 보기) → 유지</b>를 눌러요.</p>
+        <figure>
+          <div class="shot" style="max-width:460px">
+            <div class="dl">
+              <div class="warn"><span class="ic">!</span><span><b>{{FILE}}</b>은(는) 일반적으로 다운로드되지 않습니다. 열기 전에 신뢰할 수 있는지 확인하세요.</span></div>
+              <div class="acts"><span>삭제</span><span class="mark">유지</span></div>
+            </div>
+          </div>
+          <figcaption>브라우저 다운로드 목록의 예시 그림이에요. 브라우저마다 문구와 단추 위치가 조금 달라요.</figcaption>
+        </figure>
+      </div></li>
+
+      <li><div>
+        <h2>“Windows의 PC 보호”가 뜨면 <b>추가 정보</b> → <b>실행</b></h2>
+        <p>파란 창이 뜨면 왼쪽 아래 글자 <b>추가 정보</b>를 누르고, 새로 생긴 <b>실행</b> 단추를 눌러요. 게시자에 “알 수 없는 게시자”라고 나오는 게 정상이에요.</p>
+        <figure>
+          <div class="shot">
+            <div class="ss">
+              <h3>Windows의 PC 보호</h3>
+              <p>Microsoft Defender SmartScreen에서 인식할 수 없는 앱의 시작을 차단했습니다. 이 앱을 실행하면 PC가 위험에 노출될 수 있습니다.</p>
+              <span class="mark"><span class="more">추가 정보</span></span>
+              <div class="row"><span class="b main">실행 안 함</span></div>
+            </div>
+            <span class="pin" style="left:118px;top:150px">1</span>
+          </div>
+          <div class="shot" style="margin-top:16px">
+            <div class="ss">
+              <h3>Windows의 PC 보호</h3>
+              <p>Microsoft Defender SmartScreen에서 인식할 수 없는 앱의 시작을 차단했습니다. 이 앱을 실행하면 PC가 위험에 노출될 수 있습니다.</p>
+              <p class="meta">앱: {{FILE}}</p>
+              <p class="meta">게시자: 알 수 없는 게시자</p>
+              <div class="row"><span class="b mark">실행</span><span class="b main">실행 안 함</span></div>
+            </div>
+            <span class="pin" style="right:150px;bottom:14px">2</span>
+          </div>
+          <figcaption>예시 그림이에요. Windows 버전에 따라 문구가 조금 다를 수 있어요. 이 창이 안 뜨면 이 단계는 건너뛰어요.</figcaption>
+        </figure>
+      </div></li>
+
+      <li><div>
+        <h2>설치 마법사에서 고르기</h2>
+        <p>‘다음’을 누르다가 <b>추가 작업 선택</b>에서 필요한 것만 고르면 돼요. 모르면 기본값 그대로 두세요.</p>
+        <figure>
+          <div class="shot" style="max-width:520px">
+            <div class="wz">
+              <div class="top"><b>추가 작업 선택</b>어떤 작업을 추가로 실행하시겠습니까?</div>
+              <div class="body">
+                <label><span class="box">✓</span>바탕화면에 THYNK 아이콘 만들기</label>
+                <label><span class="box"></span>윈도우를 켤 때 THYNK 기록 받기 켜기</label>
+                <label><span class="box"></span>Claude Code 대화 자동 수집 연결</label>
+                <label><span class="box"></span>쉬운 설명 AI 받기 — 약 6GB</label>
+              </div>
+              <div class="foot"><span>&lt; 뒤로</span><span class="main">다음 &gt;</span><span>취소</span></div>
+            </div>
+          </div>
+          <figcaption>THYNK 설치 마법사를 간단히 다시 그린 그림이에요.</figcaption>
+        </figure>
+        <table class="opt">
+          <tr><th>바탕화면 아이콘<span class="tag on">기본 켬</span></th><td>바탕화면에서 THYNK를 열 수 있어요.</td></tr>
+          <tr><th>윈도우를 켤 때 켜기<span class="tag">기본 끔</span></th><td>웹 브라우저(claude.ai)의 답변을 받으려면 켜 두세요. 메모리를 약 50MB 써요. 끄면 THYNK 창을 연 동안만 받아요.</td></tr>
+          <tr><th>Claude Code 연결<span class="tag">기본 끔</span></th><td>Claude Code를 쓰는 경우에만 고르세요. 대화가 저절로 모여요.</td></tr>
+          <tr><th>쉬운 설명 AI<span class="tag">기본 끔</span></th><td>개념을 더 쉽게 풀어 주는 AI를 내 PC에 받아요(약 6GB, 시간이 걸려요). 없어도 출처가 붙은 설명은 그대로 나와요. 나중에 받아도 돼요.</td></tr>
+        </table>
+      </div></li>
+
+      <li><div>
+        <h2>THYNK 열기</h2>
+        <p>설치가 끝나면 <b>THYNK 열기</b>에 체크된 채로 ‘마침’을 눌러요. 다음부터는 시작 메뉴나 바탕화면의 THYNK 아이콘을 눌러요.</p>
+        <p class="small">창을 닫으면 THYNK도 꺼져서 메모리를 쓰지 않아요 (‘윈도우를 켤 때 켜기’를 고른 경우만 가볍게 켜져 있어요).</p>
+      </div></li>
+
+      <li><div>
+        <h2>지우기</h2>
+        <p><b>설정 → 앱 → 설치된 앱 → THYNK → 제거</b>. 프로그램은 모두 지워지고, 내 공부 기록(<code>사용자 폴더\.claude</code>)은 남아요.</p>
+      </div></li>
+    </ol>
+  </section>
+
+  <section id="p-mac" role="tabpanel" aria-labelledby="t-mac" hidden>
+    <p class="note"><b>Mac용은 준비 중이에요.</b> Mac용 설치 파일(.dmg)은 아직 없어요. 나오면 이 탭에 순서를 적을게요.</p>
+  </section>
+
+  <footer>THYNK {{VERSION}} · 이 안내의 그림은 이해를 돕기 위해 다시 그린 것이에요. 함께 들어 있는 구성품과 라이선스는 설치 폴더의 NOTICE.txt에 있어요.</footer>
+</div>
+<script>
+// 지금 쓰는 컴퓨터에 맞는 탭을 먼저 연다
+const tabs = [...document.querySelectorAll('[role=tab]')];
+function show(id) { for (const t of tabs) { const on = t.id === id; t.setAttribute('aria-selected', String(on)); document.getElementById(t.getAttribute('aria-controls')).hidden = !on; } }
+tabs.forEach((t) => t.addEventListener('click', () => show(t.id)));
+if (/Mac/i.test(navigator.platform || navigator.userAgent)) show('t-mac');
+</script>
+</body>
+</html>

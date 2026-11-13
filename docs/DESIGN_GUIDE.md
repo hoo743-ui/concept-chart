@@ -63,6 +63,6 @@
 ## 5. 디자인을 코드로 옮기는 순서 (나중에)
 
 1. 피그마 MCP로 프레임을 읽는다 (사용자가 링크를 준다).
-2. 화면만 바꾼다: `app/index.html`·`app/style.css`·`app/app.js`. 서버·API·판정·근거 대조는 그대로 (`docs/API.md` 계약).
+2. 화면만 바꾼다: `app/atelier.html`·`app/atelier.css`·`app/atelier.js`·`app/atelier-chat.js` (11-13부터 서버 첫 화면. `app/index.html`은 이 파일로 넘기기만 하고, 예전 화면은 `app/classic.html`). 서버·API·판정·근거 대조는 그대로 (`docs/API.md` 계약).
 3. `python dev.py check`(화면 점검 `tests/check_app.js` 포함)로 확인하고, 화면 캡처를 사용자에게 보여 확인받는다.
 4. 디자인에 API에 없는 데이터가 필요하면 만들기 전에 사용자에게 알린다 (지어낸 값으로 채우지 않는다).

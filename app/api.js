@@ -9,24 +9,29 @@ const API = (() => {
     return demoData;
   }
 
+  // 서버에 닿지 못하면 브라우저 영문 예외(Failed to fetch) 대신 한국어 안내
+  async function reach(path, opt) {
+    try { return await fetch(path, opt); } catch { throw new Error('개념 차트 서버에 연결하지 못했어요.'); }
+  }
+
   async function get(path) {
     if (demo) {
       const d = await loadDemo();
       const key = decodeURIComponent(path.split('?')[0]);
-      if (d[key] === undefined) throw new Error('데모에 없는 화면입니다');
+      if (d[key] === undefined) throw new Error('데모에 없는 화면이에요');
       return d[key];
     }
-    const r = await fetch(path);
-    const body = await r.json();
-    if (!r.ok) throw new Error(body.error || '요청에 실패했습니다');
+    const r = await reach(path);
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(body.error || (r.status === 404 ? '찾는 내용이 없어요.' : '요청을 처리하지 못했어요.'));
     return body;
   }
 
   async function post(path, body) {
-    if (demo) return { ok: true, added: true, queued: false, reason: '데모에서는 저장하지 않습니다' };
-    const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    const out = await r.json();
-    if (!r.ok) throw new Error(out.error || '저장에 실패했습니다');
+    if (demo) return { ok: true, added: true, queued: false, reason: '데모에서는 저장하지 않아요' };
+    const r = await reach(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const out = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(out.error || '저장하지 못했어요.');
     return out;
   }
 
@@ -36,6 +41,7 @@ const API = (() => {
     today: (k = 7) => get(`/api/study/today?k=${k}`),
     concepts: (view = 'show', k = 300) => get(`/api/study/concepts?view=${view}&k=${k}`),
     concept: (id) => get(`/api/study/concept/${enc(id)}`),
+    history: (k = 200) => get(`/api/study/history?k=${k}`),   // docs/API.md의 읽기 API (열어 본 기록·진도 표시)
     answers: (k = 30) => get(`/api/answers?k=${k}`),
     answer: (id) => get(`/api/answers/${enc(id)}`),
     health: () => get('/api/health'),

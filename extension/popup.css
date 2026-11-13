@@ -1,0 +1,30 @@
+/* THYNK 브랜드 색: 잉크 #171C32 · 코발트 #3949AB · 종이 #F4F0E8 · 돌 #D8D5CB · 안개 #A8B8E8 */
+:root { --ink: #171c32; --ink-2: #41465c; --cobalt: #3949ab; --paper: #f4f0e8; --sheet: #fbf9f4; --stone: #d8d5cb; --mist: #a8b8e8; --err: #a23b2a; }
+* { box-sizing: border-box; }
+body { width: 300px; margin: 0; padding: 16px; background: var(--paper); color: var(--ink); font: 400 13px/1.5 "Pretendard", "Malgun Gothic", system-ui, sans-serif; display: grid; gap: 12px; }
+header { display: flex; align-items: center; gap: 10px; }
+header img { border-radius: 50%; background: var(--sheet); }
+header div { display: grid; }
+.brand { font: 700 17px/1.1 "Noto Serif KR", "Nanum Myeongjo", serif; letter-spacing: .08em; }
+.brand i { color: var(--cobalt); font-style: normal; }
+header span { color: var(--ink-2); font-size: 12px; }
+.rec { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font: 600 14px/1 inherit; font-family: inherit; cursor: pointer; border-radius: 2px; }
+.rec .dot { width: 9px; height: 9px; border-radius: 50%; background: #e0574a; box-shadow: 0 0 0 3px rgba(224, 87, 74, .25); }
+.rec[aria-pressed="false"] { background: var(--sheet); color: var(--ink); }
+.rec[aria-pressed="false"] .dot { background: var(--stone); box-shadow: none; }
+.sub { margin: 0; color: var(--ink-2); }
+dl { margin: 0; background: var(--sheet); border: 1px solid var(--stone); }
+dl div { display: flex; justify-content: space-between; padding: 8px 12px; border-top: 1px solid var(--stone); }
+dl div:first-child { border-top: 0; }
+dt { color: var(--ink-2); }
+dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+dd.ok { color: var(--cobalt); }
+dd.bad, .err { color: var(--err); }
+.err { margin: 0; }
+section { display: grid; gap: 6px; border-top: 1px solid var(--stone); padding-top: 10px; }
+h2 { margin: 0; font-size: 12px; color: var(--cobalt); font-weight: 600; }
+.mono { margin: 0; font: 12px/1.5 ui-monospace, Consolas, monospace; color: var(--ink-2); white-space: pre-wrap; word-break: break-all; }
+.btn { min-height: 36px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font: 600 13px/1 inherit; font-family: inherit; cursor: pointer; border-radius: 2px; }
+.btn:disabled { opacity: .4; cursor: default; }
+.open { color: var(--cobalt); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; justify-self: end; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 2px; }

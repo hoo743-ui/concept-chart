@@ -194,7 +194,7 @@ def app(extra):
         try:
             chat_proc = subprocess.Popen([sys.executable, str(ROOT / "chat" / "chat_server.py"), "--llm", chat_llm],
                                          cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            print("내 공부 기록에 묻기: http://localhost:8766")
+            print("기록에 묻기: 켜짐 (화면은 개념 차트의 '기록에 묻기' 메뉴)")
         except OSError as e:
             print("참고: 기록에 묻기 앱을 켜지 못했다 —", e)
     try:
