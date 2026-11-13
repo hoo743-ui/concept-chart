@@ -47,6 +47,8 @@ const API = (() => {
     health: () => get('/api/health'),
     setProgress: (id, status) => post(`/api/study/concept/${enc(id)}/progress`, { status }),
     setFeedback: (id, verdict) => post(`/api/study/concept/${enc(id)}/feedback`, { verdict }),
+    senses: (id) => (demo ? Promise.resolve({ senses: [], picked: null }) : get(`/api/study/concept/${enc(id)}/senses`)),   // (0.9.2) 뜻이 여러 개인 낱말의 후보
+    pickSense: (id, title) => post(`/api/study/concept/${enc(id)}/sense`, { title }),
     summarize: (id) => post(`/api/answers/${enc(id)}/summary`, {}),
     addText: (text) => post('/api/ingest', { text, source: 'paste' }),
     onUpdate(fn) {

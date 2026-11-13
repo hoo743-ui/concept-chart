@@ -56,3 +56,8 @@ app/fonts/
 installer/build/
 installer/out/
 installer/cache/
+
+# 실험 결과 중 내 대화 개념 이름이 든 것
+experiments/2026-11-14-disamb/results.json
+experiments/2026-11-14-disamb/links_cache.json
+experiments/2026-11-14-disamb/run.log

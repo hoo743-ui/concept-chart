@@ -244,7 +244,30 @@ function explain(c) {
   if (n.status === 'wrong_sense') return h('section', {}, marker('', '개념 설명'), tag('none'), h('div', { class: 'notice none' }, h('strong', {}, '찾은 설명이 내 대화와 다른 뜻이라 보여 주지 않아요.'), h('span', { class: 'meta' }, '아래 내 대화의 문장으로 맥락을 확인해 보세요.')));
   if (c.definition) { const one = firstSentence(c.definition), rest = c.definition.slice(one.length).trim(); return h('section', {}, marker('', '한 문장으로'), h('div', { class: 'oneline' }, tag('source'), h('p', { class: 'easy' }, one)), rest ? h('div', {}, h('h3', { class: 'h3' }, '더 읽기'), prose(rest)) : null); }
   if (c.note_status === 'pending') return h('section', {}, marker('', '개념 설명'), tag('pending'), h('div', { class: 'notice pending' }, h('strong', {}, '믿을 만한 설명을 찾는 중이에요.'), h('span', { class: 'meta' }, '근거 대조를 통과한 설명이 준비되면 여기에 나타나요.')));
-  return h('section', {}, marker('', '개념 설명'), tag('none'), h('div', { class: 'notice none' }, h('strong', {}, NO_LINE), h('span', { class: 'meta' }, '지어내지 않고 비워 둡니다. 아래 내 대화의 문장으로 맥락을 확인해 보세요.')));
+  return h('section', {}, marker('', '개념 설명'), tag('none'), h('div', { class: 'notice none' }, h('strong', {}, NO_LINE), h('span', { class: 'meta' }, '지어내지 않고 비워 둡니다. 아래 내 대화의 문장으로 맥락을 확인해 보세요.')), sensePicker(c));
+}
+// (0.9.2) 위키백과에 뜻이 여러 개인 낱말(DB·PC): 후보를 보여 주고 내가 고른다. 고른 뜻은 출처와 함께 설명이 된다
+function sensePicker(c) {
+  const box = h('div', { class: 'senses', hidden: true });
+  API.senses(c.concept).then((d) => {
+    const list = (d && d.senses) || [];
+    if (!list.length || d.picked === '') return;
+    const fail = h('p', { class: 'meta', role: 'status' });
+    const choose = async (title, btn) => {
+      [...box.querySelectorAll('button')].forEach((b) => (b.disabled = true));
+      try { await API.pickSense(c.concept, title); render(); } catch (e) { [...box.querySelectorAll('button')].forEach((b) => (b.disabled = false)); fail.textContent = '저장하지 못했어요. ' + e.message; }
+    };
+    box.append(
+      h('h3', { class: 'h3' }, '위키백과에 뜻이 여러 개예요'),
+      h('p', { class: 'meta' }, '내 대화에서 쓴 뜻을 골라 주세요. 고른 뜻이 출처와 함께 이 개념의 설명이 돼요.'),
+      h('ul', { class: 'sense-list' }, list.map((s) => h('li', {},
+        h('div', { class: 'sense-body' }, h('strong', {}, s.title), h('p', {}, s.text), h('a', { class: 'link', href: s.url, target: '_blank', rel: 'noopener noreferrer' }, '위키백과에서 보기 ↗')),
+        h('button', { type: 'button', class: 'btn small', onclick: (e) => choose(s.title, e.currentTarget) }, '이 뜻이에요')))),
+      h('button', { type: 'button', class: 'btn quiet small', onclick: (e) => choose('', e.currentTarget) }, '여기에 없어요'),
+      fail);
+    box.hidden = false;
+  }).catch(() => {});
+  return box;
 }
 // 이번에 열기 전의 '열어 봄·진도 표시' (노트 API가 열 때마다 기록을 남기므로, 화면에 들어올 때 먼저 한 번 받아 둔다)
 const beforeOpen = new Map();

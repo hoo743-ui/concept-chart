@@ -223,6 +223,15 @@ def localwiki_features():
     return f"{sum(l.startswith('[OK]') for l in out)}개 항목 (첫 문단 뽑기·넘겨주기·기술 분야 괄호·온라인 안 묻기)"
 
 
+
+def senses_features():
+    r = subprocess.run([sys.executable, str(ROOT / "tests" / "test_senses.py")], capture_output=True, timeout=300)
+    out = r.stdout.decode("utf-8", "replace").strip().splitlines()
+    if r.returncode != 0:
+        raise RuntimeError(" / ".join(l for l in out if l.startswith("[FAIL]"))[:400] or (r.stderr.decode("utf-8", "replace")[-400:]))
+    return f"{sum(l.startswith('[OK]') for l in out)}개 항목 (동음이의 후보·후보 밖 거절·사람이 고른 뜻 우선)"
+
+
 def chat_app():
     r = subprocess.run([sys.executable, str(ROOT / "tests" / "test_chat.py")], capture_output=True, timeout=300)
     out = r.stdout.decode("utf-8", "replace").strip().splitlines()
@@ -282,6 +291,7 @@ if __name__ == "__main__":
     check("공부 기능 (tests/test_study.py)", study_features)
     check("개념 분류기 (tests/test_clf.py)", clf_features)
     check("이 PC 안 위키백과 색인 (tests/test_localwiki.py)", localwiki_features)
+    check("뜻 고르기 (tests/test_senses.py)", senses_features)
     check("내 공부 기록에 묻기 (tests/test_chat.py)", chat_app)
     check("페이지 데이터 재현 (make_page_data)", page_data)
     check("페이지 빌드 재현", page_build)

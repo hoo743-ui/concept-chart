@@ -919,6 +919,10 @@ def collect_note(con, c, fetcher):
     """개념 하나의 정의 → (정의, 출처). 위키백과·검색(fetcher)에 없거나 그 단계가 오류여도 우리말샘·PyPI(fallback_note)를 먼저 본다.
     (0.7.8) 예전에는 SearXNG가 꺼져 있으면 연결 오류로 끝나 대체 출처까지 가지 못했다 (밤 작업에서 앱 로그로 찾음).
     대체 출처에도 없으면 원래 오류를 그대로 올린다: 저장하지 않고 나중에 다시 시도 (검색이 켜지면 그때 찾는다)"""
+    import senses
+    mine = senses.picked(con, c)
+    if mine and mine[0]:                                  # (0.9.2) 사람이 고른 뜻이 있으면 다시 찾지 않는다 (사람 판단이 앞선다)
+        return mine
     forms = [r[0] for r in con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form", (c,))]
     label = forms[0] if forms else c
     err, rejected = None, []
@@ -1093,6 +1097,18 @@ def study_get(st, con, path, q):
         return api.concepts(con, board, view, max(1, min(int(q.get("k", 50)), 5000)), project)
     if path == "/api/study/history":
         return api.history(con, max(1, min(int(q.get("k", 50)), 500)))
+    m = re.fullmatch(r"/api/study/concept/([^/]+)/senses", path)
+    if m:                                                   # (0.9.2) 뜻이 여러 개인 낱말: 고를 후보 (위키백과 동음이의 문서가 가리키는 문서의 첫 문장)
+        import senses
+        cid = urllib.parse.unquote(m.group(1))
+        if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
+            return {"__status": 404, "error": "없는 개념", "id": cid}
+        row = con.execute("SELECT title FROM sense_picks WHERE concept=?", (cid,)).fetchone() if senses.picked(con, cid) is not None else None
+        try:
+            cands = senses.candidates(con, cid, label_of(con, cid), label_of)
+        except OSError:
+            return {"senses": [], "picked": row[0] if row else None, "error": "위키백과에 연결하지 못했어요"}
+        return {"senses": cands, "picked": row[0] if row else None}
     if path.startswith("/api/study/concept/"):
         cid = urllib.parse.unquote(path[len("/api/study/concept/"):])
         if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
@@ -1143,6 +1159,20 @@ def study_post(st, con, path, body):
             api.set_feedback(con, cid, body.get("verdict"))
         st.bump()
         return {"ok": True}
+    m = re.fullmatch(r"/api/study/concept/([^/]+)/sense", path)
+    if m:                                                   # (0.9.2) 사람이 뜻을 고른다: 후보 제목 또는 ''(여기에 없어요)
+        import senses
+        cid = urllib.parse.unquote(m.group(1))
+        if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
+            return {"__status": 404, "error": "없는 개념", "id": cid}
+        title = body.get("title")
+        if not isinstance(title, str):
+            raise ValueError("title이 필요합니다 (모르면 빈 문자열)")
+        definition, sources = senses.pick(con, cid, title.strip())
+        if definition:
+            save_note(con, cid, definition, sources)
+        st.bump()
+        return {"ok": True, "definition": definition}
     m = re.fullmatch(r"/api/answers/([^/]+)/summary", path)
     if m:
         aid = urllib.parse.unquote(m.group(1))

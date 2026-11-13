@@ -44,6 +44,7 @@
 | `/api/ingest` | `{text, source?, session?, question?}` | `{added}` AI 답변 추가. 키는 가려서 저장, 같은 글은 `false`. `question`은 답변 앞의 내 질문(분석 안 함), `session`은 대화 묶음 (11-13 브라우저 확장용). 다른 사이트는 막고, 확장은 `extension/`의 고정 ID 하나만 이 경로에 허락 |
 | `/api/study/concept/{id}/progress` | `{status: new\|review\|known}` | `{ok}` |
 | `/api/study/concept/{id}/feedback` | `{verdict: concept\|not_concept\|clear}` | `{ok}` 사용자 판단은 규칙과 LLM보다 앞선다 |
+| `/api/study/concept/{id}/sense` | `{title}` (후보 제목, 모르면 `""`) | `{ok, definition}` (0.9.2) 뜻 고르기. 후보에 없는 제목은 400. 고른 뜻은 출처와 함께 정의가 되고 다시 찾지 않는다 |
 | `/api/answers/{id}/summary` | `{}` | `{queued, reason?}` 요약 예약 |
 
 기존 API(`/api/leaderboard`, `/api/concept/{id}`, `/api/projects`, `/api/status`)는 `docs/ARCHITECTURE.md`에 있고 그대로 유지한다.
@@ -57,3 +58,7 @@
 ## 모델을 바꾸는 방법
 
 모델은 서버와 다른 프로세스(`kit/study_worker.py`)에서 돌고, `jobs` 표로만 일을 받는다. 다른 LLM을 쓰려면 `kit/llm.py`에 `available()`과 `json(prompt, schema)`를 가진 클래스를 더하고 `--llm` 값만 바꾼다. 화면과 서버는 바뀌지 않는다. 생성한 문장은 어떤 모델이든 같은 근거 대조를 지나야 저장된다.
+
+### 뜻 고르기 후보 (0.9.2)
+
+`GET /api/study/concept/{id}/senses` → `{senses: [{title, text, url}], picked: 제목|""|null, error?}`. 위키백과에서 동음이의 문서인 낱말만 후보가 있다 (첫 문장, 한국어 위키백과 덤프 색인). 처음 한 번은 위키백과 API로 링크 목록을 받는다 (낱말 이름만 나감).

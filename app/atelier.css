@@ -888,3 +888,12 @@ body.bar-away .day-head { top: 0; }
 @supports selector(::details-content) {
   .today-more::details-content { overflow-x: visible; overflow-y: clip; }
 }
+
+/* (0.9.2) 뜻 고르기 */
+.senses { margin-top: 1.25rem; }
+.sense-list { list-style: none; padding: 0; margin: .75rem 0; display: grid; gap: .6rem; }
+.sense-list li { display: flex; gap: 1rem; align-items: flex-start; justify-content: space-between; padding: .85rem 1rem; border: 1px solid var(--stone); border-radius: 2px; background: var(--sheet); }
+.sense-body { min-width: 0; }
+.sense-body p { margin: .25rem 0 .35rem; line-height: 1.6; }
+.sense-list .btn { flex: none; }
+@media (max-width: 560px) { .sense-list li { flex-direction: column; } }

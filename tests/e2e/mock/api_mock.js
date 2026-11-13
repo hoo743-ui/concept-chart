@@ -139,11 +139,12 @@ async function mockApi(page, overrides = {}) {
       calls.posts.push({ path: p, body });
       const h = data['POST ' + p];
       if (typeof h === 'function') { const r = h(req); return route.fulfill({ status: r.status, json: r.body }); }
-      const reply = p.endsWith('/progress') || p.endsWith('/feedback') ? { ok: true }
+      const reply = p.endsWith('/progress') || p.endsWith('/feedback') ? { ok: true } : p.endsWith('/sense') ? { ok: true, definition: '' }
         : p === '/api/ingest' ? { added: true } : p.endsWith('/summary') ? { queued: true } : null;
       if (!reply) { calls.unknown.push('POST ' + p); return route.fulfill({ status: 404, json: { error: '없는 API' } }); }
       return route.fulfill({ json: reply });
     }
+    if (p.endsWith('/senses') && data[p] === undefined) return route.fulfill({ json: { senses: [], picked: null } });   // (0.9.2) 뜻 고르기 후보: 기본은 없음
     const view = url.searchParams.get('view');
     const key = view ? `${p}?view=${view}` : p;
     const h = data[key] !== undefined ? data[key] : data[p];
