@@ -48,7 +48,61 @@ def cached(con, key, fn):
     return v
 
 
+LOCAL_WIKI = __import__("pathlib").Path(__file__).resolve().parent / "data" / "lexicon" / "kowiki.sqlite"   # lexicons/kowiki_dump.py (선택 설치)
+_local = None
+
+
+def local_wiki():
+    """(0.8.2) 한국어 위키백과 덤프 색인 (이 PC 안, 요청 제한 없음). 없으면 None → 예전처럼 온라인으로만 찾는다"""
+    global _local
+    if _local is None:
+        _local = sqlite3.connect(f"file:{LOCAL_WIKI.as_posix()}?mode=ro", uri=True, check_same_thread=False) if LOCAL_WIKI.is_file() else False
+    return _local or None
+
+
+def _local_page(con, title):
+    """제목 → (제목, 첫 문단, 동음이의). 넘겨주기를 따라간다. 대소문자는 위키백과처럼 첫 글자만 바꿔 본다
+    (모두 무시하면 Kiwi → KIWI 라디오 방송국, Edge → EDGE 이동통신, ID → iD 편집기가 붙었다)"""
+    for t in dict.fromkeys([title, title[:1].upper() + title[1:]]):
+        red = con.execute("SELECT dst FROM redirects WHERE src = ?", (t,)).fetchone()
+        row = con.execute("SELECT title, lead, disamb FROM pages WHERE title = ?", (red[0] if red else t,)).fetchone()
+        if row:
+            lead = tidy(row[1])
+            return row[0], lead, int(bool(row[2] or NOT_DEFINITION.search(lead[:200])))   # '다음을 가리키는 말이다:'도 동음이의 안내
+    return None
+
+
+def _same_case(a, b):
+    """띄어쓰기·붙임표와 첫 글자 대소문자만 무시하고 같은가 (파인튜닝 = 파인 튜닝, python = Python, Kiwi ≠ KIWI)"""
+    k = lambda t: (lambda x: x[:1].lower() + x[1:])(re.sub(r"[\s\-_/]+", "", t))
+    return k(a) == k(b)
+
+
+def tidy(lead):
+    """덤프 첫 문단에 남은 위키 문법 찌꺼기 ('}}', '(애드인, , 애드온)')"""
+    lead = re.sub(r"\{\{|\}\}|\[\[|\]\]", "", lead or "")
+    lead = re.sub(r"\s*,\s*(?:,\s*)+", ", ", lead)
+    lead = re.sub(r"\(\s*,\s*", "(", lead)
+    return re.sub(r"\s+", " ", lead).strip()
+
+
+def _local_src(row):
+    title, lead, _d = row
+    return {"url": "https://ko.wikipedia.org/wiki/" + urllib.parse.quote(title.replace(" ", "_")), "text": lead, "src": "wikipedia", "title": title}
+
+
 def wikipedia(term, lang="ko"):
+    con = local_wiki() if lang == "ko" else None
+    if con is not None and not re.search(r"[가-힣]", term):  # 영어 표기는 붙임표만 다른 제목이 다른 뜻이다 (ID → I-D, MV → M-V)
+        return []
+    if con is not None:                                   # (0.8.2) 덤프 색인: 띄어쓰기만 다른 제목 (파인튜닝 → 파인 튜닝)
+        try:
+            hits = con.execute("SELECT title FROM pages WHERE norm = ? ORDER BY disamb, length(title) LIMIT 10", (re.sub(r"[\s\-_/]+", "", term.lower()),)).fetchall()
+        except sqlite3.OperationalError:                  # norm 열이 없는 색인
+            hits = []
+        hit = next((h for h in hits if _same_case(h[0], term)), None)
+        row = _local_page(con, hit[0]) if hit else None
+        return [_local_src(row)] if row and not row[2] and row[1] else []
     q = urllib.parse.quote(term)
     hits = json.loads(_get(f"https://{lang}.wikipedia.org/w/api.php?action=opensearch&search={q}&limit=1&namespace=0&format=json"))
     if not hits[1]:
@@ -80,6 +134,16 @@ def wikipedia_tech(term, lang="ko"):
     """제목에 분야가 괄호로 붙은 문서: 커밋 → 커밋 (버전 관리). 괄호 앞이 낱말과 같고 괄호가 기술 분야일 때만 받는다.
     낚시·기관처럼 다른 뜻의 문서를 받지 않으려고 다른 제목은 모두 버린다."""
     key = re.sub(r"[\s\-_/]+", "", term.lower())
+    con = local_wiki() if lang == "ko" else None
+    if con is not None:                                   # (0.8.2) 덤프 색인: '낱말 (분야)' 제목을 이 PC 안에서 찾는다
+        for (title,) in con.execute("SELECT title FROM pages WHERE title LIKE ? || ' (%' ORDER BY title LIMIT 20", (term,)):
+            m = TECH_PAREN.search(title)
+            if not m or re.sub(r"[\s\-_/]+", "", title[:m.start()].lower()) != key:
+                continue
+            row = _local_page(con, title)
+            if row and not row[2] and row[1]:
+                return [_local_src(row)]
+        return []
     q = urllib.parse.quote(term)
     hits = json.loads(_get(f"https://{lang}.wikipedia.org/w/api.php?action=opensearch&search={q}&limit=8&namespace=0&format=json"))
     for title in hits[1]:
@@ -94,7 +158,12 @@ def wikipedia_tech(term, lang="ko"):
 
 
 def wikipedia_exact(term, lang="ko"):
-    """이름과 정확히 같은 문서 또는 위키백과 편집자가 만든 넘겨주기(GPU → 그래픽 처리 장치). 검색이 아니라서 비슷한 제목이 끌려오지 않는다"""
+    """이름과 정확히 같은 문서 또는 위키백과 편집자가 만든 넘겨주기(GPU → 그래픽 처리 장치). 검색이 아니라서 비슷한 제목이 끌려오지 않는다.
+    (0.8.2) 한국어는 덤프 색인이 있으면 이 PC 안에서만 찾는다 (온라인 요청 제한으로 못 찾던 개념이 많았다, 11-13)"""
+    con = local_wiki() if lang == "ko" else None
+    if con is not None:
+        row = _local_page(con, term)
+        return [_local_src(row)] if row and not row[2] and row[1] else []
     try:
         j = json.loads(_get(f"https://{lang}.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(term.replace(' ', '_'), safe='')}"))
     except urllib.error.HTTPError as e:
@@ -132,7 +201,7 @@ def other_sense(term, title):
     return fields.TECH not in fields.fields_of(base)
 
 
-NOT_DEFINITION = re.compile(r"(다음을 가리킨다|다음과 같은 뜻|may refer to|can refer to)")
+NOT_DEFINITION = re.compile(r"(다음을 가리킨다|다음을 가리키는|다음과 같은 뜻|may refer to|can refer to|:\s*$)")   # (0.8.2) '최적화는 다음을 가리키는 말이다:'
 
 
 def lead_sents(src):

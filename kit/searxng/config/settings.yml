@@ -8,3 +8,14 @@ search:
   formats:
     - html
     - json            # kit/fetch_sources.py가 /search?format=json 으로 읽는다
+# (11-13) 기본 엔진(google·brave·duckduckgo)만 쓰면 한꺼번에 찾을 때 '요청이 너무 많음'으로 멈춘다.
+# 한국어 결과가 많은 엔진을 더 켜서 나눠 묻는다 (이름이 같은 기본 엔진 설정에 덮어쓴다)
+engines:
+  - name: naver
+    disabled: false
+  - name: bing
+    disabled: false
+  - name: mojeek
+    disabled: false
+  - name: startpage
+    disabled: false

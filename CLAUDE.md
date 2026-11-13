@@ -57,6 +57,8 @@ Claude Code 대화에서 자주 나온 개념을 중요도 순으로 보여 주�
 
 - 개념 분류기(0.8.0, 11-13 사용자 결정 '0.97로 가자', D9): klue/roberta-base 미세조정 점수로 관문을 정한다(`ml/concept_clf.py`, 모델은 `models/concept-clf` git 제외). 교차 검증 개발 대화 0.893·0.472 → 0.855·0.665. 일반 세트로만 배우면 재현율이 오히려 낮다(내 대화 정답을 배운 덕분)
 
+- 설명 넓히기(0.8.2, 11-13, D10): 한국어 위키백과는 이 PC 안 덤프 색인(`lexicons/kowiki_dump.py` → `kit/data/lexicon/kowiki.sqlite`)을 먼저, SearXNG는 네이버·빙 추가, 8888이 막히면 8889
+
 읽을 것: `docs/WORKSHEET.md`(기획 5단계), `docs/DECISION_LOG.md`(결정 근거), `docs/CONSTRAINTS.md`(할루시네이션 방지 규칙, 새 기능은 이 규칙을 지킨다), `docs/API.md`(화면과 서버의 계약), `docs/DESIGN_GUIDE.md`(피그마로 화면 그리기: 지킬 원칙·화면별 데이터·상태)
 
 다음 할 일 (합의된 순서)

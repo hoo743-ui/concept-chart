@@ -279,7 +279,7 @@ CREATE TABLE IF NOT EXISTS progress (concept TEXT PRIMARY KEY, status TEXT, upda
 CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, kind TEXT, target TEXT, priority INTEGER, status TEXT, tries INTEGER DEFAULT 0, updated TEXT, UNIQUE (kind, target));
 """
 SYSTEM_MSG = re.compile(r"\s*<(?:task-notification|system-reminder|command-|local-command)")
-NOTE_REFETCH = 6              # 정의 찾는 방법이 바뀌면 올린다 (1: 0.7.2 우리말샘·PyPI, 2: 0.7.8·0.7.9 오류 고침, 3: 0.7.11 같은 분야 여러 뜻, 4: 0.7.12 언어 모델·챗봇 괄호, 5: 0.7.13 우리말샘 뜻 고르기 강화, 6: 0.7.15 다른 뜻으로 넘겨준 위키백과 문서 거르기)
+NOTE_REFETCH = 7              # 정의 찾는 방법이 바뀌면 올린다 (1: 0.7.2 우리말샘·PyPI, 2: 0.7.8·0.7.9 오류 고침, 3: 0.7.11 같은 분야 여러 뜻, 4: 0.7.12 언어 모델·챗봇 괄호, 5: 0.7.13 우리말샘 뜻 고르기 강화, 6: 0.7.15 다른 뜻으로 넘겨준 위키백과 문서 거르기, 7: 0.8.2 이 PC 안 위키백과 색인·검색 문맥에서 일상어 빼기)
 SCHEMA_VERSION = 8            # (7: 0.7.0 꼬리 당·별·들 떼기, 8: 0.7.1 한 명사로 묶인 '-당'도 떼기) 색인 표 구조나 개념 추출 규칙이 바뀌면 올린다. 다르면 색인을 지우고 인박스에서 다시 만든다 (notes는 남김)
 DERIVED = ("mentions", "questions", "cooc", "freq", "forms", "sessions", "term_sess", "meta", "answers")   # notes(웹 근거)·판정·노트·진도는 남긴다
 
@@ -614,9 +614,18 @@ def leaderboard(con, k=10, now=None, project=None):
 
 
 def context_terms(con, concept, k=2):
-    """뜻을 가를 검색어: 내 대화에서 이 개념과 가장 자주 함께 나온 개념 이름"""
-    rows = con.execute("SELECT b FROM cooc WHERE a=? ORDER BY n DESC, b LIMIT ?", (concept, k)).fetchall()
-    return [label_of(con, r[0]) for r in rows]
+    """뜻을 가를 검색어: 내 대화에서 이 개념과 가장 자주 함께 나온 개념 이름.
+    (0.8.2) 분야 사전에 일상 뜻이 있는 낱말(대화·기록·목록)은 빼고 고른다: 검색 결과에 그 낱말이 없다고 맞는 정의(conda·에폭)까지 버렸다"""
+    import concept_gate as gate
+    out = []
+    for (b,) in con.execute("SELECT b FROM cooc WHERE a=? ORDER BY n DESC, b LIMIT 40", (concept,)).fetchall():
+        label = label_of(con, b)
+        if gate.lexicon_verdict(label) in ("general", "mixed") or label in gate.GENERAL:
+            continue
+        out.append(label)
+        if len(out) == k:
+            break
+    return out
 
 
 def fetch_note(term, aliases=(), searx=None, context=(), rejected=None):

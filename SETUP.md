@@ -145,6 +145,7 @@ python dev.py serve --project C:/work/app   # 이 폴더(하위 포함)의 대�
 
 ```bash
 python dev.py searx up       # http://localhost:8888 (8888을 Jupyter 등이 쓰면 8889, 이 PC에서만 접속, PC를 켤 때 저절로 뜨지 않음)
+python lexicons/kowiki_dump.py  # (선택) 이 PC 안 한국어 위키백과 색인: 덤프 data/raw/kowiki_dump/kowiki-latest-pages-articles.xml.bz2(1.4GB, https://dumps.wikimedia.org/kowiki/latest/)를 받아 둔 뒤 약 12분, 435MB
 python dev.py searx down     # 끄기
 python dev.py serve --searx off   # Docker 없이 위키백과만 쓰기
 ```

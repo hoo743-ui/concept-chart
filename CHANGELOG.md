@@ -7,6 +7,10 @@
 - 기록에 묻기를 한 웹으로 합침 (사용자 결정 11-13): 묻기 화면을 Atelier '기록에 묻기' 메뉴 안으로 옮기고 Atelier 디자인으로 다시 그림(`app/atelier-chat.js`). `chat/`은 API 서버만 남기고(CORS는 이 PC 주소만), 주소로 열면 Atelier로 넘긴다. `chat/index.html`·`chat.js`는 지움
 - 서버 첫 화면(`localhost:8765/`)을 Atelier로 (사용자 결정 11-13): `app/index.html`은 `atelier.html`로 넘기고(주소의 `#/…` 유지), 예전 화면은 `app/classic.html`(답변 붙여넣기). 기록에 묻기 예시 질문·화면 문구를 존댓말로, 존댓말 '공부했었나요?'도 '했던가' 질문으로 알아듣게
 
+## 0.8.2 — 2026-11-13
+
+- 설명 넓히기 (사용자 요청 11-13 'SearXNG 켜서 설명 비율 올려줘'·'이걸 좀 확장하고 싶은데', 결정 '둘 다'): ① 이 PC 안 한국어 위키백과 색인 — 덤프(11-01, 1.42GB)에서 문서 첫 문단 71.5만·넘겨주기 91만을 뽑은 `kit/data/lexicon/kowiki.sqlite`(435MB, git 제외, `python lexicons/kowiki_dump.py`). 색인이 있으면 한국어 위키백과는 온라인으로 묻지 않는다(요청 제한으로 못 찾던 개념이 많았다). 첫 글자만 대소문자를 바꿔 보고(Kiwi ≠ KIWI), 영어 표기는 붙임표만 다른 제목을 받지 않고(ID ≠ I-D), '다음을 가리키는 말이다:' 문서는 동음이의로 본다. 설명이 없던 공부 목록 254개 중 색인만으로 36개를 찾음(온라인 없이 잼, 눈으로 본 틀린 뜻: 캔버스 → 평직물, ID → iD 편집기). ② SearXNG에 네이버·빙·mojeek·startpage를 켬(google·brave·duckduckgo가 '요청이 너무 많음'으로 멈췄다). ③ 검색 문맥에서 일상어 빼기: 함께 나온 낱말이 '대화·기록'이라 맞는 결과를 버렸다(conda → ['Windows', '대화']). 정의 없는 개념은 한 번 다시 찾는다(NOTE_REFETCH 7). 결과 페이지는 코드 상자만 다시 만듦
+
 ## 0.8.1 — 2026-11-13
 
 - SearXNG 포트 (사용자 요청 11-13 'SearXNG 켜서 설명 비율 올려줘'): Jupyter가 8888을 쓰고 있어 `dev.py app`이 Jupyter를 SearXNG로 알고 정의 검색이 모두 실패했다. `dev.py`는 `/healthz`가 OK인 포트(8888·8889)만 쓰고, `searx up`은 비어 있는 포트에 켠다(`compose.yml`의 `SEARXNG_PORT`)
