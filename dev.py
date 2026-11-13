@@ -11,7 +11,7 @@
     python dev.py app            프로토타입 켜기 (화면 + 서버 + 로컬 LLM) http://localhost:8765
     python dev.py add            AI 답변 추가 (어떤-CLI | python dev.py add)
     python dev.py import 파일    Claude 앱·ChatGPT 내보내기 가져오기
-    python dev.py searx up       정의 검색용 SearXNG 켜기 (Docker 필요, http://localhost:8888). 끄기: searx down
+    python dev.py searx up       정의 검색용 SearXNG 켜기 (Docker 필요, http://localhost:8888, 8888을 다른 앱이 쓰면 8889). 끄기: searx down
 
 check·build·sim·serve는 concept-chart 환경을 켠 상태에서 실행한다.
 """
@@ -144,6 +144,22 @@ def serve(extra):
         return 0
 
 
+SEARX_PORTS = (8888, 8889)     # 8888은 Jupyter 기본 포트와 겹친다: 비어 있는 쪽에 켜고, /healthz가 OK인 쪽을 쓴다
+
+
+def searx_url():
+    """켜져 있는 SearXNG 주소 또는 None. 포트만 열려 있는 것으로는 믿지 않는다 (Jupyter가 8888을 쓰면 정의 검색이 모두 실패했다, 11-13)"""
+    import urllib.request
+    for port in SEARX_PORTS:
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz", timeout=2) as r:
+                if r.status == 200 and r.read(16).strip() == b"OK":
+                    return f"http://localhost:{port}"
+        except OSError:
+            continue
+    return None
+
+
 def port_open(port):
     with socket.socket() as s:
         s.settimeout(0.5)
@@ -161,8 +177,10 @@ def app(extra):
             time.sleep(3)
         args += ["--llm", LLM] if ollama else []
         print(f"AI 요약: {LLM}" if ollama else "AI 요약: 꺼짐 (Ollama 없음). 출처 문장만 보여 줍니다")
-    if "--searx" not in extra and not port_open(8888):
-        args += ["--searx", "off"]
+    if "--searx" not in extra:
+        url = searx_url()
+        args += ["--searx", url or "off"]
+        print(f"정의 검색: SearXNG {url}" if url else "정의 검색: 꺼짐 (python dev.py searx up)")
     clf = ROOT / "models" / "concept-clf"                   # (0.8.0) 개념 분류기: 학습해 둔 모델과 학습 패키지(requirements-ml.txt)가 있을 때만 켠다
     if "CONCEPT_CHART_CLF" not in os.environ and (clf / "concept_clf.json").is_file():
         import importlib.util
@@ -213,6 +231,10 @@ def searx(action):
     if not env.exists():                    # 비밀 키는 PC마다 새로 만들고 git에 올리지 않는다
         env.write_text("SEARXNG_SECRET=" + secrets.token_hex(32) + "\n", encoding="utf-8", newline="\n")
     args = ["up", "-d"] if action == "up" else ["down"]
+    if action == "up" and "SEARXNG_PORT" not in os.environ:     # compose.yml의 ${SEARXNG_PORT:-8888}
+        port = next((p for p in SEARX_PORTS if not port_open(p)), SEARX_PORTS[0])
+        os.environ["SEARXNG_PORT"] = str(port)
+        print(f"SearXNG 포트: {port}")
     return run([docker, "compose", "-f", folder / "compose.yml", *args])
 
 

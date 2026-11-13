@@ -144,7 +144,7 @@ python dev.py serve --project C:/work/app   # 이 폴더(하위 포함)의 대�
 개념 정의는 위키백과에서 먼저 찾고, 없으면 이 PC에 띄운 SearXNG로 찾는다. Docker Desktop을 설치하고 켠 뒤:
 
 ```bash
-python dev.py searx up       # http://localhost:8888 (이 PC에서만 접속, PC를 켤 때 저절로 뜨지 않음)
+python dev.py searx up       # http://localhost:8888 (8888을 Jupyter 등이 쓰면 8889, 이 PC에서만 접속, PC를 켤 때 저절로 뜨지 않음)
 python dev.py searx down     # 끄기
 python dev.py serve --searx off   # Docker 없이 위키백과만 쓰기
 ```
