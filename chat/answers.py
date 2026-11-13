@@ -2,7 +2,7 @@
 """answers.py : '내 공부 기록에 묻기'의 답 만들기 (순수 함수, 네트워크·LLM 없음).
 
 답은 개념 차트 API가 돌려준 기록 값을 정해 둔 틀에 채워서만 만든다 (docs/WORKSHEET.md 2절 '내 공부 기록에 묻기').
-- 일반 공부법 조언, 개념의 뜻 설명은 만들지 않는다. 뜻은 출처가 붙은 개념 노트로 보낸다.
+- 일반 공부법 조언, 개념의 뜻 설명은 만들지 않는다. 뜻 질문에는 개념 노트에 이미 있는 출처 확인 문장만 옮기고(11-13), 없으면 없다고 한다.
 - 기록으로 답할 수 없으면 "기록에 없어요"라고 한다.
 - 모든 답에 근거(개념 노트 링크)를 붙인다.
 
@@ -158,6 +158,39 @@ def check(name, all_concepts, history, app_url):
         text.append(line)
         links.append({"label": x["label"], "href": note_href(app_url, x["id"])})
     return {"intent": "check", "text": text, "links": links}
+
+
+KIND_SAY = {"ai_checked": "출처 문장으로 확인한 쉬운 설명", "source": "출처 문장 그대로", "own": "내 대화에 나온 문장"}
+PARTICLE = re.compile(r"(이란|란|이|가|은|는|을|를|의)$")
+
+
+def define(name, all_concepts, app_url):
+    """OO가 뭐야? → 개념 노트에 있는 설명 한 줄(출처 문장)만 옮긴다. 설명이 없거나 기록에 없으면 없다고 한다 (뜻을 지어내지 않는다)"""
+    items = all_concepts.get("items", [])
+    cands = [name] + ([PARTICLE.sub("", name)] if PARTICLE.search(name) and len(PARTICLE.sub("", name)) >= 1 else [])
+    found = []
+    for c in cands:                                         # 같은 표기만 답으로 쓴다 (비슷한 이름은 '이것을 찾으셨나요'로만)
+        found = [x for x in items if norm(x["label"]) == norm(c) or norm(x["id"]) == norm(c)]
+        if found:
+            break
+    if not found:
+        near = [x for x in find(cands[-1], items) if (x.get("gate") or {}).get("show")][:3]
+        text = [f"'{cands[-1]}'은(는) 내 기록에 없는 낱말이에요. 지금까지의 AI 답변에 나온 적이 없어서 설명할 근거가 없어요."]
+        if near:
+            text.append("비슷한 이름의 개념은 있어요: " + ", ".join(x["label"] for x in near))
+        return {"intent": "define", "text": text, "links": [{"label": x["label"], "href": note_href(app_url, x["id"])} for x in near]}
+    text, links = [], []
+    for x in found[:3]:
+        line = (x.get("line") or "").strip()
+        if line:
+            text.append(f"{x['label']}: {line}")
+            text.append(f"({KIND_SAY.get(x.get('line_kind'), '출처 문장')}이에요. 출처 링크는 개념 노트에 있어요.)")
+        else:
+            text.append(f"{x['label']}: 내 기록에는 있지만 아직 믿을 만한 설명을 찾지 못했어요. 지어내지 않으려고 비워 두었어요.")
+        if not (x.get("gate") or {}).get("show"):
+            text.append("이 낱말은 공부 목록에서 숨겨져 있어요.")
+        links.append({"label": x["label"], "href": note_href(app_url, x["id"])})
+    return {"intent": "define", "text": text, "links": links}
 
 
 def other(text_in, all_concepts, app_url):

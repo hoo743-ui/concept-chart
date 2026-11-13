@@ -64,7 +64,7 @@ const AskChat = (() => {
     const first = links[0];
     const ex = (re) => examples.find((t) => re.test(t));
     const plan = ex(/학습하면|순서/), field = ex(/분야/), recent = ex(/저번|최근/);
-    const pick = { plan: [first && `${first.label}, 제가 공부했었나요?`, field], by_field: [recent, first && `${first.label}, 제가 공부했었나요?`], recent: [plan, first && `${first.label}, 제가 공부했었나요?`], check: [plan, recent], other: [plan, recent, field] }[intent] || [plan, recent];
+    const pick = { plan: [first && `${first.label}, 제가 공부했었나요?`, field], by_field: [recent, first && `${first.label}, 제가 공부했었나요?`], recent: [plan, first && `${first.label}, 제가 공부했었나요?`], check: [plan, recent], define: [first && `${first.label}, 제가 공부했었나요?`, plan], other: [plan, recent, field] }[intent] || [plan, recent];
     return [...new Set(pick.filter(Boolean))].filter((t) => t !== asked).slice(0, 3);
   }
   // 전에 나눈 대화와 이어지는 개념 (이 브라우저에 남은 내 질문 기록에서만 찾는다)

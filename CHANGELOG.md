@@ -4,6 +4,7 @@
 
 ## 작업 중 — 2026-11-13
 
+- 기록에 묻기: 낱말 뜻 질문('DB가 뭐야?', 'API 설명해줘') — 개념 노트의 출처 확인 설명 한 줄만 옮기고, 설명이 없거나 기록에 없으면 없다고 답함 (사용자 요청 11-13)
 - 설치 파일에 개념 분류기(models/concept-clf, 11-13 학습 끝)를 합침 (사용자 요청 11-13): CPU판 torch·transformers, AI가 켜져 있을 때 새 낱말만 따로 점수
 - 윈도우 설치 파일 실험 (사용자 승인 11-13, `installer/`, `experiments/2026-11-13-installer`): 한국어 설치 마법사 148MB, 관리자 권한 없이 17초 설치, 앱 창(WebView2), 시작 때 켜기·Claude Code 연결·AI 받기는 고를 때만. Defender 검사 위협 없음, 지우기 깨끗함. 코드 서명 없이 배포(사용자 결정 11-13) → 경고 창 넘기는 법을 그림으로 그린 설치 안내(`installer/guide.html` → `out/THYNK-설치-안내.html`)
 - 브라우저 확장 실험 (사용자 승인 11-13, `extension/`, `experiments/2026-11-13-web-extension`): claude.ai에서 새로 끝난 답변과 앞 질문을 이 PC의 THYNK로 보냄, 기록 켜고 끄기·진단 팝업. 서버는 이 확장의 고정 ID만 `/api/ingest`에 허락하고 `session`·`question`을 받음. 가짜 화면 점검 9/9, 실제 claude.ai 화면 구조는 사용자 확인 대기

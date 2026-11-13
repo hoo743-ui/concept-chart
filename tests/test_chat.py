@@ -107,6 +107,24 @@ def check_intents():
     ok("LLM 고장: 규칙으로 계속", how == "rules" and got["intent"] == "by_field")
 
 
+def check_define():
+    """(11-13) 낱말 뜻 질문: 노트의 설명 한 줄만 옮기고, 설명이 없거나 기록에 없으면 없다고 한다"""
+    items = [dict(concept("커밋", "커밋", line_kind="ai_checked"), line="커밋은 변경 사항을 저장소에 기록하는 것입니다."),
+             dict(concept("DB", "DB"), line=""), dict(concept("고양이", "고양이", line_kind="source"), line="고양이는 동물이다.")]
+    allc = {"items": items}
+    for text, want in [("커밋이 뭐야?", "커밋이"), ("DB가 뭐예요?", "DB가"), ("커밋 뜻", "커밋"), ("API 설명해줘", "API"), ("커밋이란 뭐야?", "커밋")]:
+        got, how = intents.classify(text, FakeLLM({"intent": "plan", "concept": "", "period": "all"}))
+        ok(f"뜻 질문은 LLM보다 규칙이 먼저: {text}", got["intent"] == "define" and got["concept"] == want and how == "rules", str(got))
+    ok("긴 공부법 질문은 뜻 질문이 아님", intents.classify("어떻게 공부하면 좋을지 알려줘", None)[0]["intent"] == "plan")
+    a = answers.define("커밋이", allc, APP)
+    ok("뜻: 노트 설명 그대로 + 노트 링크", a["text"][0] == "커밋: 커밋은 변경 사항을 저장소에 기록하는 것입니다." and a["links"][0]["href"].endswith("/#/c/%EC%BB%A4%EB%B0%8B"), str(a))
+    a = answers.define("DB가", allc, APP)
+    ok("뜻: 설명이 없으면 없다고 (지어내지 않음)", "찾지 못했어요" in a["text"][0] and len(a["text"]) == 1, str(a))
+    a = answers.define("양자역학", allc, APP)
+    ok("뜻: 기록에 없으면 없다고, 링크 없음", "기록에 없는" in a["text"][0] and not a["links"], str(a))
+    ok("뜻: 받침 '이'로 끝나는 낱말도 그대로 찾음", answers.define("고양이", allc, APP)["text"][0].startswith("고양이: 고양이는"))
+
+
 def imports(path):
     names = set()
     for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
@@ -228,6 +246,7 @@ def main():
     try:
         check_answers()
         check_intents()
+        check_define()
         check_boundary()
         check_servers(tmp)
     finally:

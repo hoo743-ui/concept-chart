@@ -56,6 +56,8 @@ def ask(text, api, client, app_url):
             out = answers.by_field(api.get("/api/study/concepts", view="show", k=5000), app_url)
         elif got["intent"] == "recent":
             out = answers.recent(api.get("/api/study/history", k=200), app_url, got["period"])
+        elif got["intent"] == "define":
+            out = answers.define(got["concept"], api.get("/api/study/concepts", view="all", k=5000), app_url)
         elif got["intent"] == "check":
             out = answers.check(got["concept"], api.get("/api/study/concepts", view="all", k=5000), api.get("/api/study/history", k=500), app_url)
         else:
