@@ -22,7 +22,7 @@ import zipfile
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent
 BUILD, OUT, CACHE = HERE / "build", HERE / "out", HERE / "cache"
-VERSION = "0.1.0"
+VERSION = "0.9.3"
 PYV = "%d.%d.%d" % sys.version_info[:3]                # 가상환경과 같은 파이썬 (패키지 바이너리가 맞게)
 PACKAGES = ["kiwipiepy==0.24.1", "kiwipiepy_model==0.24.0", "trafilatura==2.3.1", "pywebview==6.2.1"]
 # (0.8.0) 개념 분류기: 그래픽 카드용이 아닌 CPU용 torch(작다). 분류기는 새 낱말이 있을 때만 따로 켜졌다 끝난다
