@@ -61,3 +61,5 @@ installer/cache/
 experiments/2026-11-14-disamb/results.json
 experiments/2026-11-14-disamb/links_cache.json
 experiments/2026-11-14-disamb/run.log
+experiments/2026-11-14-clf-on/results.json
+experiments/2026-11-14-clf-on/caps_results.json

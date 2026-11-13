@@ -472,7 +472,8 @@ async function pageAll(sub) {
   const fieldList = [...fieldCount].filter(([f]) => f).sort((a, b) => b[1] - a[1]).concat(fieldCount.get('') ? [['', fieldCount.get('')]] : []);
   const fname = (f) => f || '분야 미정';
   const RE = resurfaced(items); const reGap = new Map(RE.map((x) => [x.id, x.gap]));
-  const st = { q: '', field: undefined, prog: 'all', expl: 'all', re: sub === 're', sort: sub === 're' ? 'seen' : 'rank', limit: PAGE, active: false };
+  const st = { q: '', field: undefined, prog: 'all', expl: 'all', re: sub === 're', sort: sub === 're' ? 'seen' : 'rank', limit: PAGE, active: false, tidy: false };
+  const picked = new Set();   // (0.9.3) 한 번에 정리하기: 고른 낱말을 한꺼번에 '아니에요'로 (하나씩 열지 않게, 11-14 사용자 '일일이 고르기 불편')
   // 최근 읽은 개념: '열어 본 기록'(history, kind=opened)에서, 지금 공부 목록에 있는 것만 최근 순 8개
   const byId = new Map(items.map((x) => [x.id, x]));
   const recent = [...new Map(hist.items.filter((x) => x.kind === 'opened' && byId.has(x.id)).map((x) => [x.id, x])).values()].sort((a, b) => (b.ts || '').localeCompare(a.ts || '')).slice(0, 8).map((x) => byId.get(x.id));
@@ -505,7 +506,7 @@ async function pageAll(sub) {
       tile('아직 설명이 없는 개념', T.none, '출처에서 믿을 만한 설명을 아직 못 찾은 개념', () => set({ expl: 'none', active: true })),
       tile('다시 나온 개념', RE.length, '처음 만난 뒤 다른 날 대화에 다시 나온 개념 (최근 14일)', () => set({ re: true, sort: 'seen', active: true })))),
     h('section', {}, h('h2', { class: 'marker' }, '자주 나온 개념', h('span', { class: 'count' }, '중요한 순 8개')), h('ul', { class: 'lib-grid' }, top.map((x, i) => card(x, i))),
-      h('div', { class: 'list-foot' }, h('button', { class: 'btn quiet', type: 'button', onclick: () => set({ active: true }) }, `전체 ${total}개 목록 보기`), h('a', { class: 'link', href: '#/hidden' }, '숨긴 개념 검토하기 →'))));
+      h('div', { class: 'list-foot' }, h('button', { class: 'btn quiet', type: 'button', onclick: () => set({ active: true }) }, `전체 ${total}개 목록 보기`), h('button', { class: 'btn quiet', type: 'button', onclick: () => set({ active: true, tidy: true, sort: 'name' }) }, '한 번에 정리하기'), h('a', { class: 'link', href: '#/hidden' }, '숨긴 개념 검토하기 →'))));
 
   // --- 결과 ---
   const chips = h('div', { class: 'lib-chips', 'aria-label': '적용한 거르기' });
@@ -513,6 +514,33 @@ async function pageAll(sub) {
   const fieldSel = h('select', { 'aria-label': '분야 고르기', class: 'lib-fieldsel', onchange: (e) => set({ field: e.target.value === '*' ? undefined : e.target.value }) }, h('option', { value: '*' }, `모든 분야 (${total})`), fieldList.map(([f, n]) => h('option', { value: f }, `${fname(f)} (${n})`)));
   const progBtns = h('div', { class: 'lib-progbtns', role: 'group', 'aria-label': '학습 상태로 거르기' }, [['all', '전체'], ['new', '처음 공부'], ['review', '다시 볼 개념'], ['known', '이해함']].map(([v, l]) => h('button', { type: 'button', 'data-p': v, onclick: () => set({ prog: v }) }, l)));
   const resultCount = h('p', { class: 'lib-count', role: 'status' });
+  const tidyBtn = h('button', { type: 'button', class: 'btn quiet small lib-tidybtn', 'aria-pressed': 'false', onclick: () => { picked.clear(); set({ tidy: !st.tidy }, true); } }, '한 번에 정리하기');
+  const tidyCount = h('span', { class: 'tidy-n', role: 'status' });
+  const tidyFail = h('span', { class: 'meta', role: 'alert' });
+  const tidyGo = h('button', { type: 'button', class: 'btn small', onclick: () => hidePicked() }, '공부할 개념에서 빼기');
+  const tidyBar = h('div', { class: 'tidy-bar', hidden: true }, h('div', {}, tidyCount, h('span', { class: 'meta' }, ' 뺀 낱말은 숨긴 개념에서 되돌릴 수 있어요.'), tidyFail),
+    h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn quiet small', onclick: () => { picked.clear(); set({ tidy: false }, true); } }, '그만두기'), tidyGo));
+  async function hidePicked() {
+    if (!picked.size) return;
+    tidyGo.disabled = true; tidyFail.textContent = '';
+    const ids = [...picked];
+    for (const id of ids) {
+      try { await API.setFeedback(id, 'not_concept'); picked.delete(id); const i = items.findIndex((x) => x.id === id); if (i >= 0) items.splice(i, 1); } catch (e) { tidyFail.textContent = ' 일부를 저장하지 못했어요. ' + e.message; break; }
+    }
+    tidyGo.disabled = false;
+    draw(true);
+  }
+  function tidyRow(x) {
+    const box = h('input', { type: 'checkbox', checked: picked.has(x.id), onchange: (e) => { e.target.checked ? picked.add(x.id) : picked.delete(x.id); syncTidy(); } });
+    return h('li', { class: 'lib-item' }, h('label', { class: 'lib-card tidy' + (picked.has(x.id) ? ' on' : '') }, box,
+      h('span', { class: 'lib-name' }, h('span', { class: 'lib-label' }, x.label), x.alias ? h('span', { class: 'alias' }, x.alias) : null),
+      h('span', { class: 'lib-desc' + (x.line ? '' : ' none') }, x.line ? clip(x.line, 80) : NO_LINE)));
+  }
+  function syncTidy() {
+    tidyCount.textContent = picked.size ? `${picked.size}개 골랐어요.` : '공부할 개념이 아닌 낱말을 골라 주세요.';
+    tidyGo.disabled = !picked.size;
+    grid.querySelectorAll('label.tidy').forEach((l) => l.classList.toggle('on', l.querySelector('input').checked));
+  }
   const grid = h('ul', { class: 'lib-grid' });
   const more = h('button', { class: 'btn quiet', type: 'button', onclick: () => set({ limit: st.limit + PAGE }, true) });
   const empty = h('div', { hidden: true }, emptyBox('찾는 개념이 없어요', '다른 낱말로 찾거나 거르기를 풀어 보세요. 공부할 개념에서 빠진 낱말은 숨긴 개념에 있을 수 있어요.', h('div', { class: 'row' }, h('button', { class: 'btn quiet', type: 'button', onclick: () => { input.value = ''; set({ q: '', field: undefined, prog: 'all', expl: 'all', re: false }); } }, '거르기 모두 풀기'), h('a', { class: 'link', href: '#/hidden' }, '숨긴 개념에서 찾기 →'))));
@@ -520,7 +548,7 @@ async function pageAll(sub) {
   const graphToggle = h('details', { class: 'lib-graphwrap', hidden: true }, h('summary', {}, '이 분야의 개념 관계 보기'), graphBox);
   graphToggle.addEventListener('toggle', () => { if (graphToggle.open) drawGraph(); });
   const results = h('section', { class: 'lib-results', hidden: true, 'aria-label': '검색 결과' },
-    h('div', { class: 'lib-toolbar' }, h('div', { class: 'lib-filters' }, fieldSel, progBtns), h('label', { class: 'lib-sortwrap' }, h('span', {}, '정렬'), sortSel)),
+    h('div', { class: 'lib-toolbar' }, h('div', { class: 'lib-filters' }, fieldSel, progBtns), h('div', { class: 'row' }, tidyBtn, h('label', { class: 'lib-sortwrap' }, h('span', {}, '정렬'), sortSel))), tidyBar,
     h('div', { class: 'lib-meta' }, resultCount, chips), graphToggle, grid, empty, h('div', { class: 'list-foot' }, more, h('button', { class: 'link', type: 'button', onclick: () => { input.value = ''; set({ q: '', field: undefined, prog: 'all', expl: 'all', re: false, active: false }); } }, '← 둘러보기로')));
 
   function drawGraph() {
@@ -571,7 +599,7 @@ async function pageAll(sub) {
     let lastField = null;
     shown.forEach((x, i) => {
       if (st.sort === 'field' && x.field !== lastField) { items_.push(h('li', { class: 'lib-group' }, fname(x.field))); lastField = x.field; }
-      items_.push(card(x, keepScroll ? 0 : i, q));
+      items_.push(st.tidy ? tidyRow(x) : card(x, keepScroll ? 0 : i, q));
     });
     grid.replaceChildren(...items_);
     grid.classList.remove('lib-swap'); void grid.offsetWidth; grid.classList.add('lib-swap');
@@ -582,8 +610,10 @@ async function pageAll(sub) {
     progBtns.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.p === st.prog)));
     const chip = (label, clear) => h('button', { type: 'button', class: 'lib-chip', onclick: clear, 'aria-label': `${label} 거르기 풀기` }, label, h('span', { 'aria-hidden': 'true' }, ' ×'));
     chips.replaceChildren(...[q ? chip(`검색: ${q}`, () => { input.value = ''; set({ q: '' }); }) : null, st.field !== undefined ? chip(`분야: ${fname(st.field)}`, () => set({ field: undefined })) : null, st.prog !== 'all' ? chip(`상태: ${PROG[st.prog]}`, () => set({ prog: 'all' })) : null, st.expl === 'none' ? chip('설명 없는 개념만', () => set({ expl: 'all' })) : null, st.re ? chip('다시 나온 개념만', () => set({ re: false })) : null].filter(Boolean));
-    graphToggle.hidden = st.field === undefined;
+    graphToggle.hidden = st.field === undefined || st.tidy;
     if (graphToggle.open) drawGraph();
+    tidyBar.hidden = !st.tidy; tidyBtn.setAttribute('aria-pressed', String(st.tidy)); grid.classList.toggle('tidy-grid', st.tidy);
+    if (st.tidy) syncTidy();
   }
   function set(patch, keepScroll) { Object.assign(st, patch); if (!('limit' in patch)) st.limit = PAGE; if (('field' in patch || 'prog' in patch || 'expl' in patch || 're' in patch) && !('active' in patch)) st.active = true; draw(keepScroll); }
   draw();
@@ -698,7 +728,7 @@ function setFocus(on, btn) {
   try { localStorage.setItem('atelier-focus', on ? 'on' : 'off'); } catch { /* 저장 못 해도 동작 */ }
   focusByScroll();
 }
-try { setFocus(localStorage.getItem('atelier-focus') !== 'off'); } catch { setFocus(true); }
+try { setFocus(localStorage.getItem('atelier-focus') === 'on'); } catch { setFocus(false); }   // (0.9.3) 기본은 끔: 켜 두면 나머지 구획이 흐려져 읽기 어렵다 (11-14 화면 검토)
 // 상단 바: 아래로 내리면 숨고 위로 올리면 나온다. 맨 위 근처·바 안에 키보드 초점이 있을 때는 항상 보인다
 const topbar = document.querySelector('.topbar');
 let lastY = window.scrollY;
@@ -723,7 +753,7 @@ let timer; API.onUpdate(() => { clearTimeout(timer); timer = setTimeout(() => {
   if (document.hidden) return;
   const screen = document.body.dataset.screen;
   if (screen === 'chat' || screen === 'notes' || (Date.now() < quietUntil && screen === 'today')) return;
-  if (view.querySelector('.welcome-hero, .empty-box')) return render();
+  if ([...view.querySelectorAll('.welcome-hero, .empty-box')].some((e) => e.offsetParent !== null)) return render();   // (0.9.3) 보이는 빈 화면만: 전체 개념에는 숨긴 '찾는 개념이 없어요'가 늘 있어 검색·거르기·정리하기가 새 기록마다 지워졌다
   fresh.hidden = false;
 }, 800); });
 render();

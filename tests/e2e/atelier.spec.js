@@ -117,23 +117,24 @@ test.describe('[mock] 시안 · 실제 데이터에 없는 경우', () => {
     await ready(page);
     await expect(page.locator('.today-more')).toHaveAttribute('open', '');
   });
-  test('M31-focus-read: 개념 노트는 읽는 구획만 또렷하게, 끄면 모두 그대로', async ({ page }) => {
+  test('M31-focus-read: 기본은 모두 또렷하게(0.9.3), 켜면 읽는 구획만 또렷하게, 이 브라우저에 기억', async ({ page }) => {
     await mockApi(page);
     await page.goto('/atelier.html?static=1#/c/docker');
     await ready(page);
     const parts = page.locator('.reading > section, .reading > .progress-actions');
+    const toggle = page.getByRole('button', { name: '집중 읽기' });
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await expect.poll(() => parts.last().evaluate((e) => getComputedStyle(e).opacity)).toBe('1');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await parts.first().hover();
     await expect(parts.first()).toHaveClass(/here/);
-    expect(Number(await parts.last().evaluate((e) => getComputedStyle(e).opacity))).toBeLessThan(1);
+    await expect.poll(() => parts.last().evaluate((e) => Number(getComputedStyle(e).opacity))).toBeLessThan(1);
     await parts.last().hover();
     await expect(parts.last()).toHaveClass(/here/);
-    const toggle = page.getByRole('button', { name: '집중 읽기' });
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-    await expect.poll(() => parts.first().evaluate((e) => getComputedStyle(e).opacity)).toBe('1');
     await page.reload();
     await ready(page);
-    await expect(page.getByRole('button', { name: '집중 읽기' })).toHaveAttribute('aria-pressed', 'false');   // 이 브라우저에 기억
+    await expect(page.getByRole('button', { name: '집중 읽기' })).toHaveAttribute('aria-pressed', 'true');   // 이 브라우저에 기억
   });
   test('M34-journal: 개념 노트의 관련 개념은 별자리, 섹션 사이에 작은 별', async ({ page }, testInfo) => {
     await mockApi(page);

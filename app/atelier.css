@@ -86,6 +86,7 @@ main:focus { outline: none; }
 .nav { display: flex; gap: var(--s1); }
 .nav a { display: inline-flex; align-items: center; gap: var(--s2); min-height: 48px; padding: 0 var(--s4); text-decoration: none; color: var(--ink-2); font: 500 16px/1.4 var(--sans); border-bottom: 2px solid transparent; }
 .nav a .no { display: none; }
+.nav a .lb-s { display: none; }
 .nav a:hover { color: var(--ink); }
 .nav a[aria-current="page"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--cobalt); }
 .nav a[aria-current="page"] .no { color: var(--cobalt); }
@@ -758,7 +759,7 @@ details.raw[open] > summary::before { transform: rotate(90deg); }
 /* 개념 노트 집중 읽기: 읽는 구획 하나만 또렷하게 (끄기 가능, 이 브라우저에 기억) */
 .focus-toggle[aria-pressed="true"] { border-color: var(--ink); }
 :root[data-focus="on"] body[data-screen="concept"] .reading > :is(section, .progress-actions) { transition: opacity var(--slow) var(--ease); }
-:root[data-focus="on"] body[data-screen="concept"] .reading > :is(section, .progress-actions):not(.here) { opacity: .38; }
+:root[data-focus="on"] body[data-screen="concept"] .reading > :is(section, .progress-actions):not(.here) { opacity: .55; }
 :root[data-focus="on"] body[data-screen="concept"] :is(.aux, .margin-notes) { opacity: .55; transition: opacity var(--slow) var(--ease); }
 :root[data-focus="on"] body[data-screen="concept"] :is(.aux, .margin-notes):is(:hover, :focus-within) { opacity: 1; }
 
@@ -897,3 +898,20 @@ body.bar-away .day-head { top: 0; }
 .sense-body p { margin: .25rem 0 .35rem; line-height: 1.6; }
 .sense-list .btn { flex: none; }
 @media (max-width: 560px) { .sense-list li { flex-direction: column; } }
+
+/* (0.9.3) 한 번에 정리하기 */
+.tidy-bar { position: sticky; top: 84px; z-index: 5; background: var(--sheet); box-shadow: 0 6px 18px rgba(23, 28, 50, .10); display: flex; flex-wrap: wrap; gap: var(--s3); align-items: center; justify-content: space-between; padding: var(--s3) var(--s4); margin-bottom: var(--s4); }
+.tidy-n { font-weight: 600; }
+.lib-card.tidy { display: grid; grid-template-columns: auto 1fr; column-gap: var(--s3); align-items: start; cursor: pointer; }
+.lib-card.tidy input { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--cobalt); grid-row: span 2; }
+.lib-card.tidy.on { outline: 2px solid var(--cobalt); outline-offset: -2px; }
+@media (max-width: 560px) { .tidy-bar { top: 64px; } }
+
+/* (0.9.3) 좁은 휴대폰: 아래 메뉴 6개가 두 줄로 꺾이던 것 → 짧은 이름 (화면 읽기 프로그램은 원래 이름을 읽는다) */
+@media (max-width: 480px) {
+  .nav a .lb { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .nav a .lb-s { display: inline; font-size: 15px; }
+}
+
+/* (0.9.3) 질문 상자: 반투명이면 뒤의 예시 질문이 비쳐 겹쳐 보였다 (휴대폰 실측) */
+.ask-composer.glass { background: var(--sheet); backdrop-filter: none; -webkit-backdrop-filter: none; }
