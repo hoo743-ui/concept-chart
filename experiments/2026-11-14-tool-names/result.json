@@ -1,0 +1,273 @@
+{
+ "ascii_words": 728,
+ "candidate/llm_none": {
+  "n": 19,
+  "brew_match": 3,
+  "examples": [
+   [
+    "baseline",
+    "baseline",
+    "Automate onboardings by installing apps and running scripts"
+   ],
+   [
+    "container",
+    "container",
+    "Create and run Linux containers using lightweight virtual ma"
+   ],
+   [
+    "repo",
+    "repo",
+    "Repository tool for Android development"
+   ]
+  ]
+ },
+ "candidate/llm_yes": {
+  "n": 40,
+  "brew_match": 12,
+  "examples": [
+   [
+    "Alembic",
+    "alembic",
+    "Open computer graphics interchange framework"
+   ],
+   [
+    "Colima",
+    "colima",
+    "Container runtimes on MacOS (and Linux) with minimal setup"
+   ],
+   [
+    "Discord",
+    "discord",
+    "Voice and text chat software"
+   ],
+   [
+    "has",
+    "has",
+    "Checks presence of various command-line tools and their vers"
+   ],
+   [
+    "Mac",
+    "mac",
+    "Monkey's Audio lossless codec"
+   ],
+   [
+    "Raycast",
+    "raycast",
+    "Control your tools with a few keystrokes"
+   ],
+   [
+    "Rectangle",
+    "rectangle",
+    "Move and resize windows using keyboard shortcuts or snap are"
+   ],
+   [
+    "Silicon",
+    "silicon",
+    "Create beautiful image of your source code"
+   ],
+   [
+    "Termius",
+    "termius",
+    "SSH client"
+   ],
+   [
+    "Ubuntu",
+    "font-ubuntu",
+    ""
+   ],
+   [
+    "Wayland",
+    "wayland",
+    "Protocol for a compositor to talk to its clients"
+   ],
+   [
+    "zip",
+    "zip",
+    "Compression and file packaging/archive utility"
+   ]
+  ]
+ },
+ "hide/llm_no": {
+  "n": 11,
+  "brew_match": 2,
+  "examples": [
+   [
+    "so",
+    "so",
+    "Terminal interface for StackOverflow"
+   ],
+   [
+    "task",
+    "task",
+    "Feature-rich console based todo list manager"
+   ]
+  ]
+ },
+ "hide/llm_none": {
+  "n": 440,
+  "brew_match": 43,
+  "examples": [
+   [
+    "Adapter",
+    "adapter",
+    "Converts video, audio and images"
+   ],
+   [
+    "bat",
+    "bat",
+    "Clone of cat(1) with syntax highlighting and Git integration"
+   ],
+   [
+    "bridge",
+    "bridge",
+    "3D asset manager"
+   ],
+   [
+    "changes",
+    "changes",
+    "Git GUI"
+   ],
+   [
+    "Connect",
+    "connect",
+    "Provides SOCKS and HTTPS proxy support to SSH"
+   ],
+   [
+    "Di",
+    "di",
+    "Advanced df-like disk information utility"
+   ],
+   [
+    "Go",
+    "go",
+    "Open source programming language to build simple/reliable/ef"
+   ],
+   [
+    "heartbeat",
+    "heartbeat",
+    "Lightweight Shipper for Uptime Monitoring"
+   ],
+   [
+    "Homebrew",
+    "homebrew-app",
+    "Homebrew's official GUI"
+   ],
+   [
+    "hook",
+    "hookmark",
+    "Link and retrieve key information"
+   ],
+   [
+    "Hut",
+    "hut",
+    "CLI tool for sr.ht"
+   ],
+   [
+    "just",
+    "just",
+    "Handy way to save and run project-specific commands"
+   ],
+   [
+    "Lab",
+    "lab",
+    "Git wrapper for GitLab"
+   ],
+   [
+    "lets",
+    "lets",
+    "Font manager for Fontworks' LETS"
+   ],
+   [
+    "Make",
+    "make",
+    "Utility for directing compilation"
+   ]
+  ]
+ },
+ "show/llm_none": {
+  "n": 216,
+  "brew_match": 36,
+  "examples": [
+   [
+    "ACK",
+    "ack",
+    "Search tool like grep, but optimized for programmers"
+   ],
+   [
+    "ACL",
+    "acl",
+    "Commands for manipulating POSIX access control lists"
+   ],
+   [
+    "ChatGPT",
+    "chatgpt",
+    "OpenAI's official ChatGPT desktop app"
+   ],
+   [
+    "Claude",
+    "claude",
+    "Anthropic's official Claude AI desktop app"
+   ],
+   [
+    "CLIP",
+    "clip",
+    "Create high-quality charts from the command-line"
+   ],
+   [
+    "DB",
+    "berkeley-db",
+    "High performance key/value database"
+   ],
+   [
+    "Delta",
+    "git-delta",
+    "Syntax-highlighting pager for git and diff output"
+   ],
+   [
+    "Docker",
+    "docker",
+    "Pack, ship and run any application as a lightweight containe"
+   ],
+   [
+    "EXIF",
+    "exif",
+    "Read, write, modify, and display EXIF data on the command-li"
+   ],
+   [
+    "FastAPI",
+    "fastapi",
+    "CLI for FastAPI framework"
+   ],
+   [
+    "Git",
+    "git",
+    "Distributed revision control system"
+   ],
+   [
+    "GitHub",
+    "github",
+    "Desktop client for GitHub repositories"
+   ],
+   [
+    "GNOME",
+    "gnome",
+    "Menu bar GIF search and creation tool"
+   ],
+   [
+    "GX",
+    "gx",
+    "Language-agnostic, universal package manager"
+   ],
+   [
+    "IO",
+    "io",
+    "Small prototype-based programming language"
+   ]
+  ]
+ },
+ "show/llm_yes": {
+  "n": 2,
+  "brew_match": 0,
+  "examples": []
+ }
+}

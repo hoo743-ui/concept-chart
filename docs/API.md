@@ -13,10 +13,10 @@
 | `/api/study/concept/{id}` | 개념 노트 (아래). 처음 열면 정의 수집과 노트 작성을 뒤에서 예약한다. 열 때마다 '열어 본 기록'을 남긴다 (`cursor`로 다음 쪽을 볼 때는 남기지 않음) |
 | `/api/answers?k=20` | `{items:[{id, session, ts, source, preview, chars}]}` 최근 답변 |
 | `/api/answers/{id}` | `{id, ts, source, text, question, terms:[{id, label, forms}], summary}` 답변 원문과 그 안의 공부 개념 |
-| `/api/health` | `{llm:{name, available}, jobs:{queued, done, failed}, study_worker, turns, sessions, web}` |
+| `/api/health` | `{llm:{name, available}, jobs:{queued, done, failed}, study_worker, turns, sessions, web, inbox:{path, exists}, sources:[{source, answers, last}]}` (11-14: 화면 상태 줄에 데이터 경로·입구별 답변 수) |
 | `/api/events` | SSE. 내용이 바뀌면 `update` 이벤트 |
 
-**개념 요약** `{id, label, rank, sessions, turns, last_seen, gate, progress, line, line_kind, origin, field}`
+**개념 요약** `{id, label, rank, sessions, turns, last_seen, gate, progress, known, line, line_kind, origin, field}` (`known`: 이미 알던 낱말, 11-14)
 
 - `gate`: `{show, candidate, extra, by, rule}` 보여 줄지. `extra` = 질문 묶음의 '더 보기'에만 낼 낱말 (`concept_gate.rescue`). `by` = `user`·`rule`·`code`(원 답변에서 import·pip·인라인 코드로 쓰인 영어 이름, 0.7.0)·`clf`(개념 분류기 점수, 0.8.0)·`lexicon`·`llm`·`terms`·`unjudged`
 - `progress`: `new`·`review`·`known`
@@ -43,6 +43,7 @@
 |---|---|---|
 | `/api/ingest` | `{text, source?, session?, question?}` | `{added}` AI 답변 추가. 키는 가려서 저장, 같은 글은 `false`. `question`은 답변 앞의 내 질문(분석 안 함), `session`은 대화 묶음 (11-13 브라우저 확장용). 다른 사이트는 막고, 확장은 `extension/`의 고정 ID 하나만 이 경로에 허락 |
 | `/api/study/concept/{id}/progress` | `{status: new\|review\|known}` | `{ok}` |
+| `/api/study/concept/{id}/known` | `{known: true\|false}` | `{ok}` 이미 알던 낱말 (11-14, D12 수준선). 공부 목록(`view=show`)·오늘 공부에서 빠지고 숨긴 낱말(`view=hidden`)에 `known: true`로 남는다. 관문 판정(`gate`)·지속 검증 정답에는 쓰지 않는다 |
 | `/api/study/concept/{id}/feedback` | `{verdict: concept\|not_concept\|clear}` | `{ok}` 사용자 판단은 규칙과 LLM보다 앞선다 |
 | `/api/study/concept/{id}/sense` | `{title}` (후보 제목, 모르면 `""`) | `{ok, definition}` (0.9.2) 뜻 고르기. 후보에 없는 제목은 400. 고른 뜻은 출처와 함께 정의가 되고 다시 찾지 않는다 |
 | `/api/answers/{id}/summary` | `{}` | `{queued, reason?}` 요약 예약 |

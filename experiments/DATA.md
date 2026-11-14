@@ -69,3 +69,17 @@
 - **어려운 오답 라벨에 애매한 쌍이 있다:** `결정 트리` / `Decision tree learning`은 위키백과에서 다른 문서라 오답으로 표시됐지만, 실제로는 같은 뜻으로 쓰일 수 있다. 사람 확인이 필요하다.
 - **시험 세트가 작다:** 정답 58, 어려운 오답 42. 95% 구간이 넓게 나올 수 있다.
 - **검토 대기 841개에 좋은 표기가 있다:** `ML옵스`, `AlphaGo Zero`. 사람이 확인하기 전에는 쓰지 않는다.
+
+## homebrew (11-14, 설명·두 번째 근거: 내 대화에서 brew로 설치한 도구 이름만, D13)
+
+| 항목 | 값 |
+|---|---|
+| 출처 | https://formulae.brew.sh/api/formula.json · https://formulae.brew.sh/api/cask.json |
+| 받은 날 | 2026-11-14 |
+| 라이선스 | BSD-2-Clause — Homebrew/homebrew-core · Homebrew/homebrew-cask · Homebrew/formulae.brew.sh 저장소 라이선스 (GitHub API `repos/<저장소>/license`로 확인). 화면 출처에 'Homebrew 설명, BSD-2-Clause'와 formulae.brew.sh 주소를 붙인다 |
+| 원본 | `data/raw/homebrew/formula.json` 32,268,875바이트 SHA-256 `cb4c30d887c83255eb945db1743f551621c9498816a320c47d4c396884f9a7f9` (8,730개), `cask.json` 19,457,629바이트 SHA-256 `a4198df89a982b82aa7ab09ce2ead173f384a39965a9368961eed74e3493a85b` (7,832개). 매일 바뀌는 목록이라 고정하지 않는다 |
+| 가공 | `kit/data/lexicon/homebrew.sqlite`: 이름(패키지 이름·별칭, 앱 토큰·이름, 소문자) 21,719개 → (종류, 이름, 설명). 쓰는 열은 이름과 desc뿐 |
+| 다시 만들기 | `python lexicons/homebrew.py` |
+
+- 이름만 맞추면 절반 가까이 다른 뜻이라(Mac → 오디오 코덱, ACK → 검색 도구; `experiments/2026-11-14-tool-names/`) 앱은 대화에 `brew install 이름` 흔적이 있는 낱말에만 쓴다 (`kit/homebrew.py`).
+

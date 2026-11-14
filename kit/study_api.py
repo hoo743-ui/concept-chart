@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 import concept_gate as gate
 import fields
+import homebrew
 
 STATUSES = {"known", "review", "new"}
 VERDICTS = {"concept", "not_concept", "clear"}
@@ -82,6 +83,8 @@ def gate_of(con, cid, label, use_user=True):
         return {"show": user == "concept", "candidate": False, "extra": False, "by": "user", "rule": rule}
     lex = gate.lexicon_verdict(label)
     src = sourced(con, cid) if rule == "unknown" and lex != "general" else False
+    if not src and rule == "unknown" and lex != "general":     # (11-14) 내 대화에서 brew로 설치한 도구 이름이면 Homebrew 설명을 두 번째 근거로 (분류기 입력인 sourced는 그대로)
+        src = homebrew.evidence(con, label) is not None
     llm = None if llm is None else bool(llm)
     extra = False
     code = bool(code)
@@ -141,16 +144,39 @@ def with_origin(con, items):
     return items
 
 
+def known_set(con):
+    """(11-14, D12 수준선) 사용자가 '이미 알아요'라고 한 낱말. 표가 없는 예전 DB면 빈 집합"""
+    try:
+        return {r[0] for r in con.execute("SELECT concept FROM known_words")}
+    except sqlite3.OperationalError:
+        return set()
+
+
+def set_known(con, cid, known):
+    """'이미 알아요' 표시·되돌리기. 관문 판정(judgments)·진도(progress)와 따로 둔다: 개념인가와 내가 아는가는 다른 질문이다 (D12)"""
+    if not isinstance(known, bool):
+        raise ValueError("known은 true·false")
+    con.execute("CREATE TABLE IF NOT EXISTS known_words (concept TEXT PRIMARY KEY, updated TEXT)")
+    if known:
+        con.execute("REPLACE INTO known_words VALUES (?,?)", (cid, now()))
+    else:
+        con.execute("DELETE FROM known_words WHERE concept=?", (cid,))
+    con.commit()
+
+
 def concepts(con, board, view="show", k=50, project=None, origin=True, extra=False):
-    """view: show(공부할 개념) · hidden(숨겨진 낱말) · all. extra=True면 show에 '더 보기'에만 낼 낱말(gate.extra)도 넣는다 (today용)"""
+    """view: show(공부할 개념) · hidden(숨겨진 낱말) · all. extra=True면 show에 '더 보기'에만 낼 낱말(gate.extra)도 넣는다 (today용)
+    (11-14) '이미 알아요'한 낱말은 공부 목록(show)에서 빼고 숨긴 낱말(hidden)에 known=True로 둔다. 관문 판정(gate)은 그대로"""
     data = board(con, k=100000, project=project)
+    known = known_set(con)
     items = []
     for x in data["items"]:
         g = gate_of(con, x["id"], x["label"])
-        if view == "all" or (view == "show") == g["show"] or (view == "show" and extra and g["extra"]):
+        kn = x["id"] in known
+        if view == "all" or (view == "show" and not kn and (g["show"] or (extra and g["extra"]))) or (view == "hidden" and (not g["show"] or kn)):
             line, kind = summary_line(con, x["id"])
             items.append({"id": x["id"], "label": x["label"], "rank": len(items) + 1, "sessions": x["sessions"], "turns": x["turns"], "last_seen": x["last_seen"],
-                          "gate": g, "progress": progress_of(con, x["id"]), "line": line, "line_kind": kind})
+                          "gate": g, "progress": progress_of(con, x["id"]), "known": kn, "line": line, "line_kind": kind})
     items.sort(key=lambda x: (-x["sessions"], -x["turns"], x["rank"]))       # 세션이 적을 때는 점수가 같은 개념이 많아 자주 나온 순서로 가른다
     if view == "hidden":                                    # 후보를 먼저
         items.sort(key=lambda x: not x["gate"]["candidate"])
@@ -191,7 +217,7 @@ def today(con, board, k=7, project=None):
         g["more"] = [{"id": x["id"], "label": x["label"], "extra": x["gate"]["extra"]} for x in g["more"]]
     left = sum(1 for x in todo if x["gate"]["show"])
     return {"project": project, "groups": picked, "items": [x for g in picked for x in g["items"]],
-            "counts": {"shown": len(shown), "known": known, "left": left, "hidden": data["total_words"] - len(shown), "questions": len(groups),
+            "counts": {"shown": len(shown), "known": known, "known_words": len(known_set(con)), "left": left, "hidden": data["total_words"] - len(shown), "questions": len(groups),
                        "extra": len(todo) - left}}
 
 
@@ -208,7 +234,7 @@ def detail(con, card, cid):
             related.append({"id": b, "label": label[0]})
         if len(related) >= 6:
             break
-    return dict(card, related=related, gate=gate_of(con, cid, card["label"]), progress=progress_of(con, cid), note=note, origin=origin_of(con, cid), field=fields.field_of(con, cid, card["label"]), forms=forms, practice=practice(card.get("definition"), forms or [card["label"]]))
+    return dict(card, related=related, gate=gate_of(con, cid, card["label"]), progress=progress_of(con, cid), known=cid in known_set(con), note=note, origin=origin_of(con, cid), field=fields.field_of(con, cid, card["label"]), forms=forms, practice=practice(card.get("definition"), forms or [card["label"]]))
 
 
 def practice(definition, forms):

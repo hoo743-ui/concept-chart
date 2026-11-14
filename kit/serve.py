@@ -279,6 +279,7 @@ CREATE TABLE IF NOT EXISTS judgments (concept TEXT PRIMARY KEY, llm INTEGER, use
 CREATE TABLE IF NOT EXISTS study_notes (concept TEXT PRIMARY KEY, body TEXT, status TEXT, model TEXT, updated TEXT);
 CREATE TABLE IF NOT EXISTS answer_summaries (answer TEXT PRIMARY KEY, body TEXT, status TEXT, model TEXT, updated TEXT);
 CREATE TABLE IF NOT EXISTS progress (concept TEXT PRIMARY KEY, status TEXT, updated TEXT);
+CREATE TABLE IF NOT EXISTS known_words (concept TEXT PRIMARY KEY, updated TEXT);
 CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, kind TEXT, target TEXT, priority INTEGER, status TEXT, tries INTEGER DEFAULT 0, updated TEXT, UNIQUE (kind, target));
 """
 SYSTEM_MSG = re.compile(r"\s*<(?:task-notification|system-reminder|command-|local-command)")
@@ -925,6 +926,8 @@ def collect_note(con, c, fetcher):
         return mine
     forms = [r[0] for r in con.execute("SELECT form FROM forms WHERE concept=? ORDER BY n DESC, form", (c,))]
     label = forms[0] if forms else c
+    import homebrew                                       # (11-14) 내 대화에서 brew로 설치한 도구 (그 도구라는 뜻이 대화로 정해져 있다)
+    hb = homebrew.evidence(con, label)
     err, rejected = None, []
     try:
         try:
@@ -935,6 +938,11 @@ def collect_note(con, c, fetcher):
             definition, sources = fetcher(label, forms[1:], context_terms(con, c))
     except Exception as e:  # noqa: BLE001 — 아래에서 대체 출처를 본 뒤 다시 올린다
         definition, sources, err = "", [], e
+    if hb:                                                # 이름이 같거나 기술 분야 괄호가 붙은 위키백과 문서(Ollama, Docker → 도커 (소프트웨어))면 그 설명을 두고,
+        import fetch_sources as fs                        # 다른 이름의 문서(Colima → 콜리마주)나 검색 결과뿐이면 Homebrew 설명으로
+        title = wiki_title(sources[0]["url"]) if definition and sources else None
+        if not (title and (norm_key(title) == norm_key(label) or fs.TECH_PAREN.search(title))):
+            definition, sources, err = f"{label}: {hb['desc']}", [{"text": f"{hb['desc']} (Homebrew 설명, BSD-2-Clause)", "url": hb["url"]}], None
     if rejected:                                          # (0.7.16) 정의로 쓰지 않은 다른 뜻 문서: 관문 근거로만 (검색 단계가 오류여도 남긴다)
         con.execute("REPLACE INTO wiki_names VALUES (?,?,?)", (c, rejected[0]["url"], datetime.now(timezone.utc).isoformat()))
         con.commit()
@@ -1129,7 +1137,11 @@ def study_get(st, con, path, q):
     if path == "/api/health":
         import llm as llm_mod
         return {"llm": {"name": st.llm, "available": llm_mod.make(st.llm).available()}, "jobs": api.job_counts(con), "study_worker": st.study_running(),
-                "turns": int(meta_get(con, "turns", 0)), "sessions": con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0], "web": bool(st.web)}
+                "turns": int(meta_get(con, "turns", 0)), "sessions": con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0], "web": bool(st.web),
+                # (11-14) 화면에서 데이터가 실제로 들어오는지 보이게: 인박스 경로·존재, 입구별 답변 수와 마지막 시각
+                "inbox": {"path": str(pathlib.Path(st.inbox).expanduser()), "exists": pathlib.Path(st.inbox).expanduser().is_file()},
+                "sources": [{"source": s, "answers": n, "last": last} for s, n, last in
+                            con.execute("SELECT source, COUNT(*), MAX(ts) FROM answers GROUP BY source ORDER BY MAX(ts) DESC")]}
     return None
 
 
@@ -1148,13 +1160,15 @@ def study_post(st, con, path, body):
         if isinstance(q, str) and q.strip():                # (11-13) 확장: 답변 앞의 내 질문 (분석하지 않고 원문 저장, 질문별 묶음용)
             concept_add.add(q, source, role="user", session=session, inbox=st.inbox)
         return {"added": concept_add.add(text, source, session=session, inbox=st.inbox)}    # 서버가 읽는 인박스에 쓴다
-    m = re.fullmatch(r"/api/study/concept/([^/]+)/(progress|feedback)", path)
+    m = re.fullmatch(r"/api/study/concept/([^/]+)/(progress|feedback|known)", path)
     if m:
         cid = urllib.parse.unquote(m.group(1))
         if not con.execute("SELECT 1 FROM freq WHERE concept=?", (cid,)).fetchone():
             return {"__status": 404, "error": "없는 개념", "id": cid}
         if m.group(2) == "progress":
             api.set_progress(con, cid, body.get("status"))
+        elif m.group(2) == "known":                         # (11-14, D12) '이미 알아요': 공부 목록에서만 뺀다. 관문 판정·검증 정답에는 쓰지 않는다
+            api.set_known(con, cid, body.get("known"))
         else:
             api.set_feedback(con, cid, body.get("verdict"))
         st.bump()

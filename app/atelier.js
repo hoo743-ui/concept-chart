@@ -343,6 +343,11 @@ async function pageConcept(id) {
   reading.append(h('div', { class: 'progress-actions' }, h('h2', { class: 'h2' }, '읽은 내용을 기억해 두세요'),
     h('p', { class: 'sub' }, '이해했으면 오늘 목록에서 빠지고, 다시 볼 개념은 다음에 먼저 보여 드려요.'),
     h('div', { class: 'row' }, h('button', { class: 'btn primary', type: 'button', onclick: (e) => mark('known', e.currentTarget) }, '이해했어요'), h('button', { class: 'btn quiet', type: 'button', onclick: (e) => mark('review', e.currentTarget) }, '다시 볼게요')), fail));
+  // (11-14, D12 수준선) 원래 알던 낱말: 공부 목록에서만 뺀다 ('공부할 개념 아님'과 달리 자동 판단의 정답으로 쓰지 않는다)
+  const setKnown = async (known, btn) => { btn.disabled = true; const old = btn.textContent; btn.textContent = '저장 중…'; const here = location.hash; try { await API.setKnown(c.concept, known); if (known) { btn.textContent = '공부 목록에서 뺐어요 ✓'; setTimeout(() => { if (location.hash === here) location.hash = back.href; }, 450); } else render(); } catch (e) { btn.disabled = false; btn.textContent = old; fail.textContent = '저장하지 못했어요. ' + e.message; } };
+  reading.append(h('div', { class: 'known-row' }, c.known
+    ? [h('p', { class: 'sub' }, '이미 안다고 표시한 낱말이에요. 공부 목록과 오늘 공부에는 나오지 않아요.'), h('button', { class: 'btn quiet small', type: 'button', onclick: (e) => setKnown(false, e.currentTarget) }, '다시 공부 목록에 넣기')]
+    : [h('p', { class: 'sub' }, '원래 알던 낱말이면 공부 목록에서 빼 둘게요. 숨긴 개념에서 언제든 되돌릴 수 있어요.'), h('button', { class: 'btn quiet small', type: 'button', onclick: (e) => setKnown(true, e.currentTarget) }, '이미 알던 낱말이에요')]));
   const mine = c.gate && c.gate.by === 'user';
   const send = async (verdict, btn) => { const row = btn ? [...btn.parentElement.querySelectorAll('button')] : []; row.forEach((b) => (b.disabled = true)); try { await API.setFeedback(c.concept, verdict); render(); } catch (e) { row.forEach((b) => (b.disabled = false)); fail.textContent = '저장하지 못했어요. ' + e.message; } };
   const aux = h('aside', { class: 'glass aux reveal', style: 'animation-delay:120ms', 'aria-label': '보조 정보' },
@@ -625,6 +630,7 @@ async function pageAll(sub) {
 const qshort = (q) => { if (!q) return null; const env = Render.envelope(q); return env ? env.label + (env.title ? ' · ' + clip(env.title, 30) : '') + '에서' : '“' + clip(q, 44) + '”에서'; };
 function why(x) {
   const g = x.gate || {};
+  if (x.known) return '내가 이미 안다고 했어요.';
   if (g.by === 'user') return '내가 공부할 개념이 아니라고 했어요.';
   if (g.candidate) return 'AI는 개념으로 봤지만, 일상 뜻도 있어 후보로 남겼어요.';
   if (g.by === 'llm') return '두 번째 근거(사전·위키백과)가 없거나 AI가 일상어로 봤어요.';
@@ -633,10 +639,18 @@ function why(x) {
 }
 async function pageHidden() {
   const d = await API.concepts('hidden', 500);
-  const cands = d.items.filter((x) => x.gate && x.gate.candidate), rest = d.items.filter((x) => !(x.gate && x.gate.candidate));
+  const cands = d.items.filter((x) => !x.known && x.gate && x.gate.candidate), rest = d.items.filter((x) => x.known || !(x.gate && x.gate.candidate));
   const row = (x) => {
     const li = h('li', { class: 'ritem' + (x.gate && x.gate.candidate ? '' : ' hidden-word') }, h('span', { class: 'w' }, x.label),
       h('p', { class: 'why' }, h('span', { class: 'meta' }, [x.field || '분야 미정', qshort(x.origin && x.origin.question)].filter(Boolean).join(' · '))));
+    if (x.known) {                                   // (11-14) 이미 안다고 한 낱말: 되돌리기만
+      const back = h('button', { class: 'btn quiet small', type: 'button', 'aria-label': `${x.label} — 다시 공부 목록에 넣기`, onclick: async () => {
+        back.disabled = true;
+        try { await API.setKnown(x.id, false); li.classList.add('done'); back.replaceWith(h('a', { class: 'link', href: cHash(x.id), role: 'status' }, '공부 목록에 다시 넣었어요 · 노트 열기 →')); }
+        catch (err) { back.disabled = false; back.after(h('span', { class: 'meta', role: 'status' }, ' 저장하지 못했어요: ' + err.message)); }
+      } }, '다시 공부 목록에 넣기');
+      li.append(back); return li;
+    }
     const btn = h('button', { class: 'btn quiet small', type: 'button', 'aria-label': `${x.label} — 공부할 개념으로 표시`, onclick: async () => {
       btn.disabled = true;
       try { await API.setFeedback(x.id, 'concept'); li.classList.add('done'); btn.replaceWith(h('a', { class: 'link', href: cHash(x.id), role: 'status' }, '공부할 개념으로 표시했어요 · 노트 열기 →')); }
@@ -700,8 +714,16 @@ async function health() {
   try {
     const st = await API.health();
     const t = (st.llm.available ? 'AI 요약 켜짐' : 'AI 요약 꺼짐 · 출처 문장만') + (st.jobs && st.jobs.queued ? ` · 준비 중 ${st.jobs.queued}건` : '');
-    document.getElementById('health').textContent = t;
-    document.getElementById('status').textContent = '상태 · ' + t + ' · 이 PC에서만 실행';
+    // (11-14) 데이터가 들어오는지: 입구별 답변 수 · 마지막 시각, 없으면 인박스 경로와 연결 방법
+    const srcs = st.sources || [], total = srcs.reduce((a, s) => a + s.answers, 0);
+    const when = (ts) => { const d = new Date(ts); return isNaN(d) ? '' : d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };
+    const data = total ? `받은 답변 ${total}개 (${srcs.map((s) => sourceName(s.source) + ' ' + s.answers).join(' · ')})` : '받은 답변 없음';
+    const hd = document.getElementById('health');
+    hd.textContent = t + ' · ' + data;
+    hd.title = st.inbox ? '기록 파일: ' + st.inbox.path : '';
+    const where = st.inbox ? (st.inbox.exists ? `기록 파일 ${st.inbox.path}` : `기록 파일 ${st.inbox.path} 이 아직 없어요 · claude.ai 확장이나 Claude Code 훅을 연결하면 생겨요`) : '';
+    const last = srcs.length ? ` · 마지막 받음 ${sourceName(srcs[0].source)} ${when(srcs[0].last)}` : '';
+    document.getElementById('status').textContent = '상태 · ' + t + ' · ' + data + last + (where ? ' · ' + where : '') + ' · 이 PC에서만 실행';
   } catch { document.getElementById('status').textContent = ''; }
 }
 const motionBtn = document.getElementById('motion');

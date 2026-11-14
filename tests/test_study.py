@@ -434,6 +434,18 @@ def check_server(tmp):
         ok("이해함 표시 → 오늘 목록에서 빠짐", status == 200 and cid not in [x["id"] for x in d2["items"]] and d2["counts"]["known"] == 1)
         status, _ = post(f"/api/study/concept/{urllib.parse.quote(cid)}/progress", {"status": "이상한값"})
         ok("잘못된 값은 400", status == 400)
+        # (11-14, D12) 이미 알던 낱말: 공부 목록에서만 빠지고, 숨긴 낱말에 남고, 관문 판정은 그대로, 되돌릴 수 있다
+        other = next(x for x in get("/api/study/concepts?view=show&k=50")["items"] if x["id"] != cid)
+        oq = urllib.parse.quote(other["id"])
+        status, _ = post(f"/api/study/concept/{oq}/known", {"known": True})
+        shown_ids = [x["id"] for x in get("/api/study/concepts?view=show&k=50")["items"]]
+        hid_k = [x for x in get("/api/study/concepts?view=hidden&k=500")["items"] if x["id"] == other["id"]]
+        ok("이미 알아요 → 공부 목록에서 빠지고 숨긴 낱말에 known으로", status == 200 and other["id"] not in shown_ids and hid_k and hid_k[0]["known"] is True and hid_k[0]["gate"]["show"] is True)
+        ok("이미 알아요 → 개념 노트에 known, 관문 판정은 그대로", get("/api/study/concept/" + oq)["known"] is True and get("/api/study/concept/" + oq)["gate"]["by"] != "user")
+        status, _ = post(f"/api/study/concept/{oq}/known", {"known": False})
+        ok("이미 알아요 되돌리기", status == 200 and other["id"] in [x["id"] for x in get("/api/study/concepts?view=show&k=50")["items"]])
+        status, _ = post(f"/api/study/concept/{oq}/known", {"known": "yes"})
+        ok("known 잘못된 값은 400", status == 400)
         hid = get("/api/study/concepts?view=hidden&k=50")["items"]
         word = next(x for x in hid if x["label"] == "추천")
         post(f"/api/study/concept/{urllib.parse.quote(word['id'])}/feedback", {"verdict": "concept"})
@@ -719,6 +731,43 @@ def check_today_extra(tmp):
         con.close()
 
 
+def check_homebrew(tmp):
+    """(11-14) 내 대화에서 brew로 설치한 도구만 Homebrew 설명을 근거·설명으로 (이름만 같은 다른 뜻을 막는다)"""
+    import homebrew
+    ok("brew 명령 속 이름 읽기 (옵션·전체 이름·여러 개)", homebrew.names_in("brew install --cask termius colima; ls\n`brew install homebrew/cask/raycast`") == {"termius", "colima", "raycast"})
+    ok("brew 명령이 아닌 글에서는 읽지 않음", homebrew.names_in("Mac에서 colima를 쓰면 편해요") == set())
+    lexdir = tmp / "hb-lex"
+    lexdir.mkdir()
+    lx = sqlite3.connect(lexdir / "homebrew.sqlite")
+    lx.execute("CREATE TABLE brew (key TEXT PRIMARY KEY, kind TEXT, name TEXT, desc TEXT)")
+    lx.executemany("INSERT INTO brew VALUES (?,?,?,?)", [("colima", "formula", "colima", "Container runtimes on MacOS (and Linux) with minimal setup"),
+                                                          ("mac", "formula", "mac", "Monkey's Audio lossless codec")])
+    lx.commit(); lx.close()
+    con = sqlite3.connect(":memory:")
+    con.executescript("CREATE TABLE answers (id TEXT, session TEXT, ts TEXT, source TEXT, text TEXT, question INTEGER); CREATE TABLE questions (id INTEGER PRIMARY KEY, session TEXT, ts TEXT, text TEXT);")
+    con.execute("INSERT INTO answers VALUES ('a','s','t1','claude-code','터미널에서 brew install colima 를 실행하세요. Mac에서 잘 돌아요.',NULL)")
+    old = os.environ.get("CONCEPT_CHART_LEXICON")
+    os.environ["CONCEPT_CHART_LEXICON"] = str(lexdir)
+    try:
+        ev = homebrew.evidence(con, "Colima")
+        ok("설치 명령이 있는 도구 → Homebrew 설명과 주소", ev and ev["desc"].startswith("Container runtimes") and ev["url"] == "https://formulae.brew.sh/formula/colima", str(ev))
+        ok("사전에 있어도 설치 명령이 없으면 쓰지 않음 (Mac → 오디오 코덱을 막음)", homebrew.evidence(con, "Mac") is None)
+        con.executescript("CREATE TABLE forms (concept TEXT, form TEXT, n INTEGER); CREATE TABLE wiki_names (concept TEXT PRIMARY KEY, url TEXT, updated TEXT); CREATE TABLE cooc (a TEXT, b TEXT, n INTEGER);")
+        con.execute("INSERT INTO forms VALUES ('colima','Colima',3)")
+        other = lambda *a, **k: ("콜리마주는 멕시코 서부의 주이다.", [{"text": "콜리마주는 멕시코 서부의 주이다.", "url": "https://ko.wikipedia.org/wiki/%EC%BD%9C%EB%A6%AC%EB%A7%88%EC%A3%BC"}])
+        same = lambda *a, **k: ("Colima는 컨테이너 런타임이다.", [{"text": "Colima는 컨테이너 런타임이다.", "url": "https://en.wikipedia.org/wiki/Colima"}])
+        d1, s1 = serve.collect_note(con, "colima", other)
+        ok("설치한 도구인데 위키백과가 다른 이름의 문서면 Homebrew 설명 (콜리마주를 막음)", d1.startswith("Colima: Container runtimes") and "formulae.brew.sh" in s1[0]["url"], d1)
+        d2, _ = serve.collect_note(con, "colima", same)
+        ok("이름이 똑같은 위키백과 문서가 있으면 그 설명을 둠", d2.startswith("Colima는 컨테이너"), d2)
+        paren = lambda *a, **k: ("Colima는 컨테이너 런타임이다.", [{"text": "Colima는 컨테이너 런타임이다.", "url": "https://ko.wikipedia.org/wiki/%EC%BD%9C%EB%A6%AC%EB%A7%88_(%EC%86%8C%ED%94%84%ED%8A%B8%EC%9B%A8%EC%96%B4)"}])
+        d3, _ = serve.collect_note(con, "colima", paren)
+        ok("기술 분야 괄호 문서로 넘어가도(Docker → 도커 (소프트웨어)) 위키백과 설명을 둠", d3.startswith("Colima는 컨테이너"), d3)
+    finally:
+        os.environ["CONCEPT_CHART_LEXICON"] = old
+    ok("사전 파일이 없으면 근거 없음 (예전과 같음)", homebrew.evidence(con, "Colima") is None)
+
+
 def main():
     tmp = pathlib.Path(tempfile.mkdtemp())
     os.environ["CONCEPT_CHART_LEXICON"] = str(tmp / "no-lexicon")   # 개발 PC에 사전이 있어도 CI와 같게 (띄우는 서버에도 전해진다)
@@ -738,6 +787,7 @@ def main():
         check_warm(tmp)
         check_redo(tmp)
         check_fallback(tmp)
+        check_homebrew(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print(f"\n결과: {'정상' if not FAILS else '실패 ' + str(len(FAILS)) + '개: ' + ', '.join(FAILS)}")

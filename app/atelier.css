@@ -209,6 +209,8 @@ details.more summary::marker { color: var(--cobalt); }
 .practice { background: var(--paper-deep); padding: var(--s5); display: grid; gap: var(--s3); }
 .practice .blank { font: 600 var(--fs-card)/1.65 var(--serif); }
 .progress-actions { border-top: 1px solid var(--ink); padding-top: var(--s6); display: grid; gap: var(--s4); }
+.known-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s4); padding-top: var(--s4); }   /* (11-14) 이미 알던 낱말 */
+.known-row .sub { flex: 1 1 18em; }
 .row { display: flex; gap: var(--s3); flex-wrap: wrap; align-items: center; }
 .aux { position: sticky; top: 96px; }
 .aux > div { padding: var(--s5); border-bottom: 1px solid var(--stone); display: grid; gap: var(--s3); }
